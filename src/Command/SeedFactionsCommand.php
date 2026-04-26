@@ -64,13 +64,20 @@ final class SeedFactionsCommand extends Command
         $xpath = new \DOMXPath($doc);
 
         $items = [];
-        // MUL faction list: <a href="/Faction/FactionUnits/N">Name</a>
-        foreach ($xpath->query('//a[contains(@href, "/Faction/FactionUnits/")]') ?: [] as $node) {
+        // <div class="… filterable …" data-link="/Faction/Details/{id}">…<strong>Name</strong></div>
+        foreach ($xpath->query('//div[contains(@class, "filterable") and @data-link]') ?: [] as $node) {
             /** @var \DOMElement $node */
-            $href = $node->getAttribute('href');
-            if (preg_match('#/Faction/FactionUnits/(\d+)#', $href, $m)) {
-                $items[] = [(int) $m[1], trim($node->textContent)];
+            if (!preg_match('#/Faction/Details/(\d+)#', $node->getAttribute('data-link'), $m)) {
+                continue;
             }
+            $strong = $xpath->query('.//strong', $node);
+            $name   = $strong !== false && $strong->length > 0
+                ? trim($strong->item(0)->textContent)
+                : trim($node->textContent);
+            if ($name === '') {
+                continue;
+            }
+            $items[] = [(int) $m[1], $name];
         }
 
         return array_unique($items, SORT_REGULAR);

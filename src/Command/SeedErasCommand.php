@@ -69,13 +69,18 @@ final class SeedErasCommand extends Command
         $xpath = new \DOMXPath($doc);
 
         $items = [];
-        // MUL era list: <a href="/Era/EraUnits/N">Name</a>
-        foreach ($xpath->query('//a[contains(@href, "/Era/EraUnits/")]') ?: [] as $node) {
+        // <div data-link="/Era/Details/{id}/slug">…<h3>Name</h3>…</div>
+        foreach ($xpath->query('//div[@data-link]') ?: [] as $node) {
             /** @var \DOMElement $node */
-            $href = $node->getAttribute('href');
-            if (preg_match('#/Era/EraUnits/(\d+)#', $href, $m)) {
-                $items[] = [(int) $m[1], trim($node->textContent)];
+            if (!preg_match('#/Era/Details/(\d+)#', $node->getAttribute('data-link'), $m)) {
+                continue;
             }
+            $h3   = $xpath->query('.//h3', $node);
+            $name = $h3 !== false && $h3->length > 0 ? trim($h3->item(0)->textContent) : '';
+            if ($name === '') {
+                continue;
+            }
+            $items[] = [(int) $m[1], $name];
         }
 
         return array_unique($items, SORT_REGULAR);
