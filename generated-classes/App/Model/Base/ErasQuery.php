@@ -168,7 +168,7 @@ abstract class ErasQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildEras
     {
-        $sql = 'SELECT id, name, start_year FROM eras WHERE id = :p0';
+        $sql = 'SELECT `id`, `name`, `start_year` FROM `eras` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');

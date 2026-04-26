@@ -163,7 +163,7 @@ abstract class RolesQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildRoles
     {
-        $sql = 'SELECT id, name FROM roles WHERE id = :p0';
+        $sql = 'SELECT `id`, `name` FROM `roles` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');

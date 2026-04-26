@@ -396,7 +396,7 @@ abstract class UnitsQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildUnits
     {
-        $sql = 'SELECT id, mul_id, name, class, variant, tonnage, battle_value, cost, rules, date_introduced, era_id, era_start, image_url, is_published, mul_release, type_id, technology_id, role_id, bf_type, bf_size, bf_move, bf_tmm, bf_armor, bf_structure, bf_threshold, bf_damage_short, bf_damage_short_min, bf_damage_medium, bf_damage_medium_min, bf_damage_long, bf_damage_long_min, bf_damage_extreme, bf_damage_extreme_min, bf_overheat, bf_point_value, bf_abilities, image_path, image_hash, created_at, updated_at FROM units WHERE id = :p0';
+        $sql = 'SELECT `id`, `mul_id`, `name`, `class`, `variant`, `tonnage`, `battle_value`, `cost`, `rules`, `date_introduced`, `era_id`, `era_start`, `image_url`, `is_published`, `mul_release`, `type_id`, `technology_id`, `role_id`, `bf_type`, `bf_size`, `bf_move`, `bf_tmm`, `bf_armor`, `bf_structure`, `bf_threshold`, `bf_damage_short`, `bf_damage_short_min`, `bf_damage_medium`, `bf_damage_medium_min`, `bf_damage_long`, `bf_damage_long_min`, `bf_damage_extreme`, `bf_damage_extreme_min`, `bf_overheat`, `bf_point_value`, `bf_abilities`, `image_path`, `image_hash`, `created_at`, `updated_at` FROM `units` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<database name="mech_library" defaultIdMethod="native" defaultPhpNamingMethod="underscore" namespace="App\Model">
+<database name="mech_library" defaultIdMethod="native" defaultPhpNamingMethod="underscore" namespace="App\Model" identifierQuoting="true">
   <table name="eras" idMethod="native" phpName="Eras">
     <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
     <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>

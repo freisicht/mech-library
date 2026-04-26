@@ -193,7 +193,7 @@ abstract class UnitAbilitiesQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildUnitAbilities
     {
-        $sql = 'SELECT id, unit_id, tag, short, medium, long, value, raw FROM unit_abilities WHERE id = :p0';
+        $sql = 'SELECT `id`, `unit_id`, `tag`, `short`, `medium`, `long`, `value`, `raw` FROM `unit_abilities` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');

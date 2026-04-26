@@ -151,7 +151,7 @@ abstract class FactionsQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildFactions
     {
-        $sql = 'SELECT id, name FROM factions WHERE id = :p0';
+        $sql = 'SELECT `id`, `name` FROM `factions` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');
