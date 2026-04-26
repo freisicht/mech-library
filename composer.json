@@ -28,7 +28,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": ["src/", "generated-classes/App/"]
         }
     },
     "autoload-dev": {
@@ -44,7 +44,7 @@
             "@phpunit"
         ],
         "phpunit": "phpunit",
-        "stan": "phpstan analyse src tests --level=6",
+        "stan": "phpstan analyse src tests --level=6 --memory-limit=512M",
         "cs-check": "php-cs-fixer fix --dry-run --diff",
         "cs-fix": "php-cs-fixer fix"
     },
