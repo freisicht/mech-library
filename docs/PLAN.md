@@ -1,0 +1,130 @@
+# Mech Library — Roadmap
+
+Three phases. Each phase ends with a tagged release on `main`. Each phase has a **handoff prompt** at the bottom of its section — paste that into a new session to start the next agent cold.
+
+---
+
+## Phase 0 — Bootstrap ✅
+
+Set up the bare repo skeleton (this commit).
+
+- [x] `CLAUDE.md`, `README.md`
+- [x] `docs/PLAN.md`, `docs/MUL_API.md`
+- [x] `composer.json` with the agreed dependencies
+- [x] `.gitignore`, `.editorconfig`, `.env.example`
+- [x] Git initialised, first commit, `main` branch
+
+Tag: `v0.0.0`.
+
+---
+
+## Phase 1 — Scraper & Importer
+
+**Goal:** A reproducible pipeline that fills a MySQL database with all BattleMech and OmniMech Alpha Strike data plus locally-stored images.
+
+### Scope
+
+- Mechs and OmniMechs only (filter on Type id `18` plus any Mech-adjacent type id discovered during the crawl — verify before extending).
+- Three CLI commands:
+  - `mul:scrape` — fetch raw JSON from MUL into `data/raw/`. Idempotent, cache-aware.
+  - `mul:import` — read `data/raw/` and upsert into MySQL. Idempotent on MUL `Id`.
+  - `mul:images` — download images referenced by units to `public/images/units/`. Skip if file exists & content hash unchanged.
+- Two seed commands:
+  - `mul:seed-factions` — parse `/Faction/Index` into `factions` table.
+  - `mul:seed-eras` — parse `/Era/Index` into `eras` table.
+
+### Tasks
+
+- [ ] **DB schema** — design + migration. Tables: `units`, `unit_abilities`, `factions`, `eras`, `unit_types`, `roles`, `technologies`. Document in `docs/SCHEMA.md` as you go (rationale, not just DDL).
+- [ ] **Perpl setup** — schema XML, generate Model classes into `src/Model/`. Commit generated files (project convention: ORM output is reviewed code).
+- [ ] **Crawler** — central `MulClient` with rate limit + disk cache + UA header. All HTTP to MUL goes through it. Unit-tested with mocked Guzzle handler.
+- [ ] **Pager** — iterate `(Type, Tonnage)` buckets per `docs/MUL_API.md`. Resume-safe: a finished bucket is not refetched.
+- [ ] **Importer** — read `data/raw/*.json`, upsert by `mul_id`. Parse `BFAbilities` into `unit_abilities`. Keep raw `BFAbilities` string on `units`.
+- [ ] **Image downloader** — separate command, separate cache. Polite timing. Stores hash, skips no-op rewrites.
+- [ ] **Tests** — unit tests for `MulClient` (cache hit/miss, rate limit, error handling), `BFAbilities` parser, `Importer::upsert` (with in-memory SQLite or MySQL test DB).
+- [ ] **Static checks** — `composer test` runs phpunit + phpstan (level 6) + php-cs-fixer --dry-run, all green.
+- [ ] **Update docs** — `docs/SCHEMA.md` finalised, `docs/PLAN.md` ticked, `README.md` quick-start verified end-to-end.
+
+### Definition of done
+
+- `composer install && bin/console mul:scrape && bin/console mul:import && bin/console mul:images` from a clean clone produces a populated DB and image directory in <10 minutes.
+- `composer test` green.
+- Tag `v0.1.0` on `main`.
+
+### Handoff prompt for Phase 1
+
+> You are starting Phase 1 of the Mech Library project. **First action: read `CLAUDE.md`, then `docs/PLAN.md` (Phase 1 section), then `docs/MUL_API.md`. Do not start exploring MUL or designing schema until you have read all three.**
+>
+> Implement the scraper + importer pipeline as specified in Phase 1. Stay strictly inside scope (Mechs + OmniMechs only, no web UI work). Use the agreed stack from `CLAUDE.md` — do not introduce new dependencies without asking.
+>
+> Workflow: branch `phase/1-scraper`, commit per logical step using Conventional Commits. Do not merge to `main` or tag. When all tasks under "Phase 1" in `docs/PLAN.md` are checked and `composer test` is green, stop and ask the user to review.
+>
+> Open questions to clarify before coding: (1) which Type ids besides `18` count as "Mech / OmniMech" — verify by grepping the seeded `unit_types` table; (2) is the existing local MySQL on the default socket / port 3306 — confirm by running `mysql -e "SHOW DATABASES"` and proposing a database name.
+
+---
+
+## Phase 2 — Filterable web UI
+
+**Goal:** A served web page at `http://localhost/mech_library/` (Apache vhost on `public/`) showing all units in a fast filterable table.
+
+### Scope
+
+- Single-page table (Twig-rendered shell + JS-driven table). DataTables or Tabulator — pick one in an ADR.
+- Server-side filtering and paging (the dataset is small enough for client-side, but server-side keeps URLs shareable and is the same plumbing the force builder will need).
+- Filters (the user has specific ones in mind — **ask before building**):
+  - Tonnage range, PV range, Move (incl. jump), TMM
+  - Type, Role, Tech base
+  - Damage at S/M/L (min)
+  - Abilities (multi-select including AND/OR semantics)
+  - Era / availability date range
+  - Free-text on Name / Class / Variant
+- Detail view per unit (Twig page).
+- No auth, no accounts. Local single-user app.
+
+### Tasks (high level — refine when phase starts)
+
+- [ ] Slim 4 + Twig wired up via `public/index.php`.
+- [ ] `UnitRepository` on top of Perpl Models with composable filter builder.
+- [ ] `GET /` — table view + filter form.
+- [ ] `GET /units/{id}` — detail view.
+- [ ] `GET /api/units` — JSON for the table (used by JS).
+- [ ] CSS: pick a minimal framework (Pico.css or just hand-rolled — decide via ADR).
+- [ ] Basic feature tests with Slim's test client.
+
+### Handoff prompt for Phase 2
+
+> You are starting Phase 2 of the Mech Library project. **First action: read `CLAUDE.md`, `docs/PLAN.md` (Phase 2 section), and `docs/SCHEMA.md`.** Phase 1 is done — the DB is populated. Do not touch the scraper.
+>
+> Before writing any UI code, ask the user to enumerate the exact filter parameters they want (the plan has a starter list, but the user already has specific ones in mind). Then propose a wireframe in plain text and get sign-off. Only then implement.
+>
+> Branch `phase/2-ui`. Commit per logical step. Do not merge or tag without user approval.
+
+---
+
+## Phase 3 — Force builder
+
+**Goal:** Compose an Alpha Strike force from filtered units, see live PV total, role mix, and rule-format checks.
+
+Deferred design — flesh out at the start of phase 3, after the user has used phase 2 for a while and has concrete wishes.
+
+### Likely scope (placeholder, not committed)
+
+- "Add to force" button on table rows and detail view.
+- Persistent forces (named, saved to DB).
+- PV / weight / role-mix summary panel.
+- Print/export to a printable card sheet (PDF or a print-CSS HTML page).
+
+### Handoff prompt for Phase 3
+
+> Phase 3 starts with a design conversation, not coding. Read `CLAUDE.md` and the Phase 3 section of `docs/PLAN.md`, then walk through the user's wishlist with them and produce an ADR under `docs/decisions/` before writing code.
+
+---
+
+## Backlog (parking lot)
+
+Ideas captured during work that are explicitly out of scope until promoted into a phase:
+
+- Vehicles, Aerospace, BA, ProtoMechs (extend `mul:scrape` Type filter).
+- Cross-reference with local MegaMek `unit_files.zip` for fluff text and quirks.
+- Force exchange/import in MegaMek MUL JSON-force format.
+- Probabilistic match-up calculator.

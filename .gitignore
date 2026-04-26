@@ -1,0 +1,36 @@
+# PHP / Composer
+/vendor/
+composer.lock.bak
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated / runtime
+/var/cache/*
+/var/log/*
+!/var/cache/.gitkeep
+!/var/log/.gitkeep
+
+# Crawler artefacts (regenerable)
+/data/raw/
+/public/images/units/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tooling caches
+.phpunit.result.cache
+.php-cs-fixer.cache
+/phpstan.cache/
+
+# Local Claude config (per-machine)
+/.claude/settings.local.json
