@@ -1,0 +1,28 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+use App\Bootstrap;
+use App\Command\ImagesCommand;
+use App\Command\ImportCommand;
+use App\Command\ScrapeCommand;
+use App\Command\SeedErasCommand;
+use App\Command\SeedFactionsCommand;
+use Dotenv\Dotenv;
+use Symfony\Component\Console\Application;
+
+$dotenv = Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->safeLoad();
+
+Bootstrap::initPropel();
+
+$app = new Application('MechLibrary', '0.1.0');
+$app->add(new ScrapeCommand());
+$app->add(new ImportCommand());
+$app->add(new ImagesCommand());
+$app->add(new SeedFactionsCommand());
+$app->add(new SeedErasCommand());
+$app->run();
