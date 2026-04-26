@@ -4,9 +4,14 @@ Reverse-engineered from the live site on 2026-04-26. There is no official public
 
 ## Base
 
-`https://masterunitlist.info/`
+`http://masterunitlist.info/`
 
-The TLS cert has SAN issues for some clients (e.g. Node's stricter validator). `curl -k` and most PHP HTTP clients work fine. Guzzle: pass `'verify' => false` only if needed; usually it works with the default CA bundle.
+We deliberately use plain HTTP. The server presents an Azure wildcard cert
+(`CN=*.azurewebsites.net`) that does not cover `masterunitlist.info`, so any
+strict TLS client — including default Guzzle — fails with `cURL error 60`.
+HTTP works without a redirect and the data is public/read-only, so the
+trade-off is acceptable. If they fix their cert, switch `MUL_BASE_URL` in
+`.env` back to `https://`.
 
 ## Primary endpoint: `/Unit/QuickList`
 
