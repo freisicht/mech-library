@@ -24,7 +24,7 @@ final class ScrapeCommand extends Command
             null,
             InputOption::VALUE_REQUIRED,
             'Comma-separated Type ids to fetch',
-            '18,45',
+            '18',
         );
     }
 

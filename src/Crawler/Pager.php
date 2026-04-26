@@ -24,7 +24,7 @@ final class Pager
     /** @param int[] $typeIds */
     public function __construct(
         private readonly MulClient $client,
-        private readonly array $typeIds = [18, 45],
+        private readonly array $typeIds = [18],
         ?LoggerInterface $logger = null,
     ) {
         $this->logger = $logger ?? new NullLogger();
