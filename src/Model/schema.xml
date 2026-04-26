@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<database name="mech_library" defaultIdMethod="native" defaultPhpNamingMethod="underscore" namespace="App\Model">
+  <table name="eras" idMethod="native" phpName="Eras">
+    <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>
+    <column name="start_year" phpName="StartYear" type="SMALLINT"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="factions" idMethod="native" phpName="Factions">
+    <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="roles" idMethod="native" phpName="Roles">
+    <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="64" required="true"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="technologies" idMethod="native" phpName="Technologies">
+    <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="64" required="true"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="unit_abilities" idMethod="native" phpName="UnitAbilities">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="unit_id" phpName="UnitId" type="INTEGER" sqlType="int unsigned" required="true"/>
+    <column name="tag" phpName="Tag" type="VARCHAR" size="32" required="true"/>
+    <column name="short" phpName="Short" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="medium" phpName="Medium" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="long" phpName="Long" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="value" phpName="Value" type="VARCHAR" size="16"/>
+    <column name="raw" phpName="Raw" type="VARCHAR" size="64" required="true"/>
+    <foreign-key foreignTable="units" name="fk_ua_unit" onDelete="CASCADE">
+      <reference local="unit_id" foreign="id"/>
+    </foreign-key>
+    <index name="idx_ua_unit_id">
+      <index-column name="unit_id"/>
+    </index>
+    <index name="idx_ua_tag">
+      <index-column name="tag"/>
+    </index>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="unit_types" idMethod="native" phpName="UnitTypes">
+    <column name="id" phpName="Id" type="SMALLINT" sqlType="smallint unsigned" primaryKey="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="64" required="true"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="units" idMethod="native" phpName="Units">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="mul_id" phpName="MulId" type="INTEGER" sqlType="int unsigned" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="255" required="true"/>
+    <column name="class" phpName="Class" type="VARCHAR" size="128" required="true" defaultValue=""/>
+    <column name="variant" phpName="Variant" type="VARCHAR" size="128" required="true" defaultValue=""/>
+    <column name="tonnage" phpName="Tonnage" type="TINYINT" sqlType="tinyint unsigned" required="true" defaultValue="0"/>
+    <column name="battle_value" phpName="BattleValue" type="INTEGER" sqlType="int unsigned"/>
+    <column name="cost" phpName="Cost" type="BIGINT" sqlType="bigint unsigned"/>
+    <column name="rules" phpName="Rules" type="VARCHAR" size="32" required="true" defaultValue=""/>
+    <column name="date_introduced" phpName="DateIntroduced" type="VARCHAR" size="16"/>
+    <column name="era_id" phpName="EraId" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="era_start" phpName="EraStart" type="SMALLINT"/>
+    <column name="image_url" phpName="ImageUrl" type="VARCHAR" size="512"/>
+    <column name="is_published" phpName="IsPublished" type="BOOLEAN" size="1" required="true" defaultValue="true"/>
+    <column name="mul_release" phpName="MulRelease" type="DECIMAL" size="4" scale="1"/>
+    <column name="type_id" phpName="TypeId" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="technology_id" phpName="TechnologyId" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="role_id" phpName="RoleId" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="bf_type" phpName="BfType" type="VARCHAR" size="8"/>
+    <column name="bf_size" phpName="BfSize" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_move" phpName="BfMove" type="VARCHAR" size="16"/>
+    <column name="bf_tmm" phpName="BfTmm" type="TINYINT"/>
+    <column name="bf_armor" phpName="BfArmor" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="bf_structure" phpName="BfStructure" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="bf_threshold" phpName="BfThreshold" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_damage_short" phpName="BfDamageShort" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_damage_short_min" phpName="BfDamageShortMin" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
+    <column name="bf_damage_medium" phpName="BfDamageMedium" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_damage_medium_min" phpName="BfDamageMediumMin" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
+    <column name="bf_damage_long" phpName="BfDamageLong" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_damage_long_min" phpName="BfDamageLongMin" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
+    <column name="bf_damage_extreme" phpName="BfDamageExtreme" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_damage_extreme_min" phpName="BfDamageExtremeMin" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
+    <column name="bf_overheat" phpName="BfOverheat" type="TINYINT" sqlType="tinyint unsigned"/>
+    <column name="bf_point_value" phpName="BfPointValue" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="bf_abilities" phpName="BfAbilities" type="LONGVARCHAR"/>
+    <column name="image_path" phpName="ImagePath" type="VARCHAR" size="512"/>
+    <column name="image_hash" phpName="ImageHash" type="CHAR" size="64"/>
+    <column name="created_at" phpName="CreatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
+    <column name="updated_at" phpName="UpdatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    <foreign-key foreignTable="eras" name="fk_units_era">
+      <reference local="era_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="roles" name="fk_units_role">
+      <reference local="role_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="technologies" name="fk_units_technology">
+      <reference local="technology_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="unit_types" name="fk_units_type">
+      <reference local="type_id" foreign="id"/>
+    </foreign-key>
+    <index name="idx_tonnage">
+      <index-column name="tonnage"/>
+    </index>
+    <index name="idx_bf_point_value">
+      <index-column name="bf_point_value"/>
+    </index>
+    <index name="idx_type_id">
+      <index-column name="type_id"/>
+    </index>
+    <index name="idx_role_id">
+      <index-column name="role_id"/>
+    </index>
+    <index name="idx_technology_id">
+      <index-column name="technology_id"/>
+    </index>
+    <index name="fk_units_era">
+      <index-column name="era_id"/>
+    </index>
+    <unique name="uq_mul_id">
+      <unique-column name="mul_id"/>
+    </unique>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+</database>
