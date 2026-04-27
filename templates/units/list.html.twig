@@ -186,6 +186,17 @@
                     </select>
                     <input type="number" id="ability-val-input" placeholder="≥ val" min="0"
                            style="width:70px;">
+                    <div class="ability-mode-group">
+                        <span class="ability-mode-label">MODE:</span>
+                        <label>
+                            <input type="radio" name="ability_mode" value="and"
+                                   {% if (params.ability_mode ?? 'and') == 'and' %}checked{% endif %}> AND
+                        </label>
+                        <label>
+                            <input type="radio" name="ability_mode" value="or"
+                                   {% if (params.ability_mode ?? 'and') == 'or' %}checked{% endif %}> OR
+                        </label>
+                    </div>
                     <button type="button" id="ability-add-btn" class="btn-secondary btn-sm">+ Add</button>
                 </div>
                 <div id="ability-chips" class="ability-chips"></div>
@@ -199,18 +210,6 @@
             <div class="filter-actions">
                 <button type="submit" class="btn-primary">Apply</button>
                 <a href="/" class="btn-secondary" style="clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);padding:5px 14px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:0.10em;border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-block;transition:all 0.12s;">Reset</a>
-
-                <div class="ability-mode-group">
-                    <span class="ability-mode-label">MODE:</span>
-                    <label>
-                        <input type="radio" name="ability_mode" value="and"
-                               {% if (params.ability_mode ?? 'and') == 'and' %}checked{% endif %}> AND
-                    </label>
-                    <label>
-                        <input type="radio" name="ability_mode" value="or"
-                               {% if (params.ability_mode ?? 'and') == 'or' %}checked{% endif %}> OR
-                    </label>
-                </div>
             </div>
 
         </div>{# /.filter-abilities-row #}

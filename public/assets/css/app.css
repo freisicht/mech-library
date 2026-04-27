@@ -29,6 +29,7 @@
 
 /* ── Reset / base ────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
 
 html, body {
   width: 100%;
@@ -495,7 +496,7 @@ button, .btn {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 .filter-grid {
@@ -745,46 +746,8 @@ button, .btn {
   color: var(--cyan);
 }
 
-/* Footer / pagination */
-.tabulator .tabulator-footer {
-  background: var(--bg3) !important;
-  border-top: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 11px !important;
-  padding: 4px 8px !important;
-}
-
-.tabulator .tabulator-paginator button,
-.tabulator .tabulator-page {
-  background: transparent !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text-dim) !important;
-  font-family: 'Orbitron', monospace !important;
-  font-size: 9px !important;
-  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
-  padding: 2px 8px !important;
-  cursor: pointer !important;
-  transition: all 0.1s !important;
-}
-.tabulator .tabulator-page:hover,
-.tabulator .tabulator-paginator button:hover {
-  background: var(--bg3) !important;
-  color: var(--cyan) !important;
-}
-.tabulator .tabulator-page.active {
-  border-color: var(--cyan) !important;
-  color: var(--cyan) !important;
-}
-
-.tabulator-page-size {
-  background: oklch(0.08 0.02 240) !important;
-  border: 1px solid var(--border) !important;
-  color: var(--text) !important;
-  font-family: 'JetBrains Mono', monospace !important;
-  font-size: 11px !important;
-  padding: 2px 4px !important;
-}
+/* Footer — hidden; progressive load replaces pagination */
+.tabulator .tabulator-footer { display: none !important; }
 
 /* ── Add-to-force button in Tabulator ────────────────── */
 .add-to-force-btn {
@@ -1293,6 +1256,18 @@ details[open] .fp-armies-summary::after { content: '▼'; }
 }
 .fp-new-army-form input { font-size: 11px; }
 
+/* Detail page: override the 18×18px table button size */
+.detail-actions .add-to-force-btn {
+  width: auto;
+  height: auto;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  padding: 5px 14px;
+  color: var(--green);
+}
+
 /* ── Unit Detail page ────────────────────────────────── */
 .detail-wrap {
   flex: 1;
@@ -1563,6 +1538,31 @@ article {
 
 /* ── Responsive fallback ──────────────────────────────── */
 @media (max-width: 700px) {
+  html, body {
+    overflow: auto;
+    height: auto;
+  }
+  .app-shell {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .app-body {
+    overflow: visible;
+    flex-direction: column;
+  }
+  .app-main {
+    overflow: visible;
+  }
+  .force-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  #unit-table {
+    height: 60vh;
+    flex: none;
+  }
   .unit-detail-layout { flex-direction: column; }
   .unit-image { width: 100%; height: 200px; }
   .filter-grid,

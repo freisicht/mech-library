@@ -17,7 +17,6 @@
     const panel           = document.getElementById('force-panel');
     const toggleBtn       = document.getElementById('fp-toggle');
     const selectEl        = document.getElementById('fp-formation-select');
-    const searchEl        = document.getElementById('fp-formation-search');
     const newBtn          = document.getElementById('fp-new-btn');
     const newForm         = document.getElementById('fp-new-form');
     const newNameInput    = document.getElementById('fp-new-name');
@@ -69,11 +68,6 @@
         populateFormationSelector(formations, activeData.formation);
         renderArmyList(armies);
 
-        // Show search input only when there are enough formations to warrant it
-        if (searchEl && formations.length > 8) {
-            searchEl.hidden = false;
-        }
-
         if (activeData.formation) {
             state.formation = activeData.formation;
             render();
@@ -112,28 +106,12 @@
         });
     }
 
-    // ── Formation search/filter ───────────────────────────────────────────────
-
-    if (searchEl) {
-        searchEl.addEventListener('input', () => {
-            const q = searchEl.value.toLowerCase().trim();
-            const filtered = q === ''
-                ? state.allFormations
-                : state.allFormations.filter(f =>
-                    f.name.toLowerCase().includes(q) ||
-                    (f.army_name && f.army_name.toLowerCase().includes(q))
-                );
-            populateFormationSelector(filtered, state.formation);
-        });
-    }
-
     // ── New-formation form ────────────────────────────────────────────────────
 
     if (newBtn) {
         newBtn.addEventListener('click', () => {
             newForm.hidden = false;
             newBtn.hidden  = true;
-            if (searchEl)    searchEl.hidden = true;
             if (newNameInput) newNameInput.focus();
         });
     }
@@ -142,7 +120,6 @@
         newCancelBtn.addEventListener('click', () => {
             newForm.hidden = true;
             newBtn.hidden  = false;
-            if (searchEl) searchEl.hidden = state.allFormations.length <= 8;
         });
     }
 
@@ -165,7 +142,6 @@
                     army_id: armyId, army_name: armyName,
                 });
                 populateFormationSelector(state.allFormations, created);
-                if (searchEl && state.allFormations.length > 8) searchEl.hidden = false;
                 return apiFetch('/api/formations/' + created.id + '/activate', { method: 'POST' });
             }).then(f => {
                 state.formation = f;

@@ -46,10 +46,9 @@
     const table = new Tabulator('#unit-table', {
         layout: 'fitColumns',
         height: '100%',
-        pagination: true,
-        paginationMode: 'remote',
+        progressiveLoad: 'scroll',
+        progressiveLoadScrollMargin: 200,
         paginationSize: 50,
-        paginationSizeSelector: [25, 50, 100],
         sortMode: 'remote',
         ajaxURL: apiUrl,
         ajaxConfig: 'GET',
@@ -133,7 +132,6 @@
             const params = collectFormParams();
             const qs2 = buildQueryString(params);
             history.replaceState(null, '', qs2 ? '?' + qs2 : '/');
-            table.setPage(1);
             table.replaceData();
         });
     }
