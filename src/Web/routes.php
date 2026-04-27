@@ -19,6 +19,9 @@ return static function (App $app): void {
     // Phase 3 — formation type catalogue
     $app->get('/api/formation-types', [ApiFormationsController::class, 'types']);
 
+    // Phase 3 — all formations (flat list for force-panel selector)
+    $app->get('/api/formations', [ApiFormationsController::class, 'listAll']);
+
     // Phase 3 — active formation (force panel data source)
     $app->get('/api/formations/active', [ApiFormationsController::class, 'getActive']);
     $app->delete('/api/formations/active', [ApiFormationsController::class, 'deactivate']);

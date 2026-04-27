@@ -15,6 +15,11 @@ final class ApiFormationsController
     {
     }
 
+    public function listAll(Request $request, Response $response): Response
+    {
+        return $this->json($response, $this->formations->findAllForSelector());
+    }
+
     public function types(Request $request, Response $response): Response
     {
         $types = array_map(

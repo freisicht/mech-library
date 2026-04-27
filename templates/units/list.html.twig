@@ -198,10 +198,9 @@
 
 {% block scripts %}
 <script>
-    window.ML = {
-        apiUrl: '/api/units',
-        initialParams: {{ params|json_encode|raw }},
-    };
+    window.ML = window.ML || {};
+    window.ML.apiUrl = '/api/units';
+    window.ML.initialParams = {{ params|json_encode|raw }};
 </script>
 <script src="/assets/js/app.js"></script>
 {% endblock %}

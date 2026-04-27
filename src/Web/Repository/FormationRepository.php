@@ -74,6 +74,26 @@ final class FormationRepository
         return $rows;
     }
 
+    /**
+     * Flat list of all formations with optional army info — used by the force-panel selector.
+     * Army-owned formations sort before standalone (army_id IS NULL sorts last).
+     *
+     * @return list<array{id: int, name: string, army_id: int|null, army_name: string|null}>
+     */
+    public function findAllForSelector(): array
+    {
+        $rows = $this->exec(
+            'SELECT f.id, f.name, f.army_id, a.name AS army_name
+             FROM formations f
+             LEFT JOIN armies a ON a.id = f.army_id
+             ORDER BY (f.army_id IS NULL), a.name, f.name',
+            [],
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        /** @var list<array{id: int, name: string, army_id: int|null, army_name: string|null}> $rows */
+        return $rows;
+    }
+
     public function create(
         string $name,
         string $formationType,

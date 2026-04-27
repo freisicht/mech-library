@@ -6,37 +6,49 @@
     // ── State ─────────────────────────────────────────────────────────────────
 
     let state = {
-        formation: null,    // active formation object or null
-        allTypes:  [],      // [{slug, name, faction}, …]
-        allFormations: [],  // flat list from /api/armies for the selector
+        formation:     null,  // active formation object or null
+        allTypes:      [],    // [{slug, name, faction}, …]
+        allFormations: [],    // [{id, name, army_id, army_name}, …]
+        allArmies:     [],    // [{id, name, formations: []}, …]
     };
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
 
-    const panel         = document.getElementById('force-panel');
-    const toggleBtn     = document.getElementById('fp-toggle');
-    const titleEl       = document.getElementById('fp-title');
-    const selectEl      = document.getElementById('fp-formation-select');
-    const newBtn        = document.getElementById('fp-new-btn');
-    const newForm       = document.getElementById('fp-new-form');
-    const newNameInput  = document.getElementById('fp-new-name');
-    const newTypeSelect = document.getElementById('fp-new-type');
-    const newBudget     = document.getElementById('fp-new-budget');
-    const newSaveBtn    = document.getElementById('fp-new-save');
-    const newCancelBtn  = document.getElementById('fp-new-cancel');
-    const summaryEl     = document.getElementById('fp-summary');
-    const typeLabel     = document.getElementById('fp-type-label');
+    const panel           = document.getElementById('force-panel');
+    const toggleBtn       = document.getElementById('fp-toggle');
+    const selectEl        = document.getElementById('fp-formation-select');
+    const searchEl        = document.getElementById('fp-formation-search');
+    const newBtn          = document.getElementById('fp-new-btn');
+    const newForm         = document.getElementById('fp-new-form');
+    const newNameInput    = document.getElementById('fp-new-name');
+    const newArmySelect   = document.getElementById('fp-new-army');
+    const newTypeSelect   = document.getElementById('fp-new-type');
+    const newBudget       = document.getElementById('fp-new-budget');
+    const newSaveBtn      = document.getElementById('fp-new-save');
+    const newCancelBtn    = document.getElementById('fp-new-cancel');
+    const nameRowEl       = document.getElementById('fp-name-row');
+    const titleEl         = document.getElementById('fp-title');
+    const renameBtnEl     = document.getElementById('fp-rename-btn');
+    const renameFormEl    = document.getElementById('fp-rename-form');
+    const renameInputEl   = document.getElementById('fp-rename-input');
+    const renameSaveEl    = document.getElementById('fp-rename-save');
+    const renameCancelEl  = document.getElementById('fp-rename-cancel');
+    const summaryEl       = document.getElementById('fp-summary');
+    const typeLabel       = document.getElementById('fp-type-label');
     const complianceBadge = document.getElementById('fp-compliance-badge');
-    const pvSum         = document.getElementById('fp-pv-sum');
-    const pvBudgetEl    = document.getElementById('fp-pv-budget-display');
-    const dmgS          = document.getElementById('fp-dmg-s');
-    const dmgM          = document.getElementById('fp-dmg-m');
-    const dmgL          = document.getElementById('fp-dmg-l');
-    const reqList       = document.getElementById('fp-requirements');
-    const unitList      = document.getElementById('fp-unit-list');
-    const actionsEl     = document.getElementById('fp-actions');
-    const suggestBtn    = document.getElementById('fp-suggest-btn');
-    const printLink     = document.getElementById('fp-print-link');
+    const pvSum           = document.getElementById('fp-pv-sum');
+    const pvBudgetEl      = document.getElementById('fp-pv-budget-display');
+    const dmgS            = document.getElementById('fp-dmg-s');
+    const dmgM            = document.getElementById('fp-dmg-m');
+    const dmgL            = document.getElementById('fp-dmg-l');
+    const reqList         = document.getElementById('fp-requirements');
+    const unitList        = document.getElementById('fp-unit-list');
+    const actionsEl       = document.getElementById('fp-actions');
+    const suggestBtn      = document.getElementById('fp-suggest-btn');
+    const printLink       = document.getElementById('fp-print-link');
+    const armyListEl      = document.getElementById('fp-army-list');
+    const newArmyNameEl   = document.getElementById('fp-new-army-name');
+    const newArmySaveEl   = document.getElementById('fp-new-army-save');
 
     if (!panel) return; // panel not in DOM
 
@@ -45,13 +57,22 @@
     Promise.all([
         apiFetch('/api/formation-types'),
         apiFetch('/api/armies'),
+        apiFetch('/api/formations'),
         apiFetch('/api/formations/active'),
-    ]).then(([types, armies, activeData]) => {
-        state.allTypes = types;
-        populateTypeDropdown(newTypeSelect, types);
+    ]).then(([types, armies, formations, activeData]) => {
+        state.allTypes     = types;
+        state.allArmies    = armies;
+        state.allFormations = formations;
 
-        state.allFormations = flattenFormations(armies);
-        populateFormationSelector(state.allFormations, activeData.formation);
+        populateTypeDropdown(newTypeSelect, types);
+        populateArmyDropdown(newArmySelect, armies);
+        populateFormationSelector(formations, activeData.formation);
+        renderArmyList(armies);
+
+        // Show search input only when there are enough formations to warrant it
+        if (searchEl && formations.length > 8) {
+            searchEl.hidden = false;
+        }
 
         if (activeData.formation) {
             state.formation = activeData.formation;
@@ -87,12 +108,28 @@
         });
     }
 
+    // ── Formation search/filter ───────────────────────────────────────────────
+
+    if (searchEl) {
+        searchEl.addEventListener('input', () => {
+            const q = searchEl.value.toLowerCase().trim();
+            const filtered = q === ''
+                ? state.allFormations
+                : state.allFormations.filter(f =>
+                    f.name.toLowerCase().includes(q) ||
+                    (f.army_name && f.army_name.toLowerCase().includes(q))
+                );
+            populateFormationSelector(filtered, state.formation);
+        });
+    }
+
     // ── New-formation form ────────────────────────────────────────────────────
 
     if (newBtn) {
         newBtn.addEventListener('click', () => {
             newForm.hidden = false;
             newBtn.hidden  = true;
+            if (searchEl)    searchEl.hidden = true;
             if (newNameInput) newNameInput.focus();
         });
     }
@@ -101,6 +138,7 @@
         newCancelBtn.addEventListener('click', () => {
             newForm.hidden = true;
             newBtn.hidden  = false;
+            if (searchEl) searchEl.hidden = state.allFormations.length <= 8;
         });
     }
 
@@ -109,25 +147,80 @@
             const name   = newNameInput ? newNameInput.value.trim() : '';
             const type   = newTypeSelect ? newTypeSelect.value : 'custom';
             const budget = newBudget && newBudget.value !== '' ? parseInt(newBudget.value, 10) : null;
+            const armyId = newArmySelect && newArmySelect.value ? parseInt(newArmySelect.value, 10) : null;
             if (!name) { if (newNameInput) newNameInput.focus(); return; }
 
             apiFetch('/api/formations', {
                 method: 'POST',
-                body: JSON.stringify({ name, formation_type: type, pv_budget: budget }),
+                body: JSON.stringify({ name, formation_type: type, pv_budget: budget, army_id: armyId }),
             }).then(created => {
-                // Add to selector and activate
-                state.allFormations.push({ id: created.id, name: created.name });
-                rebuildSelectorOptions(state.allFormations, created.id);
+                const army     = armyId ? state.allArmies.find(a => Number(a.id) === armyId) : null;
+                const armyName = army ? army.name : null;
+                state.allFormations.push({
+                    id: created.id, name: created.name,
+                    army_id: armyId, army_name: armyName,
+                });
+                populateFormationSelector(state.allFormations, created);
+                if (searchEl && state.allFormations.length > 8) searchEl.hidden = false;
                 return apiFetch('/api/formations/' + created.id + '/activate', { method: 'POST' });
             }).then(f => {
                 state.formation = f;
                 render();
                 newForm.hidden = true;
                 newBtn.hidden  = false;
-                if (newNameInput) newNameInput.value = '';
-                if (newBudget)    newBudget.value    = '';
+                if (newNameInput)  newNameInput.value  = '';
+                if (newBudget)     newBudget.value     = '';
+                if (newArmySelect) newArmySelect.value = '';
             }).catch(err => console.error('[force] create', err));
         });
+    }
+
+    // ── Rename formation ──────────────────────────────────────────────────────
+
+    if (renameBtnEl) {
+        renameBtnEl.addEventListener('click', () => {
+            if (!state.formation) return;
+            if (renameInputEl) renameInputEl.value = state.formation.name;
+            if (renameFormEl)  renameFormEl.hidden  = false;
+            if (nameRowEl)     nameRowEl.hidden     = true;
+            if (renameInputEl) renameInputEl.focus();
+        });
+    }
+
+    if (renameCancelEl) {
+        renameCancelEl.addEventListener('click', () => {
+            if (renameFormEl) renameFormEl.hidden = true;
+            if (nameRowEl && state.formation) nameRowEl.hidden = false;
+        });
+    }
+
+    if (renameSaveEl) {
+        renameSaveEl.addEventListener('click', saveRename);
+    }
+    if (renameInputEl) {
+        renameInputEl.addEventListener('keydown', e => {
+            if (e.key === 'Enter') saveRename();
+            if (e.key === 'Escape' && renameCancelEl) renameCancelEl.click();
+        });
+    }
+
+    function saveRename() {
+        if (!state.formation || !renameInputEl) return;
+        const name = renameInputEl.value.trim();
+        if (!name) { renameInputEl.focus(); return; }
+
+        apiFetch('/api/formations/' + state.formation.id, {
+            method: 'PUT',
+            body: JSON.stringify({ name }),
+        }).then(updated => {
+            state.formation = updated;
+            const idx = state.allFormations.findIndex(f => Number(f.id) === updated.id);
+            if (idx >= 0) state.allFormations[idx].name = updated.name;
+            populateFormationSelector(state.allFormations, updated);
+            render();
+            if (renameFormEl) renameFormEl.hidden = true;
+            if (nameRowEl)    nameRowEl.hidden    = false;
+        }).catch(err => console.error('[force] rename', err));
     }
 
     // ── Suggestion helper ─────────────────────────────────────────────────────
@@ -141,13 +234,11 @@
             if (pv !== null && pv > 0) {
                 url.searchParams.set('pv_max', String(pv));
             }
-            // Navigate to root list page with the filter pre-applied
             if (window.location.pathname !== '/') {
                 window.location.href = url.pathname === '/'
                     ? url.toString()
                     : '/?' + url.searchParams.toString();
             } else {
-                // Already on list page — update filters and reload table
                 const pvMaxEl = document.querySelector('input[name="pv_max"]');
                 if (pvMaxEl && pv !== null && pv > 0) {
                     pvMaxEl.value = String(pv);
@@ -158,24 +249,45 @@
         });
     }
 
+    // ── Army management ───────────────────────────────────────────────────────
+
+    if (newArmySaveEl) {
+        newArmySaveEl.addEventListener('click', () => {
+            const name = newArmyNameEl ? newArmyNameEl.value.trim() : '';
+            if (!name) { if (newArmyNameEl) newArmyNameEl.focus(); return; }
+
+            apiFetch('/api/armies', {
+                method: 'POST',
+                body: JSON.stringify({ name }),
+            }).then(created => {
+                const army = { id: created.id, name: created.name, formations: [] };
+                state.allArmies.push(army);
+                renderArmyList(state.allArmies);
+                populateArmyDropdown(newArmySelect, state.allArmies);
+                if (newArmyNameEl) newArmyNameEl.value = '';
+            }).catch(err => console.error('[force] create army', err));
+        });
+    }
+
     // ── Render ────────────────────────────────────────────────────────────────
 
     function render() {
         if (!state.formation) {
-            if (summaryEl)  summaryEl.hidden  = true;
-            if (actionsEl)  actionsEl.hidden  = true;
-            if (unitList)   unitList.innerHTML = '';
-            if (titleEl)    titleEl.textContent = 'Force Builder';
+            if (nameRowEl)    nameRowEl.hidden    = true;
+            if (renameFormEl) renameFormEl.hidden = true;
+            if (summaryEl)    summaryEl.hidden    = true;
+            if (actionsEl)    actionsEl.hidden    = true;
+            if (unitList)     unitList.innerHTML  = '';
             return;
         }
 
         const f = state.formation;
 
-        if (titleEl)    titleEl.textContent = f.name;
-        if (typeLabel)  typeLabel.textContent = typeName(f.formation_type);
-        if (printLink)  printLink.href = '/formations/' + f.id + '/print';
+        if (titleEl)   titleEl.textContent = f.name;
+        if (nameRowEl) nameRowEl.hidden    = renameFormEl ? !renameFormEl.hidden : false;
+        if (typeLabel) typeLabel.textContent = typeName(f.formation_type);
+        if (printLink) printLink.href = '/formations/' + f.id + '/print';
 
-        // PV
         if (pvSum) pvSum.textContent = String(f.pv_sum ?? 0);
         if (pvBudgetEl) {
             pvBudgetEl.textContent = f.pv_budget
@@ -183,12 +295,10 @@
                 : '';
         }
 
-        // Damage totals
         if (dmgS) dmgS.textContent = String(f.dmg_s_total ?? 0);
         if (dmgM) dmgM.textContent = String(f.dmg_m_total ?? 0);
         if (dmgL) dmgL.textContent = String(f.dmg_l_total ?? 0);
 
-        // Compliance
         const comp = f.compliance || { compliant: true, unmet_requirements: [] };
         if (complianceBadge) {
             complianceBadge.textContent = comp.compliant ? 'OK' : 'INVALID';
@@ -208,7 +318,6 @@
             }
         }
 
-        // Unit list
         if (unitList) {
             unitList.innerHTML = '';
             (f.units || []).forEach(u => {
@@ -241,11 +350,10 @@
             });
         }
 
-        // Refresh add-to-force button states in the Tabulator table
         syncAddButtons(f.units || []);
 
-        if (summaryEl)  summaryEl.hidden  = false;
-        if (actionsEl)  actionsEl.hidden  = false;
+        if (summaryEl) summaryEl.hidden = false;
+        if (actionsEl) actionsEl.hidden = false;
     }
 
     // ── Add / remove unit ─────────────────────────────────────────────────────
@@ -279,7 +387,7 @@
             .catch(err => console.error('[force] removeUnit', err));
     }
 
-    // Make addUnit available globally so the Tabulator formatter and detail page can call it
+    // Make addUnit globally available so the Tabulator formatter and detail page can call it
     window.ML = window.ML || {};
     window.ML.addToForce = addUnit;
 
@@ -313,37 +421,90 @@
         });
     }
 
-    /** Flatten armies + standalone formations into a single list for the selector. */
-    function flattenFormations(armies) {
-        const list = [];
-        (armies || []).forEach(army => {
-            (army.formations || []).forEach(f => {
-                list.push({ id: f.id, name: army.name + ' / ' + f.name });
-            });
+    function populateArmyDropdown(sel, armies) {
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— no army —</option>';
+        (armies || []).forEach(a => {
+            const opt = document.createElement('option');
+            opt.value       = a.id;
+            opt.textContent = a.name;
+            sel.appendChild(opt);
         });
-        return list;
     }
 
     function populateFormationSelector(formations, active) {
         if (!selectEl) return;
-        rebuildSelectorOptions(formations, active ? active.id : null);
+        selectEl.innerHTML = '<option value="">— no active formation —</option>';
+
+        const armyMap  = new Map();
+        const standalone = [];
+        (formations || []).forEach(f => {
+            const aid = f.army_id ? Number(f.army_id) : null;
+            if (aid) {
+                if (!armyMap.has(aid)) {
+                    armyMap.set(aid, { name: f.army_name || String(aid), items: [] });
+                }
+                armyMap.get(aid).items.push(f);
+            } else {
+                standalone.push(f);
+            }
+        });
+
+        armyMap.forEach(army => {
+            const group = document.createElement('optgroup');
+            group.label = army.name;
+            army.items.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value       = f.id;
+                opt.textContent = f.name;
+                group.appendChild(opt);
+            });
+            selectEl.appendChild(group);
+        });
+
+        if (standalone.length > 0) {
+            if (armyMap.size > 0) {
+                const group = document.createElement('optgroup');
+                group.label = '—';
+                standalone.forEach(f => appendFormationOption(group, f));
+                selectEl.appendChild(group);
+            } else {
+                standalone.forEach(f => appendFormationOption(selectEl, f));
+            }
+        }
+
+        const activeId = active
+            ? (active.id !== undefined ? active.id : active)
+            : (state.formation ? state.formation.id : null);
+        if (activeId) selectEl.value = String(activeId);
     }
 
-    function rebuildSelectorOptions(formations, activeId) {
-        if (!selectEl) return;
-        const prev = selectEl.value;
-        selectEl.innerHTML = '<option value="">— no active formation —</option>';
-        formations.forEach(f => {
-            const opt = document.createElement('option');
-            opt.value       = f.id;
-            opt.textContent = f.name;
-            selectEl.appendChild(opt);
-        });
-        if (activeId) {
-            selectEl.value = String(activeId);
-        } else {
-            selectEl.value = prev || '';
+    function appendFormationOption(parent, f) {
+        const opt = document.createElement('option');
+        opt.value       = f.id;
+        opt.textContent = f.name;
+        parent.appendChild(opt);
+    }
+
+    function renderArmyList(armies) {
+        if (!armyListEl) return;
+        armyListEl.innerHTML = '';
+        if (!armies || armies.length === 0) {
+            const li = document.createElement('li');
+            li.className   = 'fp-army-item fp-army-empty';
+            li.textContent = 'No armies yet.';
+            armyListEl.appendChild(li);
+            return;
         }
+        armies.forEach(a => {
+            const li = document.createElement('li');
+            li.className   = 'fp-army-item';
+            li.textContent = a.name;
+            if (a.formations && a.formations.length > 0) {
+                li.title = a.formations.length + ' formation(s)';
+            }
+            armyListEl.appendChild(li);
+        });
     }
 
     function apiFetch(url, opts) {

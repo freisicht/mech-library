@@ -173,6 +173,72 @@ details > summary {
     display: none !important;
 }
 
+/* Formation name row with rename button */
+.fp-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    padding: 0.1rem 0;
+}
+.fp-name-row .force-panel-title {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Search/filter input above the selector */
+.fp-search-input {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    padding: 0.25rem 0.4rem;
+    width: 100%;
+}
+
+/* Army management section */
+.fp-armies {
+    border-top: 1px solid var(--fp-border);
+    padding-top: 0.5rem;
+    margin-top: auto;
+    font-size: 0.8rem;
+}
+.fp-armies-summary {
+    cursor: pointer;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--pico-muted-color);
+    padding: 0.15rem 0;
+    margin-bottom: 0.35rem;
+    list-style: none;
+}
+.fp-armies-summary::-webkit-details-marker { display: none; }
+.fp-army-list {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0;
+}
+.fp-army-item {
+    padding: 0.2rem 0.3rem;
+    border-radius: 0.25rem;
+    font-size: 0.78rem;
+}
+.fp-army-item:hover {
+    background: var(--fp-border);
+}
+.fp-army-empty {
+    color: var(--pico-muted-color);
+    font-style: italic;
+}
+.fp-new-army-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.fp-new-army-form input {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    padding: 0.25rem 0.4rem;
+}
+
 .force-panel-header {
     display: flex;
     align-items: center;
