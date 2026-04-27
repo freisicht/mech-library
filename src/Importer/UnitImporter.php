@@ -166,8 +166,10 @@ final class UnitImporter
 
         $unit->setBfType(isset($data['BFType']) ? (string) $data['BFType'] : null);
         $unit->setBfSize(isset($data['BFSize']) ? (int) $data['BFSize'] : null);
-        $unit->setBfMove(isset($data['BFMove']) ? (string) $data['BFMove'] : null);
-        $unit->setBfTmm(isset($data['BFTMM']) ? (int) $data['BFTMM'] : null);
+        $bfMove = isset($data['BFMove']) ? (string) $data['BFMove'] : null;
+        $unit->setBfMove($bfMove);
+        // MUL always sends BFTMM=0; derive it from BFMove instead.
+        $unit->setBfTmm(TmmCalculator::fromBfMove($bfMove ?? ''));
         $unit->setBfArmor(isset($data['BFArmor']) ? (int) $data['BFArmor'] : null);
         $unit->setBfStructure(isset($data['BFStructure']) ? (int) $data['BFStructure'] : null);
         $unit->setBfThreshold(isset($data['BFThreshold']) ? (int) $data['BFThreshold'] : null);

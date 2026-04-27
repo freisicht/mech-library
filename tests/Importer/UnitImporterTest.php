@@ -148,6 +148,27 @@ final class UnitImporterTest extends TestCase
         self::assertContains('IF', $tags);
     }
 
+    public function testTmmDerivedFromBfMove(): void
+    {
+        // BFMove "6"" → TMM +1 (5-8" bracket); BFTMM=0 in fixture is intentionally ignored.
+        $data = $this->makeUnit();
+        $this->importer->upsert($data);
+
+        $unit = UnitsQuery::create()->findOneByMulId(99901);
+        self::assertNotNull($unit);
+        self::assertSame(1, $unit->getBfTmm());
+
+        // A fast unit: BFMove "10"" → TMM +2 (9-12" bracket)
+        $data['BFMove'] = '10"';
+        $data['Id']     = 99902;
+        $this->createdMulIds[] = 99902;
+        $this->importer->upsert($data);
+
+        $fastUnit = UnitsQuery::create()->findOneByMulId(99902);
+        self::assertNotNull($fastUnit);
+        self::assertSame(2, $fastUnit->getBfTmm());
+    }
+
     public function testUpsertWithoutIdIsSkipped(): void
     {
         $data    = $this->makeUnit();
