@@ -91,13 +91,22 @@ Tag: `v0.0.0`.
 
 ### Tasks (high level — refine when phase starts)
 
-- [ ] Slim 4 + Twig wired up via `public/index.php`.
-- [ ] `UnitRepository` on top of Perpl Models with composable filter builder.
-- [ ] `GET /` — table view + filter form.
-- [ ] `GET /units/{id}` — detail view.
-- [ ] `GET /api/units` — JSON for the table (used by JS).
-- [ ] CSS: pick a minimal framework (Pico.css or just hand-rolled — decide via ADR).
-- [ ] Basic feature tests with Slim's test client.
+- [x] Slim 4 + Twig wired up via `public/index.php`. PHP-DI container in `src/Web/ContainerFactory.php`. App factory in `src/Web/AppFactory.php` reused by tests.
+- [x] `UnitRepository` with raw-PDO filter builder (not Propel ORM — see gotchas). Composable WHERE clause from `FilterInput` DTO.
+- [x] `GET /` — table view + filter form (Twig + Tabulator shell).
+- [x] `GET /units/{id}` — detail view with abilities breakdown table.
+- [x] `GET /api/units` — JSON for Tabulator (`{total, last_page, data[]}`).
+- [x] CSS: Pico.css 2.x + Tabulator's own CSS. ADR 001 + 002 in `docs/decisions/`.
+- [x] Feature tests via Slim's in-process `App::handle()` — live MySQL DB, fixtures cleaned up in tearDown.
+
+### Notes / gotchas (added during implementation)
+
+- **Propel `prepare()` returns `StatementWrapper`**, not `PDOStatement`. Return type of `exec()` in `UnitRepository` must be `\Propel\Runtime\Connection\StatementInterface`. PHPStan stubs were fine, but the runtime blew up with a `TypeError`.
+- **MySQL LIMIT/OFFSET with named PDO params** — named params are bound as strings; `LIMIT '50' OFFSET '0'` is a syntax error. Embed integer LIMIT/OFFSET directly in the SQL string (safe because they are PHP `int` values).
+- **Twig has no `|string` filter** — use `~ ''` (string concatenation) to coerce a value to string in Twig templates.
+- **Detail template field names** — `findById()` returns raw DB column names (`bf_move`, `bf_tmm`, etc.); the list endpoint aliases them (`move`, `tmm`). Template uses the raw names.
+- **Worktree `.env` symlink** — `.env` is gitignored and only exists in the main repo. Tests in the worktree need `ln -sf /path/to/main/.env .env` (one-time, developer setup).
+- **Ability test isolation** — when filtering by a common ability tag against a fully-populated DB, page 1 may not contain the fixture unit. Combine with `search=Test Atlas` to guarantee fixture hits.
 
 ### Handoff prompt for Phase 2
 

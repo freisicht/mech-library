@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+{% block title %}Units — Mech Library{% endblock %}
+
+{% block content %}
+<form id="filter-form" method="get" action="/">
+
+<details open>
+    <summary><strong>Filter</strong></summary>
+
+    <div class="filter-grid">
+
+        {# --- Row 1: Search + Type --- #}
+        <div class="filter-cell">
+            <label for="search">Search</label>
+            <input type="text" id="search" name="search"
+                   placeholder="Name / Class / Variant"
+                   value="{{ params.search ?? '' }}">
+        </div>
+
+        <div class="filter-cell">
+            <label for="type">Type</label>
+            <select id="type" name="type">
+                <option value="">All types</option>
+                {% for t in options.types %}
+                    <option value="{{ t.id }}"
+                        {% if (params.type ?? '')~ '' == t.id~ '' %}selected{% endif %}>
+                        {{ t.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# --- Row 2: PV + Move + Jump + TMM --- #}
+        <div class="filter-cell filter-range">
+            <label>PV</label>
+            <div class="range-inputs">
+                <input type="number" name="pv_min" placeholder="min" min="0"
+                       value="{{ params.pv_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="pv_max" placeholder="max" min="0"
+                       value="{{ params.pv_max ?? '' }}">
+            </div>
+        </div>
+
+        <div class="filter-cell filter-range">
+            <label>Move (inches)</label>
+            <div class="range-inputs">
+                <input type="number" name="move_min" placeholder="min" min="0"
+                       value="{{ params.move_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="move_max" placeholder="max" min="0"
+                       value="{{ params.move_max ?? '' }}">
+                <label class="jump-label">
+                    <input type="checkbox" name="jump" value="1"
+                           {% if params.jump ?? false %}checked{% endif %}>
+                    Jump only
+                </label>
+            </div>
+        </div>
+
+        <div class="filter-cell">
+            <label for="tmm_min">TMM ≥</label>
+            <input type="number" id="tmm_min" name="tmm_min" placeholder="min"
+                   value="{{ params.tmm_min ?? '' }}">
+        </div>
+
+        {# --- Row 3: Damage S / M / L --- #}
+        <div class="filter-cell filter-range">
+            <label>Damage S</label>
+            <div class="range-inputs">
+                <input type="number" name="s_min" placeholder="min" min="0"
+                       value="{{ params.s_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="s_max" placeholder="max" min="0"
+                       value="{{ params.s_max ?? '' }}">
+            </div>
+        </div>
+
+        <div class="filter-cell filter-range">
+            <label>Damage M</label>
+            <div class="range-inputs">
+                <input type="number" name="m_min" placeholder="min" min="0"
+                       value="{{ params.m_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="m_max" placeholder="max" min="0"
+                       value="{{ params.m_max ?? '' }}">
+            </div>
+        </div>
+
+        <div class="filter-cell filter-range">
+            <label>Damage L</label>
+            <div class="range-inputs">
+                <input type="number" name="l_min" placeholder="min" min="0"
+                       value="{{ params.l_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="l_max" placeholder="max" min="0"
+                       value="{{ params.l_max ?? '' }}">
+            </div>
+        </div>
+
+        {# --- Row 4: Role + TechBase --- #}
+        <div class="filter-cell">
+            <label for="role">Role</label>
+            <select id="role" name="role[]" multiple size="4">
+                {% for r in options.roles %}
+                    <option value="{{ r.id }}"
+                        {% if r.id~ '' in (params.role ?? []) %}selected{% endif %}>
+                        {{ r.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-cell">
+            <label for="tech">Tech Base</label>
+            <select id="tech" name="tech[]" multiple size="4">
+                {% for t in options.technologies %}
+                    <option value="{{ t.id }}"
+                        {% if t.id~ '' in (params.tech ?? []) %}selected{% endif %}>
+                        {{ t.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# --- Row 5: Era + Year --- #}
+        <div class="filter-cell">
+            <label for="era">Era</label>
+            <select id="era" name="era">
+                <option value="">All eras</option>
+                {% for e in options.eras %}
+                    <option value="{{ e.id }}"
+                        {% if (params.era ?? '')~ '' == e.id~ '' %}selected{% endif %}>
+                        {{ e.name }}{% if e.start_year %} ({{ e.start_year }}){% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="filter-cell filter-range">
+            <label>Intro Year</label>
+            <div class="range-inputs">
+                <input type="number" name="year_min" placeholder="from" min="2000" max="3200"
+                       value="{{ params.year_min ?? '' }}">
+                <span>–</span>
+                <input type="number" name="year_max" placeholder="to" min="2000" max="3200"
+                       value="{{ params.year_max ?? '' }}">
+            </div>
+        </div>
+
+        {# --- Row 6: Abilities --- #}
+        <div class="filter-cell filter-abilities" style="grid-column: 1 / -1;">
+            <label>Abilities</label>
+            <div class="ability-builder">
+                <select id="ability-tag-select">
+                    <option value="">— pick tag —</option>
+                    {% for tag in options.abilityTags %}
+                        <option value="{{ tag }}">{{ tag }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" id="ability-val-input" placeholder="≥ val" min="0" style="width:80px">
+                <button type="button" id="ability-add-btn" class="secondary">+ Add</button>
+                <span class="ability-mode-label">mode:</span>
+                <label>
+                    <input type="radio" name="ability_mode" value="and"
+                           {% if (params.ability_mode ?? 'and') == 'and' %}checked{% endif %}> AND
+                </label>
+                <label>
+                    <input type="radio" name="ability_mode" value="or"
+                           {% if (params.ability_mode ?? 'and') == 'or' %}checked{% endif %}> OR
+                </label>
+            </div>
+            <div id="ability-chips" class="ability-chips">
+                {# Chips are rendered by JS from the hidden inputs on page load #}
+            </div>
+            <div id="ability-inputs">
+                {# Hidden inputs holding the actual ability values submitted with the form #}
+                {% for ab in (params.ability ?? []) %}
+                    <input type="hidden" name="ability[]" value="{{ ab }}">
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>{# /.filter-grid #}
+
+    <div class="filter-actions">
+        <button type="submit">Apply</button>
+        <a href="/" role="button" class="secondary outline">Reset</a>
+    </div>
+
+</details>
+
+</form>
+
+<div id="unit-table"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.ML = {
+        apiUrl: '/api/units',
+        initialParams: {{ params|json_encode|raw }},
+    };
+</script>
+<script src="/assets/js/app.js"></script>
+{% endblock %}

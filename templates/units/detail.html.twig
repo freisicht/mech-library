@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ unit.name }} {{ unit.variant }} — Mech Library{% endblock %}
+
+{% block content %}
+<p><a href="/">← Back to list</a></p>
+
+<article class="unit-detail">
+    <div class="unit-detail-layout">
+
+        <div class="unit-image">
+            {% if unit.image_path %}
+                <img src="/{{ unit.image_path }}" alt="{{ unit.name }} {{ unit.variant }}">
+            {% else %}
+                <div class="unit-image-placeholder">No image</div>
+            {% endif %}
+        </div>
+
+        <div class="unit-info">
+            <hgroup>
+                <h2>{{ unit.name }} {{ unit.variant }}</h2>
+                <p>{{ unit.class }}</p>
+            </hgroup>
+
+            <dl class="unit-meta">
+                {% if unit.type_name %}<div><dt>Type</dt><dd>{{ unit.type_name }}</dd></div>{% endif %}
+                {% if unit.tech_name %}<div><dt>Tech</dt><dd>{{ unit.tech_name }}</dd></div>{% endif %}
+                {% if unit.role_name %}<div><dt>Role</dt><dd>{{ unit.role_name }}</dd></div>{% endif %}
+                <div><dt>Tonnage</dt><dd>{{ unit.tonnage }} t</dd></div>
+                {% if unit.era_name %}
+                    <div><dt>Era</dt><dd>{{ unit.era_name }}{% if unit.era_start %} ({{ unit.era_start }}){% endif %}</dd></div>
+                {% endif %}
+                {% if unit.date_introduced %}
+                    <div><dt>Introduced</dt><dd>{{ unit.date_introduced }}</dd></div>
+                {% endif %}
+                {% if unit.rules %}
+                    <div><dt>Rules</dt><dd>{{ unit.rules }}</dd></div>
+                {% endif %}
+                {% if unit.battle_value %}
+                    <div><dt>Battle Value</dt><dd>{{ unit.battle_value }}</dd></div>
+                {% endif %}
+            </dl>
+
+            <hr>
+
+            <h3>Alpha Strike</h3>
+
+            <dl class="unit-stats">
+                {% if unit.bf_move %}<div><dt>Move</dt><dd>{{ unit.bf_move }}</dd></div>{% endif %}
+                {% if unit.bf_tmm is not null %}<div><dt>TMM</dt><dd>{{ unit.bf_tmm }}</dd></div>{% endif %}
+                {% if unit.bf_point_value %}<div><dt>PV</dt><dd>{{ unit.bf_point_value }}</dd></div>{% endif %}
+                {% if unit.bf_size %}<div><dt>Size</dt><dd>{{ unit.bf_size }}</dd></div>{% endif %}
+                {% if unit.bf_armor is not null %}<div><dt>Armor</dt><dd>{{ unit.bf_armor }}</dd></div>{% endif %}
+                {% if unit.bf_structure is not null %}<div><dt>Structure</dt><dd>{{ unit.bf_structure }}</dd></div>{% endif %}
+                {% if unit.bf_threshold is not null %}<div><dt>Threshold</dt><dd>{{ unit.bf_threshold }}</dd></div>{% endif %}
+                {% if unit.bf_overheat is not null %}<div><dt>OV</dt><dd>{{ unit.bf_overheat }}</dd></div>{% endif %}
+            </dl>
+
+            <table class="damage-table">
+                <thead>
+                    <tr><th>Range</th><th>S</th><th>M</th><th>L</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Damage</td>
+                        <td>{{ unit.bf_damage_short ?? '—' }}{% if unit.bf_damage_short_min %}<sup>*</sup>{% endif %}</td>
+                        <td>{{ unit.bf_damage_medium ?? '—' }}{% if unit.bf_damage_medium_min %}<sup>*</sup>{% endif %}</td>
+                        <td>{{ unit.bf_damage_long ?? '—' }}{% if unit.bf_damage_long_min %}<sup>*</sup>{% endif %}</td>
+                    </tr>
+                </tbody>
+            </table>
+            {% if unit.bf_damage_short_min or unit.bf_damage_medium_min or unit.bf_damage_long_min %}
+                <small><sup>*</sup> minimal damage</small>
+            {% endif %}
+
+            {% if unit.bf_abilities %}
+            <hr>
+            <h3>Abilities</h3>
+            <p class="abilities-raw">{{ unit.bf_abilities }}</p>
+
+            {% if unit.parsed_abilities is not empty %}
+            <table>
+                <thead><tr><th>Tag</th><th>S</th><th>M</th><th>L</th><th>Value</th><th>Raw</th></tr></thead>
+                <tbody>
+                    {% for ab in unit.parsed_abilities %}
+                    <tr>
+                        <td><strong>{{ ab.tag }}</strong></td>
+                        <td>{{ ab.short ?? '—' }}</td>
+                        <td>{{ ab.medium ?? '—' }}</td>
+                        <td>{{ ab.long ?? '—' }}</td>
+                        <td>{{ ab.value ?? '—' }}</td>
+                        <td><code>{{ ab.raw }}</code></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+            {% endif %}
+
+        </div>{# /.unit-info #}
+    </div>{# /.unit-detail-layout #}
+</article>
+{% endblock %}

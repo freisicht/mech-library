@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% block title %}Not Found — Mech Library{% endblock %}
+
+{% block content %}
+<article>
+    <h2>Unit not found</h2>
+    <p>No unit with id <code>{{ id }}</code> exists in the database.</p>
+    <p><a href="/">← Back to list</a></p>
+</article>
+{% endblock %}
