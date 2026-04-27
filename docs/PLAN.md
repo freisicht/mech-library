@@ -120,20 +120,84 @@ Tag: `v0.0.0`.
 
 ## Phase 3 — Force builder
 
-**Goal:** Compose an Alpha Strike force from filtered units, see live PV total, role mix, and rule-format checks.
+**Goal:** Compose Alpha Strike formations from the unit list, enforce formation-type rules, track PV budgets, and print a clean summary sheet.
 
-Deferred design — flesh out at the start of phase 3, after the user has used phase 2 for a while and has concrete wishes.
+Reference ADR: `docs/decisions/003-force-builder-scope.md`.
 
-### Likely scope (placeholder, not committed)
+### Scope
 
-- "Add to force" button on table rows and detail view.
-- Persistent forces (named, saved to DB).
-- PV / weight / role-mix summary panel.
-- Print/export to a printable card sheet (PDF or a print-CSS HTML page).
+Two-level hierarchy: **Army** → **Formation**. Both named, persisted in DB.  
+~35 canonical Alpha Strike formation types with a data-driven rules engine.  
+Live force panel visible while browsing. Unit suggestion helper reuses Phase 2 filters.  
+Print view: HTML + print-CSS only (no PDF generation).
+
+### Tasks
+
+**DB & backend**
+
+- [ ] SQL migration: `armies`, `formations`, `formation_units` tables. Document in `docs/SCHEMA.md`.
+- [ ] Perpl schema XML update + regenerate model classes.
+- [ ] Formation type registry: PHP config (~35 AS types) with rule descriptors (unit count bounds, category/role constraints, special-ability requirements).
+- [ ] `FormationRulesEngine` service: given a formation type + unit list → compliant bool + list of unmet requirements.
+- [ ] `ArmyRepository` / `FormationRepository`: CRUD, fetch with units and compliance result.
+- [ ] API endpoints:
+  - `GET  /api/armies` — list with nested formations
+  - `POST /api/armies` — create
+  - `GET  /api/formations/{id}` — formation + units + compliance + PV summary
+  - `POST /api/formations` — create (optionally under an army)
+  - `POST /api/formations/{id}/units` — add unit
+  - `DELETE /api/formations/{id}/units/{unitId}` — remove unit
+  - `PUT /api/formations/{id}` — rename, change type, change PV budget
+
+**Frontend**
+
+- [ ] Base layout: persistent force panel (Twig partial, right sidebar or collapsible bottom drawer).
+- [ ] Panel shows: active formation name + type, unit list with per-unit PV, PV sum / remaining, S/M/L damage totals, compliance indicator + unmet-requirement list.
+- [ ] Army/formation selector in panel header: create new, switch active, move formation into/out of army.
+- [ ] "Add to force" button on Tabulator table rows (formatter) — adds to active formation via AJAX.
+- [ ] "Add to force" button on unit detail page.
+- [ ] Suggestion helper: "Show matching units" button pre-fills filter form (PV max = remaining budget + formation-type constraints as filters).
+- [ ] Print view: `GET /formations/{id}/print` — Twig template, print-CSS, no JS required.
+
+**Quality**
+
+- [ ] Unit tests: `FormationRulesEngine` (at minimum one compliant + one non-compliant case per rule dimension).
+- [ ] Feature tests: CRUD endpoints (create army, add formation, add/remove unit, compliance response).
+- [ ] `composer test` green (phpunit + phpstan level 6 + php-cs-fixer --dry-run).
+- [ ] `docs/SCHEMA.md` updated, `docs/PLAN.md` tasks ticked, `README.md` quick-start still valid.
+
+### Notes / gotchas (added during implementation)
+
+_(fill in as you go)_
+
+### Definition of done
+
+- Army → Formation hierarchy works end-to-end: create, populate, view, print.
+- Formation rule compliance displayed live for at least 10 representative formation types.
+- Suggestion helper pre-fills filters correctly for the active formation's constraints.
+- `composer test` green.
+- Tag `v0.3.0` on `main`.
 
 ### Handoff prompt for Phase 3
 
-> Phase 3 starts with a design conversation, not coding. Read `CLAUDE.md` and the Phase 3 section of `docs/PLAN.md`, then walk through the user's wishlist with them and produce an ADR under `docs/decisions/` before writing code.
+> You are starting Phase 3 of the Mech Library project — the Force Builder.
+>
+> **First actions:**
+> 1. Read `CLAUDE.md`.
+> 2. Read `docs/PLAN.md` Phase 3 section (tasks and scope).
+> 3. Read `docs/decisions/003-force-builder-scope.md` (the scoping ADR from the design conversation).
+> 4. Read `docs/SCHEMA.md` (existing DB schema — you will be adding to it).
+>
+> **Do not start coding until you have read all four documents.**
+>
+> The design decisions are already made. Your job is implementation. Branch `phase/3-force-builder`. Commit per logical step (Conventional Commits). Do not merge to `main` or tag without user sign-off.
+>
+> Start with the DB migration and Perpl model update, then the formation type registry and rules engine, then API endpoints, then UI. Test each layer before moving to the next.
+>
+> Key things to get right early:
+> - The formation type registry is the most research-heavy part — confirm the ~35 Alpha Strike canonical formation types and their rule descriptors before coding the engine against them.
+> - The force panel must be a Twig partial injected into the base layout so it appears on both the list page and the detail page without duplication.
+> - The "Add to force" table row button must survive Tabulator re-renders (use a Tabulator column formatter, not a post-render DOM patch).
 
 ---
 
@@ -145,3 +209,7 @@ Ideas captured during work that are explicitly out of scope until promoted into 
 - Cross-reference with local MegaMek `unit_files.zip` for fluff text and quirks.
 - Force exchange/import in MegaMek MUL JSON-force format.
 - Probabilistic match-up calculator.
+- PDF generation / MUL unit-card PDF download for print view.
+- BV (Classic BattleTech) support alongside Alpha Strike.
+- Force sharing between browsers / devices (app is currently single-user).
+- Army hierarchy beyond two levels (Army → Formation).
