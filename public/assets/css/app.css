@@ -51,6 +51,14 @@ details > summary {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    margin-top: 0.35rem;
+    font-weight: normal;
+}
+
+.result-count {
+    font-size: 0.85rem;
+    color: var(--pico-muted-color, #888);
+    margin: 0.25rem 0 0.5rem;
 }
 
 /* Abilities builder */

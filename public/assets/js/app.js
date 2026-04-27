@@ -61,6 +61,11 @@
             return fp;
         },
         ajaxResponse: function (_url, _params, response) {
+            const el = document.getElementById('result-count');
+            if (el) {
+                const n = (response && typeof response.total === 'number') ? response.total : 0;
+                el.textContent = n.toLocaleString() + ' unit' + (n === 1 ? '' : 's');
+            }
             return response;
         },
         headerSort: true,

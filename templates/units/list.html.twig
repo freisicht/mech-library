@@ -50,12 +50,12 @@
                 <span>–</span>
                 <input type="number" name="move_max" placeholder="max" min="0"
                        value="{{ params.move_max ?? '' }}">
-                <label class="jump-label">
-                    <input type="checkbox" name="jump" value="1"
-                           {% if params.jump ?? false %}checked{% endif %}>
-                    Jump only
-                </label>
             </div>
+            <label class="jump-label">
+                <input type="checkbox" name="jump" value="1"
+                       {% if params.jump ?? false %}checked{% endif %}>
+                Jump only
+            </label>
         </div>
 
         <div class="filter-cell">
@@ -192,6 +192,7 @@
 
 </form>
 
+<div id="result-count" class="result-count" aria-live="polite">Loading…</div>
 <div id="unit-table"></div>
 {% endblock %}
 
