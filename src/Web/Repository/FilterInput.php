@@ -122,9 +122,22 @@ final class FilterInput
         $f->perPage = in_array($size, [25, 50, 100], true) ? $size : 50;
 
         $allowedSorts = ['name', 'class', 'tonnage', 'pv', 'move', 'tmm', 'dmg_s', 'dmg_m', 'dmg_l', 'armor', 'structure'];
-        $sort    = (string) ($params['sort'] ?? 'name');
+
+        // Accept both ?sort=name&dir=asc and Tabulator's ?sort[0][field]=name&sort[0][dir]=asc
+        $rawSort = $params['sort'] ?? 'name';
+        $rawDir  = $params['dir'] ?? 'asc';
+        if (is_array($rawSort)) {
+            $first   = $rawSort[0] ?? $rawSort[array_key_first($rawSort)] ?? null;
+            if (is_array($first)) {
+                $rawSort = $first['field'] ?? 'name';
+                $rawDir  = $first['dir']   ?? $rawDir;
+            } else {
+                $rawSort = 'name';
+            }
+        }
+        $sort    = is_string($rawSort) ? $rawSort : 'name';
         $f->sort = in_array($sort, $allowedSorts, true) ? $sort : 'name';
-        $f->dir  = (($params['dir'] ?? 'asc') === 'desc') ? 'desc' : 'asc';
+        $f->dir  = (is_string($rawDir) && $rawDir === 'desc') ? 'desc' : 'asc';
 
         return $f;
     }

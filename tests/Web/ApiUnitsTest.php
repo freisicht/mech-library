@@ -108,4 +108,22 @@ final class ApiUnitsTest extends WebTestCase
 
         self::assertStringContainsString('application/json', $response->getHeaderLine('Content-Type'));
     }
+
+    public function testTabulatorStyleSortParam(): void
+    {
+        $response = $this->get('/api/units?page=1&size=25&sort[0][field]=tonnage&sort[0][dir]=desc');
+        $body     = (string) $response->getBody();
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertStringStartsWith('{', $body, 'Body must be pure JSON, not a PHP warning prefix');
+
+        $payload = json_decode($body, true);
+        self::assertIsArray($payload);
+        self::assertNotEmpty($payload['data']);
+
+        $tonnages = array_column($payload['data'], 'tonnage');
+        $sorted   = $tonnages;
+        rsort($sorted);
+        self::assertSame($sorted, $tonnages, 'Rows must be sorted by tonnage desc');
+    }
 }
