@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mechlibrary — Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"  crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-size: 13px; }
+  #root { width: 100%; height: 100%; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: oklch(0.10 0.025 240); }
+  ::-webkit-scrollbar-thumb { background: oklch(0.28 0.06 200); }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(0.50 0.10 195); }
+
+  /* Mobile table scroll */
+  @media (max-width: 767px) {
+    .unit-table-wrap { overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const { useState, useCallback, useEffect, useRef, useMemo } = React;
+
+// ─── TWEAK DEFAULTS ──────────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentHue": 195,
+  "scanlines": true,
+  "glowIntensity": "medium",
+  "compactRows": false,
+  "showAbilities": false
+}/*EDITMODE-END*/;
+
+// ─── MOCK DATA ───────────────────────────────────────────────────────────────
+const UNITS = [
+  { id:1,  name:'Agrotera AGT-1A',    cls:'Agrotera',     variant:'AGT-1A',  type:'BM', pv:37, move:'12"/16"j', tmm:2, s:3,m:3,l:2,a:2, str:5, armor:7,  abilities:'ENE,JMPS1,TAG',             size:3, role:'Striker',      tech:'IS',   era:'Early SL',    intro:2531 },
+  { id:2,  name:'Akuma AKU-1X',       cls:'Akuma',        variant:'AKU-1X',  type:'BM', pv:49, move:'6"',       tmm:1, s:5,m:5,l:2,a:0, str:9, armor:9,  abilities:'FLK1/1/1',                  size:4, role:'Juggernaut',   tech:'Clan', era:'Civil War',   intro:3062 },
+  { id:3,  name:'Akuma AKU-2XC',      cls:'Akuma',        variant:'AKU-2XC', type:'BM', pv:54, move:'6"',       tmm:1, s:5,m:5,l:3,a:0, str:9, armor:9,  abilities:'AECM,C3BSS,CASE,FLK1/1/1', size:4, role:'Juggernaut',   tech:'Clan', era:'Civil War',   intro:3065 },
+  { id:4,  name:'Albatross ALB-3U',   cls:'Albatross',    variant:'ALB-3U',  type:'BM', pv:41, move:'8"',       tmm:2, s:4,m:4,l:3,a:0, str:7, armor:8,  abilities:'CASE,FLK1/1/1,IF1',         size:3, role:'Brawler',      tech:'IS',   era:'Civil War',   intro:3063 },
+  { id:5,  name:'Albatross ALB-4U',   cls:'Albatross',    variant:'ALB-4U',  type:'BM', pv:49, move:'8"',       tmm:2, s:5,m:5,l:4,a:0, str:7, armor:10, abilities:'CASE,FLK1/1/1,IF1',         size:4, role:'Brawler',      tech:'IS',   era:'Civil War',   intro:3068 },
+  { id:6,  name:'Archer ARC-7L',      cls:'Archer',       variant:'ARC-7L',  type:'BM', pv:43, move:'6"j',      tmm:1, s:2,m:3,l:3,a:0, str:6, armor:7,  abilities:'CASE,ECM,IF2,LRM1/2/2,STL', size:3, role:'Missile Boat', tech:'IS',   era:'Civil War',   intro:3067 },
+  { id:7,  name:'Atlas AS7-D',        cls:'Atlas',        variant:'AS7-D',   type:'BM', pv:55, move:'6"',       tmm:1, s:6,m:5,l:3,a:0, str:10,armor:10, abilities:'CASE',                      size:4, role:'Juggernaut',   tech:'IS',   era:'SL',          intro:2755 },
+  { id:8,  name:'Cauldron-Born Prime', cls:'Cauldron-Born',variant:'Prime',  type:'BM', pv:41, move:'6"',       tmm:1, s:4,m:4,l:3,a:0, str:7, armor:8,  abilities:'OMNI',                      size:3, role:'Brawler',      tech:'Clan', era:'Clan Invasion',intro:3052 },
+  { id:9,  name:'Firestarter FS9-OR', cls:'Firestarter',  variant:'FS9-OR',  type:'BM', pv:34, move:'10"',      tmm:2, s:2,m:1,l:0,a:0, str:4, armor:5,  abilities:'HT2/1/0',                   size:2, role:'Ambusher',     tech:'IS',   era:'Civil War',   intro:3063 },
+  { id:10, name:'Nobori-nin C',       cls:'Nobori-nin',   variant:'C',       type:'BM', pv:41, move:'6"',       tmm:1, s:4,m:4,l:2,a:0, str:7, armor:8,  abilities:'OMNI,NOVA',                 size:3, role:'Striker',      tech:'Clan', era:'Clan Invasion',intro:3054 },
+  { id:11, name:'Mad Cat Mk II',      cls:'Mad Cat',      variant:'Mk II',   type:'BM', pv:58, move:'6"',       tmm:1, s:5,m:5,l:4,a:2, str:9, armor:9,  abilities:'OMNI,ECM',                  size:4, role:'Sniper',       tech:'Clan', era:'Civil War',   intro:3062 },
+  { id:12, name:'Warhawk Prime',      cls:'Warhawk',      variant:'Prime',   type:'BM', pv:52, move:'5"',       tmm:1, s:5,m:6,l:4,a:0, str:9, armor:8,  abilities:'OMNI,ECM',                  size:4, role:'Sniper',       tech:'Clan', era:'Clan Invasion',intro:3052 },
+];
+
+const INIT_FORMATION = [
+  { id:10, name:'Nobori-nin (Huntsman…', pv:41 },
+  { id:8,  name:'Cauldron-Born (Ebon…',  pv:41 },
+  { id:9,  name:'Firestarter FS9-OR…',   pv:34 },
+];
+
+// ─── DESIGN TOKENS (reactive to tweaks) ──────────────────────────────────────
+function makeTokens(hue, glowIntensity) {
+  const glowAlpha = { off: 0, low: 0.15, medium: 0.30, high: 0.55 }[glowIntensity] || 0.3;
+  return {
+    bg:          `oklch(0.10 0.025 240)`,
+    bg2:         `oklch(0.13 0.022 240)`,
+    bg3:         `oklch(0.16 0.02 235)`,
+    border:      `oklch(0.28 0.06 ${hue})`,
+    borderBright:`oklch(0.45 0.12 ${hue})`,
+    cyan:        `oklch(0.72 0.15 ${hue})`,
+    cyanDim:     `oklch(0.50 0.10 ${hue})`,
+    cyanGlow:    `oklch(0.72 0.15 ${hue} / ${glowAlpha})`,
+    amber:       `oklch(0.75 0.14 65)`,
+    red:         `oklch(0.58 0.18 25)`,
+    green:       `oklch(0.68 0.14 155)`,
+    text:        `oklch(0.88 0.02 220)`,
+    textDim:     `oklch(0.55 0.03 220)`,
+    textFaint:   `oklch(0.35 0.02 220)`,
+    glowAlpha,
+  };
+}
+
+// ─── SHARED PRIMITIVES ────────────────────────────────────────────────────────
+function CornerAccent({ pos='tl', size=10, color }) {
+  const s = {
+    tl: { top:0,    left:0,  borderTop:`2px solid ${color}`, borderLeft:`2px solid ${color}` },
+    tr: { top:0,    right:0, borderTop:`2px solid ${color}`, borderRight:`2px solid ${color}` },
+    bl: { bottom:0, left:0,  borderBottom:`2px solid ${color}`, borderLeft:`2px solid ${color}` },
+    br: { bottom:0, right:0, borderBottom:`2px solid ${color}`, borderRight:`2px solid ${color}` },
+  }[pos];
+  return <div style={{ position:'absolute', width:size, height:size, ...s }} />;
+}
+
+function Panel({ children, style }) {
+  const T = useMemo(() => window.__T, []);
+  return (
+    <div style={{
+      background: T.bg2,
+      border: `1px solid ${T.border}`,
+      clipPath: 'polygon(7px 0, 100% 0, 100% 100%, 0 100%, 0 7px)',
+      position: 'relative',
+      ...style
+    }}>{children}</div>
+  );
+}
+
+function CyberLabel({ children, style }) {
+  return (
+    <span style={{
+      fontFamily: "'Orbitron', monospace",
+      fontSize: 8,
+      fontWeight: 700,
+      letterSpacing: '0.15em',
+      textTransform: 'uppercase',
+      color: window.__T.cyanDim,
+      ...style
+    }}>{children}</span>
+  );
+}
+
+function CyberInput({ value, onChange, placeholder, style, autoFocus }) {
+  const T = window.__T;
+  const [focused, setFocused] = useState(false);
+  return (
+    <input
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      autoFocus={autoFocus}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      style={{
+        background: 'oklch(0.08 0.02 240)',
+        border: `1px solid ${focused ? T.cyan : T.border}`,
+        color: T.text,
+        fontFamily: "'JetBrains Mono', monospace",
+        fontSize: 12,
+        padding: '4px 8px',
+        outline: 'none',
+        clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)',
+        boxShadow: focused ? `0 0 8px ${T.cyanGlow}` : 'none',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        width: '100%',
+        ...style
+      }}
+    />
+  );
+}
+
+function CyberSelect({ value, onChange, options, style }) {
+  const T = window.__T;
+  return (
+    <div style={{ position: 'relative', width: '100%', ...style }}>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          background: 'oklch(0.08 0.02 240)',
+          border: `1px solid ${T.border}`,
+          color: T.text,
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 12,
+          padding: '4px 24px 4px 8px',
+          outline: 'none',
+          clipPath: 'polygon(4px 0, 100% 0, 100% 100%, 0 100%, 0 4px)',
+          appearance: 'none',
+          cursor: 'pointer',
+          width: '100%',
+        }}
+      >
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <span style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', color:T.cyanDim, fontSize:9, pointerEvents:'none' }}>▼</span>
+    </div>
+  );
+}
+
+function CyberBtn({ children, onClick, variant='primary', style, small }) {
+  const T = window.__T;
+  const [hov, setHov] = useState(false);
+  const colors = {
+    primary:   { bg: hov ? T.cyan      : 'transparent',           border: T.cyan,   text: hov ? T.bg   : T.cyan    },
+    secondary: { bg: hov ? T.bg3       : 'transparent',           border: T.border, text: hov ? T.text : T.textDim },
+    danger:    { bg: hov ? T.red       : 'transparent',           border: T.red,    text: hov ? '#fff' : T.red     },
+    add:       { bg: hov ? T.green     : 'oklch(0.16 0.04 155)',  border: T.green,  text: hov ? T.bg   : T.green   },
+    ghost:     { bg: 'transparent',                                border: 'transparent', text: T.textDim },
+  };
+  const c = colors[variant] || colors.primary;
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: c.bg,
+        border: `1px solid ${c.border}`,
+        color: c.text,
+        fontFamily: "'Orbitron', monospace",
+        fontSize: small ? 9 : 10,
+        fontWeight: 700,
+        letterSpacing: '0.1em',
+        padding: small ? '3px 8px' : '5px 14px',
+        cursor: 'pointer',
+        clipPath: 'polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px)',
+        transition: 'all 0.12s',
+        boxShadow: (hov && c.border !== 'transparent') ? `0 0 10px ${c.border}60` : 'none',
+        whiteSpace: 'nowrap',
+        ...style
+      }}
+    >{children}</button>
+  );
+}
+
+function Badge({ children, variant='default' }) {
+  const T = window.__T;
+  const colors = {
+    default: { bg: T.bg3,                       border: T.border,   text: T.textDim },
+    invalid: { bg: 'oklch(0.15 0.04 25)',        border: T.red,      text: T.red     },
+    valid:   { bg: 'oklch(0.12 0.04 155)',       border: T.green,    text: T.green   },
+    clan:    { bg: `oklch(0.12 0.04 ${window.__T.accentHue||195})`, border: T.cyan, text: T.cyan },
+    is:      { bg: 'oklch(0.14 0.04 65)',        border: T.amber,    text: T.amber   },
+  };
+  const c = colors[variant] || colors.default;
+  return (
+    <span style={{
+      display: 'inline-block',
+      background: c.bg,
+      border: `1px solid ${c.border}`,
+      color: c.text,
+      fontFamily: "'Orbitron', monospace",
+      fontSize: 8,
+      fontWeight: 700,
+      letterSpacing: '0.12em',
+      padding: '2px 6px',
+      clipPath: 'polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px)',
+      flexShrink: 0,
+    }}>{children}</span>
+  );
+}
+
+// ─── FILTER PANEL ─────────────────────────────────────────────────────────────
+function FilterPanel({ filters, setFilters, onApply, onReset, isMobile }) {
+  const T = window.__T;
+  const [open, setOpen] = useState(!isMobile);
+
+  function Field({ label, children, style }) {
+    return (
+      <div style={{ display:'flex', flexDirection:'column', gap:3, ...style }}>
+        <CyberLabel>{label}</CyberLabel>
+        {children}
+      </div>
+    );
+  }
+
+  function RangeRow({ label, minKey, maxKey }) {
+    return (
+      <Field label={label}>
+        <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+          <CyberInput value={filters[minKey]||''} onChange={v=>setFilters(f=>({...f,[minKey]:v}))} placeholder="min" style={{width:52}} />
+          <span style={{color:T.textFaint,fontSize:10}}>—</span>
+          <CyberInput value={filters[maxKey]||''} onChange={v=>setFilters(f=>({...f,[maxKey]:v}))} placeholder="max" style={{width:52}} />
+        </div>
+      </Field>
+    );
+  }
+
+  return (
+    <div style={{
+      background: T.bg2,
+      border: `1px solid ${T.border}`,
+      clipPath: 'polygon(7px 0, 100% 0, 100% 100%, 0 100%, 0 7px)',
+      position: 'relative',
+      flexShrink: 0,
+    }}>
+      <CornerAccent pos="tl" color={T.cyan} size={10} />
+
+      {/* Header */}
+      <div
+        onClick={() => setOpen(o => !o)}
+        style={{
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          padding:'7px 12px',
+          borderBottom: open ? `1px solid ${T.border}` : 'none',
+          cursor:'pointer', userSelect:'none',
+          background: T.bg3,
+        }}
+      >
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <span style={{color:T.cyan,fontSize:8}}>◆</span>
+          <CyberLabel style={{color:T.cyan}}>Filter Matrix</CyberLabel>
+        </div>
+        <span style={{color:T.textFaint,fontSize:9,transform:open?'rotate(90deg)':'rotate(0)',transition:'transform 0.2s'}}>▶</span>
+      </div>
+
+      {open && (
+        <div style={{padding:'10px 12px', display:'flex', flexDirection:'column', gap:10}}>
+          {/* Row 1: Search / Type / PV / Move */}
+          <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 130px 120px 190px', gap:10}}>
+            <Field label="Search" style={isMobile ? {gridColumn:'1/-1'} : {}}>
+              <CyberInput value={filters.search||''} onChange={v=>setFilters(f=>({...f,search:v}))} placeholder="Name / Class / Variant" />
+            </Field>
+            <Field label="Type">
+              <CyberSelect value={filters.type||'all'} onChange={v=>setFilters(f=>({...f,type:v}))} options={[
+                {value:'all',label:'All types'},{value:'BM',label:'BattleMech'},
+                {value:'PM',label:'ProtoMech'},{value:'CV',label:'Combat Veh.'},{value:'AF',label:'AeroFighter'}
+              ]} />
+            </Field>
+            <Field label="PV Range">
+              <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                <CyberInput value={filters.pvMin||''} onChange={v=>setFilters(f=>({...f,pvMin:v}))} placeholder="min" style={{width:46}} />
+                <span style={{color:T.textFaint,fontSize:10}}>—</span>
+                <CyberInput value={filters.pvMax||''} onChange={v=>setFilters(f=>({...f,pvMax:v}))} placeholder="max" style={{width:46}} />
+              </div>
+            </Field>
+            <Field label="Move (inches)">
+              <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                <CyberInput value={filters.moveMin||''} onChange={v=>setFilters(f=>({...f,moveMin:v}))} placeholder="min" style={{width:46}} />
+                <span style={{color:T.textFaint,fontSize:10}}>—</span>
+                <CyberInput value={filters.moveMax||''} onChange={v=>setFilters(f=>({...f,moveMax:v}))} placeholder="max" style={{width:46}} />
+                <label style={{display:'flex',alignItems:'center',gap:4,color:T.textDim,fontSize:11,cursor:'pointer',whiteSpace:'nowrap'}}>
+                  <input type="checkbox" checked={!!filters.jumpOnly} onChange={e=>setFilters(f=>({...f,jumpOnly:e.target.checked}))} style={{accentColor:T.cyan}} />
+                  J only
+                </label>
+              </div>
+            </Field>
+          </div>
+
+          {/* Row 2: TMM / S / M / L */}
+          <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '110px 160px 160px 160px', gap:10}}>
+            <Field label="TMM ≥">
+              <CyberInput value={filters.tmmMin||''} onChange={v=>setFilters(f=>({...f,tmmMin:v}))} placeholder="min" />
+            </Field>
+            <RangeRow label="Damage S" minKey="sMin" maxKey="sMax" />
+            <RangeRow label="Damage M" minKey="mMin" maxKey="mMax" />
+            <RangeRow label="Damage L" minKey="lMin" maxKey="lMax" />
+          </div>
+
+          {/* Row 3: Role / Tech / Era / Intro */}
+          <div style={{display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '130px 150px 150px 180px', gap:10}}>
+            <Field label="Role">
+              <select multiple style={{
+                background:'oklch(0.08 0.02 240)', border:`1px solid ${T.border}`,
+                color:T.text, fontFamily:"'JetBrains Mono', monospace", fontSize:11,
+                height:68, outline:'none', padding:'2px 6px',
+              }}>
+                {['Ambusher','Brawler','Juggernaut','Missile Boat','Skirmisher','Sniper','Scout','Striker'].map(r=>(
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Tech Base">
+              <select multiple style={{
+                background:'oklch(0.08 0.02 240)', border:`1px solid ${T.border}`,
+                color:T.text, fontFamily:"'JetBrains Mono', monospace", fontSize:11,
+                height:68, outline:'none', padding:'2px 6px',
+              }}>
+                {['Clan','Inner Sphere','Mixed','Primitive'].map(r=>(
+                  <option key={r}>{r}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Era">
+              <CyberSelect value={filters.era||'all'} onChange={v=>setFilters(f=>({...f,era:v}))} options={[
+                {value:'all',label:'All eras'},{value:'sl',label:'Star League'},
+                {value:'sw',label:'Succession Wars'},{value:'ci',label:'Clan Invasion'},
+                {value:'cw',label:'Civil War'},{value:'ji',label:'Jihad'},
+              ]} />
+            </Field>
+            <Field label="Intro Year">
+              <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                <CyberInput value={filters.introFrom||''} onChange={v=>setFilters(f=>({...f,introFrom:v}))} placeholder="from" style={{width:58}} />
+                <span style={{color:T.textFaint,fontSize:10}}>—</span>
+                <CyberInput value={filters.introTo||''} onChange={v=>setFilters(f=>({...f,introTo:v}))} placeholder="to" style={{width:58}} />
+              </div>
+            </Field>
+          </div>
+
+          {/* Abilities + actions */}
+          <div style={{display:'flex', flexWrap:'wrap', gap:8, alignItems:'flex-end'}}>
+            <Field label="Abilities / Tags" style={{flex:1, minWidth:140}}>
+              <CyberSelect value="pick" onChange={()=>{}} options={[
+                {value:'pick',label:'— pick tag —'},{value:'CASE',label:'CASE'},
+                {value:'ECM',label:'ECM'},{value:'OMNI',label:'OMNI'},{value:'LRM',label:'LRM'},{value:'TAG',label:'TAG'}
+              ]} />
+            </Field>
+            <div style={{display:'flex',gap:4,alignItems:'center'}}>
+              <span style={{color:T.textDim,fontSize:10}}>≥</span>
+              <CyberInput value="" onChange={()=>{}} placeholder="val" style={{width:40}} />
+            </div>
+            <CyberBtn variant="primary" onClick={onApply}>Apply</CyberBtn>
+            <CyberBtn variant="secondary" onClick={onReset}>Reset</CyberBtn>
+            <div style={{display:'flex',alignItems:'center',gap:8,color:T.textDim,fontSize:11}}>
+              <span style={{fontFamily:"'Orbitron',monospace",fontSize:8,letterSpacing:'0.1em',color:T.textFaint}}>MODE:</span>
+              {['AND','OR'].map(m=>(
+                <label key={m} style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
+                  <input type="radio" name="filter-mode" defaultChecked={m==='AND'} style={{accentColor:T.cyan}} />
+                  <span style={{fontSize:10}}>{m}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── UNIT TABLE ───────────────────────────────────────────────────────────────
+const COLS_DESKTOP = [
+  { key:'add',      label:'',      w:32,     fixed:true },
+  { key:'name',     label:'Name',  w:176 },
+  { key:'cls',      label:'Class', w:100 },
+  { key:'type',     label:'T',     w:28,     align:'center' },
+  { key:'pv',       label:'PV',    w:38,     align:'right' },
+  { key:'move',     label:'Move',  w:72 },
+  { key:'tmm',      label:'TMM',   w:38,     align:'right' },
+  { key:'s',        label:'S',     w:26,     align:'right' },
+  { key:'m',        label:'M',     w:26,     align:'right' },
+  { key:'l',        label:'L',     w:26,     align:'right' },
+  { key:'armor',    label:'ARM',   w:36,     align:'right' },
+  { key:'str',      label:'STR',   w:36,     align:'right' },
+  { key:'abilities',label:'Abilities', w:'auto' },
+];
+
+const COLS_MOBILE = [
+  { key:'add',   label:'', w:32, fixed:true },
+  { key:'name',  label:'Name', w:140 },
+  { key:'pv',    label:'PV', w:38, align:'right' },
+  { key:'move',  label:'Move', w:58 },
+  { key:'s',     label:'S', w:26, align:'right' },
+  { key:'m',     label:'M', w:26, align:'right' },
+  { key:'l',     label:'L', w:26, align:'right' },
+];
+
+function UnitTable({ units, onAdd, onSelect, compact, showAbilities, isMobile }) {
+  const T = window.__T;
+  const [hovRow, setHovRow] = useState(null);
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState(1);
+
+  const COLS = isMobile ? COLS_MOBILE : COLS_DESKTOP;
+
+  const sorted = useMemo(() => [...units].sort((a,b) => {
+    const av = a[sortKey]??'', bv = b[sortKey]??'';
+    return (av > bv ? 1 : av < bv ? -1 : 0) * sortDir;
+  }), [units, sortKey, sortDir]);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir(d => -d);
+    else { setSortKey(key); setSortDir(1); }
+  }
+
+  const rowH = compact ? 22 : 27;
+
+  return (
+    <div style={{flex:1, display:'flex', flexDirection:'column', overflow:'hidden', borderTop:`1px solid ${T.border}`}}>
+      {/* Header */}
+      <div style={{display:'flex', background:T.bg3, borderBottom:`1px solid ${T.borderBright}`, flexShrink:0, overflowX: isMobile ? 'auto' : 'visible'}}>
+        {COLS.map(col => (
+          <div
+            key={col.key}
+            onClick={() => col.key!=='add' && toggleSort(col.key)}
+            style={{
+              width: col.w==='auto' ? undefined : col.w,
+              flex: col.w==='auto' ? 1 : undefined,
+              minWidth: col.w==='auto' ? 80 : undefined,
+              padding:'5px 5px',
+              fontFamily:"'Orbitron', monospace",
+              fontSize:8,
+              fontWeight:700,
+              letterSpacing:'0.1em',
+              color: sortKey===col.key ? T.cyan : T.cyanDim,
+              textAlign: col.align||'left',
+              cursor: col.key!=='add'?'pointer':'default',
+              userSelect:'none',
+              borderRight:`1px solid ${T.border}`,
+              whiteSpace:'nowrap',
+              flexShrink:0,
+            }}
+          >
+            {col.label}
+            {sortKey===col.key && <span style={{marginLeft:2}}>{sortDir===1?'▲':'▼'}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Body */}
+      <div style={{flex:1, overflowY:'auto', overflowX: isMobile ? 'auto' : 'hidden'}}>
+        {sorted.map((unit, i) => {
+          const isHov = hovRow===unit.id;
+          return (
+            <div
+              key={unit.id}
+              onMouseEnter={() => setHovRow(unit.id)}
+              onMouseLeave={() => setHovRow(null)}
+              style={{
+                display:'flex', alignItems:'center',
+                height:rowH,
+                background: isHov ? 'oklch(0.16 0.025 230)' : i%2===0 ? T.bg : T.bg2,
+                borderBottom:`1px solid ${T.border}`,
+                transition:'background 0.08s',
+              }}
+            >
+              {/* + btn */}
+              <div style={{width:32, display:'flex', justifyContent:'center', borderRight:`1px solid ${T.border}`, height:'100%', alignItems:'center', flexShrink:0}}>
+                <button
+                  onClick={() => onAdd(unit)}
+                  title={`Add ${unit.name} to formation`}
+                  style={{
+                    width:18, height:18,
+                    background: isHov ? T.green : 'oklch(0.16 0.04 155)',
+                    border:`1px solid ${T.green}`,
+                    color: T.bg,
+                    fontSize:14, fontWeight:700, lineHeight:1,
+                    cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    clipPath:'polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px)',
+                    transition:'background 0.1s',
+                  }}
+                >+</button>
+              </div>
+              {/* Name */}
+              <div
+                onClick={() => onSelect(unit)}
+                style={{width:isMobile?140:176, padding:'0 6px', color:isHov?T.cyan:T.text, cursor:'pointer', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', borderRight:`1px solid ${T.border}`, fontSize:compact?11:12, flexShrink:0}}
+              >{unit.name}</div>
+              {/* Desktop cols */}
+              {!isMobile && <>
+                <div style={{width:100, padding:'0 6px', color:T.textDim, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', borderRight:`1px solid ${T.border}`, fontSize:compact?11:12, flexShrink:0}}>{unit.cls}</div>
+                <div style={{width:28, padding:'0 3px', color:T.textFaint, textAlign:'center', borderRight:`1px solid ${T.border}`, fontSize:10, flexShrink:0}}>{unit.type}</div>
+              </>}
+              {/* PV */}
+              <div style={{width:38, padding:'0 5px', color:T.amber, textAlign:'right', borderRight:`1px solid ${T.border}`, fontSize:compact?11:12, fontWeight:600, flexShrink:0}}>{unit.pv}</div>
+              {/* Move */}
+              <div style={{width:isMobile?58:72, padding:'0 5px', color:T.textDim, borderRight:`1px solid ${T.border}`, fontSize:compact?10:11, flexShrink:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{unit.move}</div>
+              {/* Desktop TMM */}
+              {!isMobile && <div style={{width:38, padding:'0 5px', textAlign:'right', borderRight:`1px solid ${T.border}`, fontSize:compact?10:11, color:T.textDim, flexShrink:0}}>{unit.tmm}</div>}
+              {/* S M L */}
+              {['s','m','l'].map(k=>(
+                <div key={k} style={{width:26, padding:'0 3px', textAlign:'right', borderRight:`1px solid ${T.border}`, fontSize:compact?11:12, color:T.text, fontWeight:500, flexShrink:0}}>{unit[k]}</div>
+              ))}
+              {/* Desktop ARM STR Abilities */}
+              {!isMobile && <>
+                {['armor','str'].map(k=>(
+                  <div key={k} style={{width:36, padding:'0 5px', textAlign:'right', borderRight:`1px solid ${T.border}`, fontSize:compact?10:11, color:T.textDim, flexShrink:0}}>{unit[k]}</div>
+                ))}
+                {showAbilities && <div style={{flex:1, padding:'0 6px', color:T.textFaint, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:compact?9:10}}>{unit.abilities}</div>}
+              </>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── FORMATION PANEL ──────────────────────────────────────────────────────────
+function FormationPanel({ onShowDetail, isMobile, mobileOpen, onMobileClose }) {
+  const T = window.__T;
+  const [collapsed, setCollapsed] = useState(false);
+  const [formName, setFormName] = useState('Testformation1');
+  const [editing, setEditing] = useState(false);
+  const [formUnits, setFormUnits] = useState(INIT_FORMATION);
+
+  const totalPV = formUnits.reduce((s,u)=>s+u.pv,0);
+  const limitPV = 225;
+
+  const panelStyle = isMobile ? {
+    position:'fixed', inset:0, zIndex:100,
+    background: T.bg2,
+    display: mobileOpen ? 'flex' : 'none',
+    flexDirection:'column',
+    overflowY:'auto',
+  } : {
+    width: collapsed ? 28 : 240,
+    display:'flex', flexDirection:'column',
+    background: T.bg2,
+    borderLeft:`1px solid ${T.border}`,
+    flexShrink:0,
+    overflow:'hidden',
+    transition:'width 0.2s',
+  };
+
+  if (!isMobile && collapsed) return (
+    <div style={{width:28, display:'flex', flexDirection:'column', alignItems:'center', background:T.bg2, borderLeft:`1px solid ${T.border}`, flexShrink:0}}>
+      <button onClick={()=>setCollapsed(false)} style={{background:'none',border:'none',color:T.cyan,cursor:'pointer',padding:'12px 0',writingMode:'vertical-rl',fontFamily:"'Orbitron',monospace",fontSize:8,letterSpacing:'0.12em'}}>◀ FORMATION</button>
+    </div>
+  );
+
+  return (
+    <div style={panelStyle}>
+      {/* Top bar */}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 8px', borderBottom:`1px solid ${T.border}`, background:T.bg3, flexShrink:0}}>
+        <CyberLabel style={{color:T.cyanDim}}>Formation</CyberLabel>
+        {isMobile
+          ? <button onClick={onMobileClose} style={{background:'none',border:'none',color:T.textFaint,cursor:'pointer',fontSize:14}}>✕</button>
+          : <button onClick={()=>setCollapsed(true)} style={{background:'none',border:'none',color:T.textFaint,cursor:'pointer',fontSize:11}}>▶</button>
+        }
+      </div>
+
+      {/* Formation selector */}
+      <div style={{padding:'8px 10px', borderBottom:`1px solid ${T.border}`, flexShrink:0}}>
+        <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:6}}>
+          <CyberSelect value="f1" onChange={()=>{}} options={[{value:'f1',label:'Testformation1'},{value:'f2',label:'meine tolle Formation'}]} style={{flex:1}} />
+          <CyberBtn variant="primary" small style={{padding:'4px 10px'}}>+</CyberBtn>
+        </div>
+        <CyberInput value="" onChange={()=>{}} placeholder="Filter formations…" />
+      </div>
+
+      {/* Formation detail */}
+      <div style={{flex:1, overflowY:'auto'}}>
+        <div style={{padding:'8px 10px', borderBottom:`1px solid ${T.border}`}}>
+          {/* Name */}
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:5}}>
+            {editing
+              ? <CyberInput value={formName} onChange={setFormName} autoFocus style={{flex:1}} />
+              : <span style={{fontFamily:"'Orbitron',monospace",fontSize:11,fontWeight:700,color:T.text,flex:1}}>{formName}</span>
+            }
+            <button onClick={()=>setEditing(e=>!e)} style={{background:'none',border:'none',color:T.textFaint,cursor:'pointer',fontSize:13,padding:2}}>✎</button>
+          </div>
+
+          {/* Type + badge */}
+          <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+            <span style={{color:T.textDim,fontSize:10,fontFamily:"'JetBrains Mono',monospace"}}>Heavy Battle Star</span>
+            <Badge variant="invalid">INVALID</Badge>
+          </div>
+
+          {/* PV bar */}
+          <div style={{marginBottom:6}}>
+            <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+              <CyberLabel>Point Value</CyberLabel>
+              <span style={{fontFamily:"'Orbitron',monospace",fontSize:9,color:T.amber}}>{totalPV} / {limitPV} <span style={{color:T.textFaint}}>(+{Math.max(0,totalPV-limitPV)})</span></span>
+            </div>
+            <div style={{height:4,background:'oklch(0.08 0.02 240)',clipPath:'polygon(2px 0,100% 0,100% 100%,0 100%,0 2px)'}}>
+              <div style={{height:'100%',width:`${Math.min(100,(totalPV/limitPV)*100)}%`,background:totalPV>limitPV?T.red:T.green,transition:'width 0.3s'}} />
+            </div>
+          </div>
+
+          {/* Damage totals */}
+          <div style={{display:'flex',gap:12,fontSize:11}}>
+            {['S','M','L'].map((r,i)=>(
+              <div key={r} style={{display:'flex',gap:3,alignItems:'center'}}>
+                <span style={{color:T.textFaint,fontFamily:"'Orbitron',monospace",fontSize:8}}>{r}:</span>
+                <span style={{fontWeight:700,color:T.text,fontFamily:"'Orbitron',monospace",fontSize:13}}>{[10,11,8][i]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Validation errors */}
+        <div style={{padding:'6px 10px',borderBottom:`1px solid ${T.border}`}}>
+          {[
+            'Minimum 4 unit(s) required (have 3)',
+            'At least 4 units must be Size 3 (Heavy) or larger',
+            'At least 2 units must be Size 4 (Assault)',
+          ].map((err,i)=>(
+            <div key={i} style={{display:'flex',gap:5,marginBottom:4}}>
+              <span style={{color:T.red,fontSize:9,flexShrink:0,marginTop:2}}>◆</span>
+              <span style={{color:T.red,fontSize:10,lineHeight:1.45,fontFamily:"'JetBrains Mono',monospace"}}>{err}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Unit list */}
+        <div style={{padding:'4px 0'}}>
+          {formUnits.map(u=>(
+            <div
+              key={u.id}
+              onClick={() => onShowDetail(UNITS.find(x=>x.id===u.id)||UNITS[5])}
+              style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:`1px solid ${T.border}`,cursor:'pointer',transition:'background 0.1s'}}
+              onMouseEnter={e=>e.currentTarget.style.background=T.bg3}
+              onMouseLeave={e=>e.currentTarget.style.background='transparent'}
+            >
+              <span style={{color:T.text,fontSize:11,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flex:1,fontFamily:"'JetBrains Mono',monospace"}}>{u.name}</span>
+              <span style={{color:T.amber,fontSize:10,fontFamily:"'Orbitron',monospace",fontWeight:700,marginLeft:6,flexShrink:0}}>PV {u.pv}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div style={{padding:10,display:'flex',flexDirection:'column',gap:6}}>
+          <CyberBtn variant="secondary" style={{width:'100%',justifyContent:'center',display:'flex'}}>Show Matching Units</CyberBtn>
+          <CyberBtn variant="secondary" style={{width:'100%',justifyContent:'center',display:'flex'}}>Print</CyberBtn>
+        </div>
+
+        {/* Armies */}
+        <div
+          style={{padding:'6px 10px',borderTop:`1px solid ${T.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}
+          onMouseEnter={e=>e.currentTarget.style.background=T.bg3}
+          onMouseLeave={e=>e.currentTarget.style.background='transparent'}
+        >
+          <CyberLabel>Armies</CyberLabel>
+          <span style={{color:T.textFaint,fontSize:10}}>▶</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── UNIT DETAIL ──────────────────────────────────────────────────────────────
+function UnitDetail({ unit, onBack, onAdd }) {
+  const T = window.__T;
+  return (
+    <div style={{flex:1,overflowY:'auto',padding:'14px 18px'}}>
+      <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+        <CyberBtn variant="secondary" onClick={onBack}>← Back to List</CyberBtn>
+        <CyberBtn variant="add" onClick={()=>onAdd(unit)}>+ Add to Force</CyberBtn>
+      </div>
+
+      <div style={{display:'flex',gap:20,marginBottom:22,flexWrap:'wrap'}}>
+        {/* Placeholder image */}
+        <div style={{
+          width:160,height:160,flexShrink:0,
+          background:T.bg3,border:`1px solid ${T.border}`,
+          clipPath:'polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)',
+          display:'flex',alignItems:'center',justifyContent:'center',position:'relative',
+          backgroundImage:`repeating-linear-gradient(45deg, oklch(0.15 0.02 240) 0px, oklch(0.15 0.02 240) 1px, transparent 1px, transparent 10px)`,
+        }}>
+          <CornerAccent pos="tl" color={T.cyan} size={12} />
+          <CornerAccent pos="br" color={T.cyanDim} size={12} />
+          <div style={{textAlign:'center',color:T.textFaint}}>
+            <div style={{fontSize:28,marginBottom:4}}>⬡</div>
+            <div style={{fontFamily:"'JetBrains Mono'",fontSize:8,letterSpacing:'0.05em'}}>mech artwork</div>
+          </div>
+        </div>
+
+        <div style={{flex:1,minWidth:180}}>
+          <div style={{fontFamily:"'Orbitron',monospace",fontSize:18,fontWeight:900,color:T.text,marginBottom:4,letterSpacing:'0.05em',lineHeight:1.2}}>{unit.name}</div>
+          <div style={{color:T.textDim,fontSize:12,marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>{unit.cls}</div>
+
+          <div style={{display:'grid',gridTemplateColumns:'90px 1fr',rowGap:5}}>
+            {[
+              ['Type', unit.type==='BM'?'BattleMech':unit.type],
+              ['Tech', unit.tech],
+              ['Role', unit.role],
+              ['Era', unit.era],
+              ['Intro', unit.intro],
+            ].map(([k,v])=>(
+              <React.Fragment key={k}>
+                <CyberLabel style={{lineHeight:'20px'}}>{k}</CyberLabel>
+                <span style={{color:T.text,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>{v}</span>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Alpha Strike */}
+      <div style={{marginBottom:18}}>
+        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,fontWeight:700,color:T.cyan,marginBottom:8,letterSpacing:'0.12em',display:'flex',alignItems:'center',gap:7}}>
+          <span style={{fontSize:8}}>◆◆◆</span> ALPHA STRIKE
+        </div>
+        <Panel style={{padding:'12px 14px'}}>
+          <CornerAccent pos="tl" color={T.cyan} size={10} />
+          <CornerAccent pos="br" color={T.cyanDim} size={10} />
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'8px 16px',marginBottom:12}}>
+            {[['Move',unit.move],['TMM',unit.tmm],['PV',unit.pv],['Size',unit.size],
+              ['Armor',unit.armor],['Structure',unit.str],['OV',1],['Threshold',0]].map(([k,v])=>(
+              <div key={k}>
+                <CyberLabel>{k}</CyberLabel>
+                <div style={{fontFamily:"'Orbitron',monospace",fontSize:15,fontWeight:700,color:T.text,marginTop:2}}>{v}</div>
+              </div>
+            ))}
+          </div>
+          {/* Damage table */}
+          <div style={{borderTop:`1px solid ${T.border}`,paddingTop:10}}>
+            <div style={{display:'grid',gridTemplateColumns:'70px 1fr 1fr 1fr',gap:4}}>
+              <div></div>
+              {['S','M','L'].map(r=>(
+                <div key={r} style={{textAlign:'center',fontFamily:"'Orbitron',monospace",fontSize:8,color:T.cyanDim,letterSpacing:'0.1em'}}>{r}</div>
+              ))}
+              <CyberLabel style={{lineHeight:'22px'}}>Damage</CyberLabel>
+              {[unit.s,unit.m,unit.l].map((v,i)=>(
+                <div key={i} style={{textAlign:'center',fontFamily:"'Orbitron',monospace",fontSize:15,fontWeight:700,color:T.text}}>{v}</div>
+              ))}
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      {/* Abilities */}
+      <div>
+        <div style={{fontFamily:"'Orbitron',monospace",fontSize:11,fontWeight:700,color:T.cyan,marginBottom:8,letterSpacing:'0.12em',display:'flex',alignItems:'center',gap:7}}>
+          <span style={{fontSize:8}}>◆◆◆</span> ABILITIES
+        </div>
+        <div style={{color:T.textDim,fontSize:11,marginBottom:8,fontFamily:"'JetBrains Mono',monospace"}}>{unit.abilities}</div>
+        <Panel>
+          <table style={{width:'100%',borderCollapse:'collapse'}}>
+            <thead>
+              <tr style={{background:T.bg3}}>
+                {['Tag','S','M','L','Value','Raw'].map(h=>(
+                  <th key={h} style={{padding:'5px 10px',textAlign:h==='Tag'||h==='Raw'?'left':'center',fontFamily:"'Orbitron',monospace",fontSize:8,letterSpacing:'0.1em',color:T.cyanDim,fontWeight:700,borderBottom:`1px solid ${T.borderBright}`}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {unit.abilities.split(',').map((ab,i)=>{
+                const tag = ab.replace(/[\d/].*$/,'');
+                return (
+                  <tr key={i} style={{borderBottom:`1px solid ${T.border}`,background:i%2===0?'transparent':T.bg}}>
+                    <td style={{padding:'5px 10px',fontWeight:600,color:T.text,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>{tag}</td>
+                    {['—','—','—','—'].map((v,j)=>(
+                      <td key={j} style={{padding:'5px 10px',textAlign:'center',color:T.textFaint,fontSize:12}}>{v}</td>
+                    ))}
+                    <td style={{padding:'5px 10px'}}>
+                      <span style={{background:T.bg3,border:`1px solid ${T.border}`,color:T.textDim,fontSize:10,padding:'1px 6px',fontFamily:"'JetBrains Mono',monospace"}}>{ab}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+// ─── TOPBAR ───────────────────────────────────────────────────────────────────
+function TopBar({ isMobile, onFormationToggle }) {
+  const T = window.__T;
+  return (
+    <div style={{
+      height:42,
+      background:T.bg3,
+      borderBottom:`1px solid ${T.borderBright}`,
+      display:'flex', alignItems:'center',
+      padding:'0 12px',
+      gap:10,
+      flexShrink:0,
+      position:'relative',
+    }}>
+      <CornerAccent pos="bl" color={T.cyan} size={8} />
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke={T.cyan} strokeWidth="1.5" fill={`oklch(0.72 0.15 ${window.__T.accentHue||195} / 0.12)`} />
+        <polygon points="10,5 15,8 15,13 10,16 5,13 5,8" stroke={T.cyan} strokeWidth="1" fill={`oklch(0.72 0.15 ${window.__T.accentHue||195} / 0.2)`} />
+        <circle cx="10" cy="10" r="2" fill={T.cyan} />
+      </svg>
+      <span style={{fontFamily:"'Orbitron',monospace",fontSize:isMobile?11:14,fontWeight:900,letterSpacing:'0.12em',color:T.cyan}}>MECHLIBRARY</span>
+      {!isMobile && <>
+        <span style={{color:T.border,fontSize:10}}>|</span>
+        <span style={{fontFamily:"'Orbitron',monospace",fontSize:8,color:T.textFaint,letterSpacing:'0.15em'}}>ALPHA STRIKE FORCE BUILDER</span>
+      </>}
+      <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+        {!isMobile && <span style={{fontFamily:"'JetBrains Mono'",fontSize:10,color:T.textFaint}}>4,034 UNITS</span>}
+        <span style={{fontFamily:"'Orbitron',monospace",fontSize:8,color:T.green,letterSpacing:'0.1em'}}>● ONLINE</span>
+        {isMobile && (
+          <button onClick={onFormationToggle} style={{background:T.bg2,border:`1px solid ${T.border}`,color:T.cyan,cursor:'pointer',padding:'4px 8px',fontFamily:"'Orbitron',monospace",fontSize:8,letterSpacing:'0.1em',clipPath:'polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)'}}>FORCE ▶</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatusBar({ count }) {
+  const T = window.__T;
+  return (
+    <div style={{height:26,display:'flex',alignItems:'center',padding:'0 12px',background:T.bg3,borderTop:`1px solid ${T.border}`,gap:10,flexShrink:0}}>
+      <span style={{fontFamily:"'Orbitron',monospace",fontSize:8,color:T.cyanDim,letterSpacing:'0.12em'}}>UNITS:</span>
+      <span style={{fontFamily:"'Orbitron',monospace",fontSize:11,color:T.amber,fontWeight:700}}>{count}</span>
+      <span style={{color:T.border}}>|</span>
+      <span style={{fontFamily:"'JetBrains Mono'",fontSize:9,color:T.textFaint}}>Click name for detail · [+] adds to formation</span>
+    </div>
+  );
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function App() {
+  // Tweaks — useTweaks is exported to window by tweaks-panel.jsx
+  const [tweaks, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+
+  // Expose tokens globally so child components can access without prop drilling
+  window.__T = useMemo(() => ({
+    ...makeTokens(tweaks.accentHue, tweaks.glowIntensity),
+    accentHue: tweaks.accentHue,
+  }), [tweaks.accentHue, tweaks.glowIntensity]);
+
+  const T = window.__T;
+
+  // Responsive
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [mobileFormOpen, setMobileFormOpen] = useState(false);
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+
+  // View state
+  const [view, setView] = useState('list');
+  const [selectedUnit, setSelectedUnit] = useState(null);
+  const [filters, setFilters] = useState({});
+
+  const filtered = useMemo(() => UNITS.filter(u => {
+    if (filters.search) {
+      const s = filters.search.toLowerCase();
+      if (!u.name.toLowerCase().includes(s) && !u.cls.toLowerCase().includes(s) && !u.variant.toLowerCase().includes(s)) return false;
+    }
+    if (filters.type && filters.type !== 'all' && u.type !== filters.type) return false;
+    return true;
+  }), [filters]);
+
+  function handleSelect(unit) { setSelectedUnit(unit); setView('detail'); }
+  function handleAdd(unit) { /* hook into real state */ }
+
+  // Scanlines
+  const scanlineStyle = tweaks.scanlines ? {
+    position:'fixed', inset:0, zIndex:9998, pointerEvents:'none',
+    background:'repeating-linear-gradient(0deg,transparent,transparent 2px,oklch(0 0 0 / 0.04) 2px,oklch(0 0 0 / 0.04) 4px)',
+  } : null;
+
+  // Tweaks components from window
+  const TP = window.TweaksPanel;
+  const TS = window.TweakSection;
+  const TSlider = window.TweakSlider;
+  const TToggle = window.TweakToggle;
+  const TRadio  = window.TweakRadio;
+
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column',background:T.bg,color:T.text,fontFamily:"'JetBrains Mono',monospace"}}>
+      {scanlineStyle && <div style={scanlineStyle} />}
+
+      <TopBar isMobile={isMobile} onFormationToggle={()=>setMobileFormOpen(true)} />
+
+      <div style={{flex:1,display:'flex',overflow:'hidden'}}>
+        {/* Left / Main */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+          {view==='list' ? (
+            <>
+              <div style={{padding:'8px 10px 0',flexShrink:0}}>
+                <FilterPanel filters={filters} setFilters={setFilters} onApply={()=>{}} onReset={()=>setFilters({})} isMobile={isMobile} />
+              </div>
+              <UnitTable units={filtered} onAdd={handleAdd} onSelect={handleSelect} compact={tweaks.compactRows} showAbilities={tweaks.showAbilities} isMobile={isMobile} />
+              <StatusBar count={filtered.length} />
+            </>
+          ) : (
+            <UnitDetail unit={selectedUnit} onBack={()=>setView('list')} onAdd={handleAdd} />
+          )}
+        </div>
+
+        {/* Formation panel — desktop side, mobile overlay */}
+        {!isMobile && (
+          <FormationPanel onShowDetail={handleSelect} isMobile={false} />
+        )}
+        {isMobile && (
+          <FormationPanel onShowDetail={u=>{handleSelect(u);setMobileFormOpen(false);}} isMobile={true} mobileOpen={mobileFormOpen} onMobileClose={()=>setMobileFormOpen(false)} />
+        )}
+      </div>
+
+      {/* Tweaks panel */}
+      {TP && (
+        <TP title="Tweaks">
+          <TS label="Display">
+            <TToggle label="Compact rows"  value={tweaks.compactRows}    onChange={v=>setTweak('compactRows',v)} />
+            <TToggle label="Show abilities" value={tweaks.showAbilities}  onChange={v=>setTweak('showAbilities',v)} />
+            <TToggle label="Scanlines"     value={tweaks.scanlines}      onChange={v=>setTweak('scanlines',v)} />
+          </TS>
+          <TS label="Style">
+            <TRadio  label="Glow"          value={tweaks.glowIntensity}  options={['off','low','medium','high']}  onChange={v=>setTweak('glowIntensity',v)} />
+            <TSlider label="Accent hue"    value={tweaks.accentHue}      min={150} max={260} step={5} unit="°"   onChange={v=>setTweak('accentHue',v)} />
+          </TS>
+        </TP>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

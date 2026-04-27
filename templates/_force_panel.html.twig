@@ -1,89 +1,137 @@
 {# Force panel — included in base.html.twig; state is loaded via force.js #}
 <aside id="force-panel" class="force-panel" aria-label="Active formation">
 
-    {# Toggle — always visible even when collapsed #}
-    <div class="force-panel-header">
-        <button id="fp-toggle" class="fp-icon-btn" title="Toggle panel" aria-expanded="true">◀</button>
+    {# Collapsed vertical label (visible only when collapsed) #}
+    <div class="fp-collapsed-label">
+        <button onclick="
+            document.getElementById('force-panel').classList.remove('collapsed');
+            this.closest('.fp-collapsed-label').style.display='none';
+        ">◀ FORMATION</button>
     </div>
 
-    {# 1. Formation selector + filter #}
-    <div class="fp-selector" id="fp-selector">
-        <select id="fp-formation-select" title="Active formation">
-            <option value="">— no active formation —</option>
-        </select>
-        <button id="fp-new-btn" class="secondary fp-icon-btn" title="New formation">+</button>
-    </div>
-    <input id="fp-formation-search" type="text" class="fp-search-input"
-           placeholder="Filter formations…" autocomplete="off" hidden>
+    {# Full panel body #}
+    <div class="fp-panel-body">
 
-    {# 2. New-formation form (hidden by default) #}
-    <div id="fp-new-form" class="fp-new-form" hidden>
-        <input id="fp-new-name" type="text" placeholder="Formation name" autocomplete="off">
-        <select id="fp-new-army" title="Army (optional)">
-            <option value="">— no army —</option>
-        </select>
-        <select id="fp-new-type" title="Formation type">
-            <option value="custom">Custom</option>
-        </select>
-        <div class="fp-new-form-row">
-            <input id="fp-new-budget" type="number" placeholder="PV budget" min="0">
-            <button id="fp-new-save" class="contrast" type="button">Create</button>
-            <button id="fp-new-cancel" class="secondary outline" type="button">Cancel</button>
+        {# Header bar with collapse toggle #}
+        <div class="force-panel-header">
+            <span class="fp-header-label">Formation</span>
+            <button id="fp-toggle" class="fp-icon-btn" title="Toggle panel" aria-expanded="true">▶</button>
         </div>
-    </div>
 
-    {# 3. Formation name + rename button (shown when a formation is active) #}
-    <div class="fp-name-row" id="fp-name-row" hidden>
-        <span class="force-panel-title" id="fp-title"></span>
-        <button id="fp-rename-btn" class="fp-icon-btn" title="Rename formation">✎</button>
-    </div>
-    <div id="fp-rename-form" class="fp-new-form" hidden>
-        <div class="fp-new-form-row">
-            <input id="fp-rename-input" type="text" placeholder="New name" autocomplete="off" style="flex:1">
-            <button id="fp-rename-save" class="contrast fp-icon-btn" type="button" title="Save">✓</button>
-            <button id="fp-rename-cancel" class="secondary outline fp-icon-btn" type="button" title="Cancel">✕</button>
+        {# 1. Formation selector + new button #}
+        <div class="fp-selector-section" id="fp-selector">
+            <div class="fp-selector">
+                <select id="fp-formation-select" title="Active formation">
+                    <option value="">— no active formation —</option>
+                </select>
+                <button id="fp-new-btn" class="fp-new-btn-inline" title="New formation">+</button>
+            </div>
+            <input id="fp-formation-search" type="text" class="fp-search-input"
+                   placeholder="Filter formations…" autocomplete="off" hidden>
         </div>
-    </div>
 
-    {# 4. Summary strip #}
-    <div class="fp-summary" id="fp-summary" hidden>
-        <div class="fp-type-row">
-            <span id="fp-type-label" class="fp-type-label"></span>
-            <span id="fp-compliance-badge" class="fp-compliance-badge"></span>
+        {# 2. New-formation form (hidden by default) #}
+        <div id="fp-new-form" class="fp-new-form" hidden>
+            <input id="fp-new-name" type="text" placeholder="Formation name" autocomplete="off">
+            <select id="fp-new-army" title="Army (optional)">
+                <option value="">— no army —</option>
+            </select>
+            <select id="fp-new-type" title="Formation type">
+                <option value="custom">Custom</option>
+            </select>
+            <div class="fp-new-form-row">
+                <input id="fp-new-budget" type="number" placeholder="PV budget" min="0">
+                <button id="fp-new-save" class="fp-action-btn" type="button"
+                        style="width:auto;border-color:var(--cyan);color:var(--cyan);">Create</button>
+                <button id="fp-new-cancel" class="fp-action-btn" type="button"
+                        style="width:auto;">Cancel</button>
+            </div>
         </div>
-        <div class="fp-pv-row">
-            <span>PV: <strong id="fp-pv-sum">0</strong></span>
-            <span id="fp-pv-budget-display"></span>
-        </div>
-        <div class="fp-dmg-row" title="Total damage S / M / L">
-            S:<strong id="fp-dmg-s">0</strong>
-            M:<strong id="fp-dmg-m">0</strong>
-            L:<strong id="fp-dmg-l">0</strong>
-        </div>
-        <ul id="fp-requirements" class="fp-requirements" hidden></ul>
-    </div>
 
-    {# 5. Unit list #}
-    <ol id="fp-unit-list" class="fp-unit-list"></ol>
+        {# Scrollable content area #}
+        <div class="fp-unit-list-wrap">
 
-    {# 6. Panel actions #}
-    <div class="fp-actions" id="fp-actions" hidden>
-        <button id="fp-suggest-btn" class="secondary outline fp-action-btn" type="button"
-                title="Pre-fill filters from formation constraints">
-            Show matching units
-        </button>
-        <a id="fp-print-link" href="#" target="_blank" class="secondary outline fp-action-btn"
-           role="button">Print</a>
-    </div>
+            {# 3. Formation name + rename button #}
+            <div class="fp-name-row" id="fp-name-row" hidden>
+                <span class="force-panel-title" id="fp-title"></span>
+                <button id="fp-rename-btn" class="fp-icon-btn" title="Rename formation">✎</button>
+            </div>
+            <div id="fp-rename-form" class="fp-new-form" hidden>
+                <div class="fp-new-form-row">
+                    <input id="fp-rename-input" type="text" placeholder="New name"
+                           autocomplete="off" style="flex:1;">
+                    <button id="fp-rename-save" class="fp-icon-btn" type="button"
+                            title="Save" style="color:var(--green);">✓</button>
+                    <button id="fp-rename-cancel" class="fp-icon-btn" type="button"
+                            title="Cancel">✕</button>
+                </div>
+            </div>
 
-    {# 7. Army management #}
-    <details class="fp-armies" id="fp-armies">
-        <summary class="fp-armies-summary">Armies</summary>
-        <ul id="fp-army-list" class="fp-army-list"></ul>
-        <div class="fp-new-army-form">
-            <input id="fp-new-army-name" type="text" placeholder="Army name" autocomplete="off">
-            <button id="fp-new-army-save" type="button" class="secondary fp-action-btn">+ New Army</button>
+            {# 4. Summary strip #}
+            <div class="fp-summary" id="fp-summary" hidden>
+
+                <div class="fp-type-row">
+                    <span id="fp-type-label" class="fp-type-label"></span>
+                    <span id="fp-compliance-badge" class="fp-compliance-badge"></span>
+                </div>
+
+                <div class="fp-pv-row">
+                    <div class="fp-pv-header">
+                        <span class="cyber-label">Point Value</span>
+                        <span class="fp-pv-nums">
+                            <strong id="fp-pv-sum">0</strong>
+                            <span id="fp-pv-budget-display"></span>
+                        </span>
+                    </div>
+                    <div class="fp-pv-bar-track">
+                        <div class="fp-pv-bar-fill" id="fp-pv-bar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="fp-dmg-row">
+                    <div style="display:flex;gap:3px;align-items:center;">
+                        <span class="fp-dmg-label">S:</span>
+                        <strong id="fp-dmg-s" class="fp-dmg-val">0</strong>
+                    </div>
+                    <div style="display:flex;gap:3px;align-items:center;">
+                        <span class="fp-dmg-label">M:</span>
+                        <strong id="fp-dmg-m" class="fp-dmg-val">0</strong>
+                    </div>
+                    <div style="display:flex;gap:3px;align-items:center;">
+                        <span class="fp-dmg-label">L:</span>
+                        <strong id="fp-dmg-l" class="fp-dmg-val">0</strong>
+                    </div>
+                </div>
+
+                <ul id="fp-requirements" class="fp-requirements" hidden></ul>
+
+            </div>{# /#fp-summary #}
+
+            {# 5. Unit list #}
+            <ol id="fp-unit-list" class="fp-unit-list"></ol>
+
+        </div>{# /.fp-unit-list-wrap #}
+
+        {# 6. Panel actions #}
+        <div class="fp-actions" id="fp-actions" hidden>
+            <button id="fp-suggest-btn" class="fp-action-btn" type="button"
+                    title="Pre-fill filters from formation constraints">
+                Show Matching Units
+            </button>
+            <a id="fp-print-link" href="#" target="_blank" class="fp-action-btn"
+               role="button">Print</a>
         </div>
-    </details>
+
+        {# 7. Army management #}
+        <details class="fp-armies" id="fp-armies">
+            <summary class="fp-armies-summary">Armies</summary>
+            <ul id="fp-army-list" class="fp-army-list"></ul>
+            <div class="fp-new-army-form">
+                <input id="fp-new-army-name" type="text" placeholder="Army name" autocomplete="off">
+                <button id="fp-new-army-save" type="button" class="fp-action-btn">+ New Army</button>
+            </div>
+        </details>
+
+    </div>{# /.fp-panel-body #}
 
 </aside>

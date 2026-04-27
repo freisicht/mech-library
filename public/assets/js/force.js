@@ -85,8 +85,12 @@
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
             const collapsed = panel.classList.toggle('collapsed');
-            toggleBtn.textContent = collapsed ? '▶' : '◀';
+            toggleBtn.textContent = collapsed ? '▶' : '▶';
             toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+            const collapsedLabel = panel.querySelector('.fp-collapsed-label');
+            if (collapsedLabel) {
+                collapsedLabel.style.display = collapsed ? 'flex' : '';
+            }
         });
     }
 
@@ -293,6 +297,13 @@
             pvBudgetEl.textContent = f.pv_budget
                 ? ('/ ' + f.pv_budget + ' (' + (f.pv_remaining >= 0 ? '+' : '') + f.pv_remaining + ')')
                 : '';
+        }
+
+        const pvBar = document.getElementById('fp-pv-bar');
+        if (pvBar && f.pv_budget) {
+            const pct = Math.min(100, ((f.pv_sum ?? 0) / f.pv_budget) * 100);
+            pvBar.style.width = pct + '%';
+            pvBar.classList.toggle('over', (f.pv_remaining < 0));
         }
 
         if (dmgS) dmgS.textContent = String(f.dmg_s_total ?? 0);

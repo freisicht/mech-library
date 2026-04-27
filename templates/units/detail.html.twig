@@ -2,69 +2,134 @@
 {% block title %}{{ unit.name }} {{ unit.variant }} — Mech Library{% endblock %}
 
 {% block content %}
-<p>
-    <a href="/">← Back to list</a>
-    <button class="add-to-force-btn" data-unit-id="{{ unit.id }}"
-            style="margin-left:1rem"
-            onclick="if(window.ML&&window.ML.addToForce)window.ML.addToForce({{ unit.id }},this)">
-        + Add to force
-    </button>
-</p>
+<div class="detail-wrap">
 
-<article class="unit-detail">
+    {# ── Action bar ── #}
+    <div class="detail-actions">
+        <a href="/" class="fp-action-btn" style="width:auto;display:inline-block;">← Back to List</a>
+        <button class="btn-add add-to-force-btn" data-unit-id="{{ unit.id }}"
+                onclick="if(window.ML&&window.ML.addToForce)window.ML.addToForce({{ unit.id }},this)">
+            + Add to Force
+        </button>
+    </div>
+
+    {# ── Header: image + name/info ── #}
     <div class="unit-detail-layout">
 
+        {# Image panel with corner accents #}
         <div class="unit-image">
+            <div class="corner-tl" style="width:12px;height:12px;"></div>
+            <div class="corner-br"></div>
             {% if unit.image_path %}
                 <img src="/{{ unit.image_path }}" alt="{{ unit.name }} {{ unit.variant }}">
             {% else %}
-                <div class="unit-image-placeholder">No image</div>
+                <div class="unit-image-placeholder">
+                    <span class="unit-image-placeholder-icon">⬡</span>
+                    <span class="unit-image-placeholder-text">mech artwork</span>
+                </div>
             {% endif %}
         </div>
 
+        {# Unit metadata #}
         <div class="unit-info">
-            <hgroup>
-                <h2>{{ unit.name }} {{ unit.variant }}</h2>
-                <p>{{ unit.class }}</p>
-            </hgroup>
+            <div class="unit-name-heading">{{ unit.name }} {{ unit.variant }}</div>
+            <div class="unit-class-sub">{{ unit.class }}</div>
 
             <dl class="unit-meta">
-                {% if unit.type_name %}<div><dt>Type</dt><dd>{{ unit.type_name }}</dd></div>{% endif %}
-                {% if unit.tech_name %}<div><dt>Tech</dt><dd>{{ unit.tech_name }}</dd></div>{% endif %}
-                {% if unit.role_name %}<div><dt>Role</dt><dd>{{ unit.role_name }}</dd></div>{% endif %}
+                {% if unit.type_name %}
+                <div><dt>Type</dt><dd>{{ unit.type_name }}</dd></div>
+                {% endif %}
+                {% if unit.tech_name %}
+                <div><dt>Tech</dt><dd>{{ unit.tech_name }}</dd></div>
+                {% endif %}
+                {% if unit.role_name %}
+                <div><dt>Role</dt><dd>{{ unit.role_name }}</dd></div>
+                {% endif %}
                 <div><dt>Tonnage</dt><dd>{{ unit.tonnage }} t</dd></div>
                 {% if unit.era_name %}
-                    <div><dt>Era</dt><dd>{{ unit.era_name }}{% if unit.era_start %} ({{ unit.era_start }}){% endif %}</dd></div>
+                <div><dt>Era</dt><dd>{{ unit.era_name }}{% if unit.era_start %} ({{ unit.era_start }}){% endif %}</dd></div>
                 {% endif %}
                 {% if unit.date_introduced %}
-                    <div><dt>Introduced</dt><dd>{{ unit.date_introduced }}</dd></div>
+                <div><dt>Introduced</dt><dd>{{ unit.date_introduced }}</dd></div>
                 {% endif %}
                 {% if unit.rules %}
-                    <div><dt>Rules</dt><dd>{{ unit.rules }}</dd></div>
+                <div><dt>Rules</dt><dd>{{ unit.rules }}</dd></div>
                 {% endif %}
                 {% if unit.battle_value %}
-                    <div><dt>Battle Value</dt><dd>{{ unit.battle_value }}</dd></div>
+                <div><dt>Battle Value</dt><dd>{{ unit.battle_value }}</dd></div>
                 {% endif %}
             </dl>
+        </div>
 
-            <hr>
+    </div>{# /.unit-detail-layout #}
 
-            <h3>Alpha Strike</h3>
+    {# ── Alpha Strike block ── #}
+    <div class="as-block">
+        <div class="section-heading">Alpha Strike</div>
 
-            <dl class="unit-stats">
-                {% if unit.bf_move %}<div><dt>Move</dt><dd>{{ unit.bf_move }}</dd></div>{% endif %}
-                {% if unit.bf_tmm is not null %}<div><dt>TMM</dt><dd>{{ unit.bf_tmm }}</dd></div>{% endif %}
-                {% if unit.bf_point_value %}<div><dt>PV</dt><dd>{{ unit.bf_point_value }}</dd></div>{% endif %}
-                {% if unit.bf_size %}<div><dt>Size</dt><dd>{{ unit.bf_size }}</dd></div>{% endif %}
-                {% if unit.bf_armor is not null %}<div><dt>Armor</dt><dd>{{ unit.bf_armor }}</dd></div>{% endif %}
-                {% if unit.bf_structure is not null %}<div><dt>Structure</dt><dd>{{ unit.bf_structure }}</dd></div>{% endif %}
-                {% if unit.bf_threshold is not null %}<div><dt>Threshold</dt><dd>{{ unit.bf_threshold }}</dd></div>{% endif %}
-                {% if unit.bf_overheat is not null %}<div><dt>OV</dt><dd>{{ unit.bf_overheat }}</dd></div>{% endif %}
-            </dl>
+        <div class="panel as-panel">
+            <div class="corner-tl"></div>
+            <div class="corner-br"></div>
+
+            <div class="as-stats-grid">
+                {% if unit.bf_move %}
+                <div>
+                    <span class="as-stat-label">Move</span>
+                    <span class="as-stat-value">{{ unit.bf_move }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_tmm is not null %}
+                <div>
+                    <span class="as-stat-label">TMM</span>
+                    <span class="as-stat-value">{{ unit.bf_tmm }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_point_value %}
+                <div>
+                    <span class="as-stat-label">PV</span>
+                    <span class="as-stat-value" style="color:var(--amber)">{{ unit.bf_point_value }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_size %}
+                <div>
+                    <span class="as-stat-label">Size</span>
+                    <span class="as-stat-value">{{ unit.bf_size }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_armor is not null %}
+                <div>
+                    <span class="as-stat-label">Armor</span>
+                    <span class="as-stat-value">{{ unit.bf_armor }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_structure is not null %}
+                <div>
+                    <span class="as-stat-label">Structure</span>
+                    <span class="as-stat-value">{{ unit.bf_structure }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_threshold is not null %}
+                <div>
+                    <span class="as-stat-label">Threshold</span>
+                    <span class="as-stat-value">{{ unit.bf_threshold }}</span>
+                </div>
+                {% endif %}
+                {% if unit.bf_overheat is not null %}
+                <div>
+                    <span class="as-stat-label">OV</span>
+                    <span class="as-stat-value">{{ unit.bf_overheat }}</span>
+                </div>
+                {% endif %}
+            </div>
 
             <table class="damage-table">
                 <thead>
-                    <tr><th>Range</th><th>S</th><th>M</th><th>L</th></tr>
+                    <tr>
+                        <th style="text-align:left;"></th>
+                        <th>S</th>
+                        <th>M</th>
+                        <th>L</th>
+                    </tr>
                 </thead>
                 <tbody>
                     <tr>
@@ -75,22 +140,39 @@
                     </tr>
                 </tbody>
             </table>
+
             {% if unit.bf_damage_short_min or unit.bf_damage_medium_min or unit.bf_damage_long_min %}
-                <small><sup>*</sup> minimal damage</small>
+            <p style="font-size:10px;color:var(--text-faint);margin-top:4px;">
+                <sup>*</sup> minimal damage
+            </p>
             {% endif %}
 
-            {% if unit.bf_abilities %}
-            <hr>
-            <h3>Abilities</h3>
-            <p class="abilities-raw">{{ unit.bf_abilities }}</p>
+        </div>{# /.as-panel #}
+    </div>{# /.as-block #}
 
-            {% if unit.parsed_abilities is not empty %}
-            <table>
-                <thead><tr><th>Tag</th><th>S</th><th>M</th><th>L</th><th>Value</th><th>Raw</th></tr></thead>
+    {# ── Abilities block ── #}
+    {% if unit.bf_abilities %}
+    <div class="abilities-block">
+        <div class="section-heading">Abilities</div>
+        <p class="abilities-raw">{{ unit.bf_abilities }}</p>
+
+        {% if unit.parsed_abilities is not empty %}
+        <div class="panel" style="padding:0;">
+            <table class="abilities-table">
+                <thead>
+                    <tr>
+                        <th>Tag</th>
+                        <th>S</th>
+                        <th>M</th>
+                        <th>L</th>
+                        <th>Value</th>
+                        <th>Raw</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {% for ab in unit.parsed_abilities %}
                     <tr>
-                        <td><strong>{{ ab.tag }}</strong></td>
+                        <td>{{ ab.tag }}</td>
                         <td>{{ ab.short ?? '—' }}</td>
                         <td>{{ ab.medium ?? '—' }}</td>
                         <td>{{ ab.long ?? '—' }}</td>
@@ -100,10 +182,10 @@
                     {% endfor %}
                 </tbody>
             </table>
-            {% endif %}
-            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
 
-        </div>{# /.unit-info #}
-    </div>{# /.unit-detail-layout #}
-</article>
+</div>{# /.detail-wrap #}
 {% endblock %}

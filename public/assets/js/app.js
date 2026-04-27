@@ -45,6 +45,7 @@
 
     const table = new Tabulator('#unit-table', {
         layout: 'fitColumns',
+        height: '100%',
         pagination: true,
         paginationMode: 'remote',
         paginationSize: 50,

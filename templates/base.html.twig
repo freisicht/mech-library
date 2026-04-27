@@ -1,32 +1,53 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Mech Library{% endblock %}</title>
-    <link rel="stylesheet" href="/assets/css/pico.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/tabulator.min.css">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body class="with-force-panel">
-    <header class="container-fluid">
-        <nav>
-            <ul>
-                <li><strong><a href="/">⚙ Mech Library</a></strong></li>
-            </ul>
-        </nav>
+<body>
+<div class="app-shell">
+
+    {# ── Topbar ── #}
+    <header class="topbar">
+        <a href="/" class="topbar-logo">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <polygon points="10,1 19,6 19,14 10,19 1,14 1,6"
+                         stroke="var(--cyan)" stroke-width="1.5"
+                         fill="oklch(0.72 0.15 195 / 0.12)"/>
+                <polygon points="10,5 15,8 15,13 10,16 5,13 5,8"
+                         stroke="var(--cyan)" stroke-width="1"
+                         fill="oklch(0.72 0.15 195 / 0.2)"/>
+                <circle cx="10" cy="10" r="2" fill="var(--cyan)"/>
+            </svg>
+            <span class="topbar-title">MECHLIBRARY</span>
+        </a>
+        <span class="topbar-sep">|</span>
+        <span class="topbar-subtitle">ALPHA STRIKE FORCE BUILDER</span>
+        <div class="topbar-right">
+            <span class="topbar-status">● SYS ONLINE</span>
+        </div>
     </header>
 
-    <div class="app-layout">
-        <main class="container-fluid app-main">
+    {# ── Main body: left column + right force panel ── #}
+    <div class="app-body">
+
+        <main class="app-main">
             {% block content %}{% endblock %}
         </main>
 
         {% include '_force_panel.html.twig' %}
+
     </div>
 
-    <script src="/assets/js/tabulator.min.js"></script>
-    <script src="/assets/js/force.js"></script>
-    {% block scripts %}{% endblock %}
+</div>{# /.app-shell #}
+
+<script src="/assets/js/tabulator.min.js"></script>
+<script src="/assets/js/force.js"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>
