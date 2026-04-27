@@ -136,4 +136,57 @@
       <parameter name="Engine" value="InnoDB"/>
     </vendor>
   </table>
+  <table name="armies" idMethod="native" phpName="Armies">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>
+    <column name="created_at" phpName="CreatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
+    <column name="updated_at" phpName="UpdatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="formations" idMethod="native" phpName="Formations">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="army_id" phpName="ArmyId" type="INTEGER" sqlType="int unsigned"/>
+    <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>
+    <column name="formation_type" phpName="FormationType" type="VARCHAR" size="64" required="true" defaultValue=""/>
+    <column name="pv_budget" phpName="PvBudget" type="SMALLINT" sqlType="smallint unsigned"/>
+    <column name="is_active" phpName="IsActive" type="BOOLEAN" size="1" required="true" defaultValue="false"/>
+    <column name="created_at" phpName="CreatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
+    <column name="updated_at" phpName="UpdatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    <foreign-key foreignTable="armies" name="fk_formations_army" onDelete="SETNULL">
+      <reference local="army_id" foreign="id"/>
+    </foreign-key>
+    <index name="idx_army_id">
+      <index-column name="army_id"/>
+    </index>
+    <index name="idx_is_active">
+      <index-column name="is_active"/>
+    </index>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="formation_units" idMethod="native" phpName="FormationUnits">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="formation_id" phpName="FormationId" type="INTEGER" sqlType="int unsigned" required="true"/>
+    <column name="unit_id" phpName="UnitId" type="INTEGER" sqlType="int unsigned" required="true"/>
+    <column name="sort_order" phpName="SortOrder" type="SMALLINT" sqlType="smallint unsigned" required="true" defaultValue="0"/>
+    <foreign-key foreignTable="formations" name="fk_fu_formation" onDelete="CASCADE">
+      <reference local="formation_id" foreign="id"/>
+    </foreign-key>
+    <foreign-key foreignTable="units" name="fk_fu_unit" onDelete="CASCADE">
+      <reference local="unit_id" foreign="id"/>
+    </foreign-key>
+    <index name="idx_fu_unit_id">
+      <index-column name="unit_id"/>
+    </index>
+    <unique name="uq_formation_unit">
+      <unique-column name="formation_id"/>
+      <unique-column name="unit_id"/>
+    </unique>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
 </database>

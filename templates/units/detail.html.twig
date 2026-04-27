@@ -2,7 +2,14 @@
 {% block title %}{{ unit.name }} {{ unit.variant }} — Mech Library{% endblock %}
 
 {% block content %}
-<p><a href="/">← Back to list</a></p>
+<p>
+    <a href="/">← Back to list</a>
+    <button class="add-to-force-btn" data-unit-id="{{ unit.id }}"
+            style="margin-left:1rem"
+            onclick="if(window.ML&&window.ML.addToForce)window.ML.addToForce({{ unit.id }},this)">
+        + Add to force
+    </button>
+</p>
 
 <article class="unit-detail">
     <div class="unit-detail-layout">

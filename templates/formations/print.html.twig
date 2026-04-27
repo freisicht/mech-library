@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ formation.name }} — Mech Library Print</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: sans-serif; font-size: 11pt; color: #000; background: #fff; margin: 1cm; }
+        h1 { font-size: 16pt; margin: 0 0 0.25rem; }
+        .meta { font-size: 9pt; color: #555; margin-bottom: 0.75rem; }
+        .compliance-ok   { color: #1a7a1a; font-weight: bold; }
+        .compliance-fail { color: #aa1a1a; font-weight: bold; }
+        .requirements { margin: 0.25rem 0 0.5rem; padding-left: 1.25rem; font-size: 9pt; color: #aa1a1a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th { background: #eee; font-size: 9pt; text-align: left; padding: 0.25rem 0.4rem; border: 1px solid #ccc; }
+        td { font-size: 9pt; padding: 0.25rem 0.4rem; border: 1px solid #ccc; }
+        tr:nth-child(even) td { background: #f9f9f9; }
+        tfoot td { font-weight: bold; background: #f0f0f0; }
+        .summary-box { border: 1px solid #ccc; padding: 0.5rem 0.75rem; margin-top: 0.75rem; display: inline-block; }
+        @media print {
+            body { margin: 0.75cm; }
+            a { text-decoration: none; color: inherit; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>{{ formation.name }}</h1>
+<p class="meta">
+    Formation type: <strong>{{ formation.formation_type }}</strong>
+    {% if formation.pv_budget %}
+        &nbsp;·&nbsp; PV budget: <strong>{{ formation.pv_budget }}</strong>
+    {% endif %}
+</p>
+
+<p>
+    Compliance:
+    {% if formation.compliance.compliant %}
+        <span class="compliance-ok">VALID</span>
+    {% else %}
+        <span class="compliance-fail">INVALID</span>
+    {% endif %}
+</p>
+
+{% if not formation.compliance.compliant and formation.compliance.unmet_requirements %}
+    <ul class="requirements">
+        {% for req in formation.compliance.unmet_requirements %}
+            <li>{{ req }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Variant</th>
+            <th>T</th>
+            <th>Role</th>
+            <th>Move</th>
+            <th>TMM</th>
+            <th>S</th>
+            <th>M</th>
+            <th>L</th>
+            <th>Arm</th>
+            <th>Str</th>
+            <th>PV</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in formation.units %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ u.name }}</td>
+            <td>{{ u.variant }}</td>
+            <td>{{ u.tonnage }}</td>
+            <td>{{ u.role ?? '' }}</td>
+            <td>{{ u.bf_move ?? '' }}</td>
+            <td>{{ u.tmm ?? '' }}</td>
+            <td>{{ u.dmg_s ?? '' }}</td>
+            <td>{{ u.dmg_m ?? '' }}</td>
+            <td>{{ u.dmg_l ?? '' }}</td>
+            <td>{{ u.armor ?? '' }}</td>
+            <td>{{ u.bf_structure ?? '' }}</td>
+            <td><strong>{{ u.pv ?? '' }}</strong></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="7"></td>
+            <td>{{ formation.dmg_s_total }}</td>
+            <td>{{ formation.dmg_m_total }}</td>
+            <td>{{ formation.dmg_l_total }}</td>
+            <td colspan="2"></td>
+            <td>{{ formation.pv_sum }}</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="summary-box">
+    <strong>PV total: {{ formation.pv_sum }}</strong>
+    {% if formation.pv_budget %}
+        &nbsp;/ budget {{ formation.pv_budget }}
+        &nbsp;({{ formation.pv_remaining >= 0 ? '+' : '' }}{{ formation.pv_remaining }} remaining)
+    {% endif %}
+    <br>
+    Damage totals — S: {{ formation.dmg_s_total }} &nbsp; M: {{ formation.dmg_m_total }} &nbsp; L: {{ formation.dmg_l_total }}
+</div>
+
+</body>
+</html>

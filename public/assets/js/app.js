@@ -71,6 +71,25 @@
         headerSort: true,
         initialSort: [{ column: 'name', dir: 'asc' }],
         columns: [
+            {
+                title: '', field: 'id', sorter: false, width: 46, hozAlign: 'center',
+                headerSort: false, resizable: false,
+                formatter: function (cell) {
+                    const id  = cell.getValue();
+                    const btn = document.createElement('button');
+                    btn.className        = 'add-to-force-btn';
+                    btn.dataset.unitId   = String(id);
+                    btn.textContent      = '+';
+                    btn.title            = 'Add to active formation';
+                    btn.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        if (window.ML && window.ML.addToForce) {
+                            window.ML.addToForce(id, btn);
+                        }
+                    });
+                    return btn;
+                },
+            },
             { title: 'Name',      field: 'name',      sorter: 'string',  minWidth: 130,
                 formatter: function (cell) {
                     const row = cell.getRow().getData();

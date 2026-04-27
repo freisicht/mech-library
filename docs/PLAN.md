@@ -135,12 +135,12 @@ Print view: HTML + print-CSS only (no PDF generation).
 
 **DB & backend**
 
-- [ ] SQL migration: `armies`, `formations`, `formation_units` tables. Document in `docs/SCHEMA.md`.
-- [ ] Perpl schema XML update + regenerate model classes.
-- [ ] Formation type registry: PHP config (~35 AS types) with rule descriptors (unit count bounds, category/role constraints, special-ability requirements).
-- [ ] `FormationRulesEngine` service: given a formation type + unit list → compliant bool + list of unmet requirements.
-- [ ] `ArmyRepository` / `FormationRepository`: CRUD, fetch with units and compliance result.
-- [ ] API endpoints:
+- [x] SQL migration: `armies`, `formations`, `formation_units` tables. Document in `docs/SCHEMA.md`.
+- [x] Perpl schema XML update + regenerate model classes.
+- [x] Formation type registry: PHP config (~35 AS types) with rule descriptors (unit count bounds, category/role constraints, special-ability requirements).
+- [x] `FormationRulesEngine` service: given a formation type + unit list → compliant bool + list of unmet requirements.
+- [x] `ArmyRepository` / `FormationRepository`: CRUD, fetch with units and compliance result.
+- [x] API endpoints:
   - `GET  /api/armies` — list with nested formations
   - `POST /api/armies` — create
   - `GET  /api/formations/{id}` — formation + units + compliance + PV summary
@@ -151,24 +151,28 @@ Print view: HTML + print-CSS only (no PDF generation).
 
 **Frontend**
 
-- [ ] Base layout: persistent force panel (Twig partial, right sidebar or collapsible bottom drawer).
-- [ ] Panel shows: active formation name + type, unit list with per-unit PV, PV sum / remaining, S/M/L damage totals, compliance indicator + unmet-requirement list.
-- [ ] Army/formation selector in panel header: create new, switch active, move formation into/out of army.
-- [ ] "Add to force" button on Tabulator table rows (formatter) — adds to active formation via AJAX.
-- [ ] "Add to force" button on unit detail page.
-- [ ] Suggestion helper: "Show matching units" button pre-fills filter form (PV max = remaining budget + formation-type constraints as filters).
-- [ ] Print view: `GET /formations/{id}/print` — Twig template, print-CSS, no JS required.
+- [x] Base layout: persistent force panel (Twig partial, right sidebar or collapsible bottom drawer).
+- [x] Panel shows: active formation name + type, unit list with per-unit PV, PV sum / remaining, S/M/L damage totals, compliance indicator + unmet-requirement list.
+- [x] Army/formation selector in panel header: create new, switch active, move formation into/out of army.
+- [x] "Add to force" button on Tabulator table rows (formatter) — adds to active formation via AJAX.
+- [x] "Add to force" button on unit detail page.
+- [x] Suggestion helper: "Show matching units" button pre-fills filter form (PV max = remaining budget + formation-type constraints as filters).
+- [x] Print view: `GET /formations/{id}/print` — Twig template, print-CSS, no JS required.
 
 **Quality**
 
-- [ ] Unit tests: `FormationRulesEngine` (at minimum one compliant + one non-compliant case per rule dimension).
-- [ ] Feature tests: CRUD endpoints (create army, add formation, add/remove unit, compliance response).
-- [ ] `composer test` green (phpunit + phpstan level 6 + php-cs-fixer --dry-run).
-- [ ] `docs/SCHEMA.md` updated, `docs/PLAN.md` tasks ticked, `README.md` quick-start still valid.
+- [x] Unit tests: `FormationRulesEngine` (at minimum one compliant + one non-compliant case per rule dimension).
+- [x] Feature tests: CRUD endpoints (create army, add formation, add/remove unit, compliance response).
+- [x] `composer test` green (phpunit + phpstan level 6 + php-cs-fixer --dry-run).
+- [x] `docs/SCHEMA.md` updated, `docs/PLAN.md` tasks ticked, `README.md` quick-start still valid.
 
 ### Notes / gotchas (added during implementation)
 
-_(fill in as you go)_
+- **`Propel::getConnection()->getLastInsertId()` does not exist.** PHP 8.5 ships `Pdo\Mysql` which lacks this method. Use Perpl ORM `->save()` + `->getId()` for INSERT operations; reserve raw PDO for SELECTs/UPDATEs/DELETEs.
+- **Worktree vendor path.** Git worktrees share no `vendor/` with the main repo. Symlinking `vendor/` from the main repo breaks PSR-4 autoloading (Composer bakes the absolute base dir into `autoload_psr4.php`). Run `composer install` inside the worktree and commit nothing extra — `vendor/` stays gitignored.
+- **PHPStan: two `@param` tags on one line.** PHPStan only reads the first `@param` in a single-line docblock (`/** @param A $a @param B $b */`). Always use multi-line docblocks when annotating more than one parameter.
+- **Formation type rules marked `[VERIFY]`.** ~15 of the ~35 canonical formation types have rules that are best-effort from memory. They need to be checked against the Alpha Strike Companion or Commander's Edition rulebook. Correct entries in `src/Formation/FormationTypeRegistry.php`; tests will catch regressions.
+- **Single-active invariant.** MySQL lacks partial unique indexes so the constraint that at most one formation is active is enforced by `FormationRepository::setActive()`. If multiple processes could write concurrently (they can't — single-user app), a transaction would be needed.
 
 ### Definition of done
 

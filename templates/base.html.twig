@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/assets/css/tabulator.min.css">
     <link rel="stylesheet" href="/assets/css/app.css">
 </head>
-<body>
+<body class="with-force-panel">
     <header class="container-fluid">
         <nav>
             <ul>
@@ -17,11 +17,16 @@
         </nav>
     </header>
 
-    <main class="container-fluid">
-        {% block content %}{% endblock %}
-    </main>
+    <div class="app-layout">
+        <main class="container-fluid app-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        {% include '_force_panel.html.twig' %}
+    </div>
 
     <script src="/assets/js/tabulator.min.js"></script>
+    <script src="/assets/js/force.js"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

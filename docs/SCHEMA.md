@@ -71,6 +71,43 @@ parsing rules change.
 
 ---
 
+---
+
+## `armies`
+
+Top-level grouping for formations. A named container. Currently has no constraints
+(one formation per army, many formations per army — both valid).
+
+---
+
+## `formations`
+
+One row per named force-builder formation. Key columns:
+
+- **`army_id`** (nullable FK → armies): formations can exist standalone or under an army.
+- **`formation_type`**: slug matching a key in `FormationTypeRegistry` (e.g. `battle-lance`,
+  `battle-star`, `custom`). The rules engine uses this slug to look up constraints.
+- **`pv_budget`**: optional PV ceiling the user has declared for this formation. Used to
+  compute `pv_remaining` in the API response.
+- **`is_active`** (TINYINT 0/1): at most one formation may be active at a time. The invariant
+  is maintained by `FormationRepository::setActive()` (UPDATE all to 0, then UPDATE target to 1).
+  MySQL lacks a partial unique index so the single-active constraint lives in application code.
+
+---
+
+## `formation_units`
+
+Junction table. Columns:
+
+- **`formation_id` / `unit_id`**: composite unique key prevents duplicate adds.
+- **`sort_order`**: append-only counter incremented by `FormationRepository::addUnit()`.
+  Drives the display order in the force panel.
+
+The ON DELETE CASCADE on `formation_id` and `unit_id` ensures rows are cleaned up
+automatically when either parent is deleted.
+
+---
+
 ## Migration strategy
 
 Phase 1 uses plain SQL files in `data/migrations/` numbered `NNN_slug.sql`. The `db:migrate`

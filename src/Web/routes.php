@@ -2,13 +2,47 @@
 
 declare(strict_types=1);
 
+use App\Web\Controller\ApiArmiesController;
+use App\Web\Controller\ApiFormationsController;
 use App\Web\Controller\ApiUnitsController;
+use App\Web\Controller\FormationPrintController;
 use App\Web\Controller\UnitDetailController;
 use App\Web\Controller\UnitListController;
 use Slim\App;
 
 return static function (App $app): void {
+    // Phase 2 — unit list + detail
     $app->get('/', UnitListController::class);
     $app->get('/units/{id:[0-9]+}', UnitDetailController::class);
     $app->get('/api/units', ApiUnitsController::class);
+
+    // Phase 3 — formation type catalogue
+    $app->get('/api/formation-types', [ApiFormationsController::class, 'types']);
+
+    // Phase 3 — active formation (force panel data source)
+    $app->get('/api/formations/active', [ApiFormationsController::class, 'getActive']);
+    $app->delete('/api/formations/active', [ApiFormationsController::class, 'deactivate']);
+
+    // Phase 3 — formation CRUD
+    $app->get('/api/formations/{id:[0-9]+}', [ApiFormationsController::class, 'show']);
+    $app->post('/api/formations', [ApiFormationsController::class, 'create']);
+    $app->put('/api/formations/{id:[0-9]+}', [ApiFormationsController::class, 'update']);
+    $app->post('/api/formations/{id:[0-9]+}/activate', [ApiFormationsController::class, 'activate']);
+    $app->delete('/api/formations/{id:[0-9]+}', [ApiFormationsController::class, 'delete']);
+
+    // Phase 3 — formation unit management
+    $app->post('/api/formations/{id:[0-9]+}/units', [ApiFormationsController::class, 'addUnit']);
+    $app->delete(
+        '/api/formations/{id:[0-9]+}/units/{unitId:[0-9]+}',
+        [ApiFormationsController::class, 'removeUnit'],
+    );
+
+    // Phase 3 — army CRUD
+    $app->get('/api/armies', [ApiArmiesController::class, 'list']);
+    $app->post('/api/armies', [ApiArmiesController::class, 'create']);
+    $app->put('/api/armies/{id:[0-9]+}', [ApiArmiesController::class, 'rename']);
+    $app->delete('/api/armies/{id:[0-9]+}', [ApiArmiesController::class, 'delete']);
+
+    // Phase 3 — print view
+    $app->get('/formations/{id:[0-9]+}/print', FormationPrintController::class);
 };

@@ -126,6 +126,258 @@ details > summary {
     cursor: pointer;
 }
 
+/* ── App shell layout (main + force panel) ───────────── */
+
+.app-layout {
+    display: flex;
+    align-items: flex-start;
+    min-height: calc(100vh - 52px);
+}
+
+.app-main {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* ── Force panel ─────────────────────────────────────── */
+
+:root {
+    --fp-width: 280px;
+    --fp-bg: var(--pico-card-background-color, #1a1a2e);
+    --fp-border: var(--pico-card-border-color, #2a2a3e);
+}
+
+.force-panel {
+    width: var(--fp-width);
+    flex-shrink: 0;
+    background: var(--fp-bg);
+    border-left: 1px solid var(--fp-border);
+    min-height: calc(100vh - 52px);
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+    overflow-y: auto;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: width 0.2s ease;
+}
+
+.force-panel.collapsed {
+    width: 32px;
+    overflow: hidden;
+    padding: 0.75rem 4px;
+}
+.force-panel.collapsed > *:not(.force-panel-header) {
+    display: none !important;
+}
+
+.force-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.force-panel-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.fp-icon-btn {
+    background: none;
+    border: none;
+    color: var(--pico-color);
+    cursor: pointer;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.9rem;
+    line-height: 1;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+.fp-icon-btn:hover {
+    background: var(--fp-border);
+}
+
+.fp-selector {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+.fp-selector select {
+    flex: 1;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    padding: 0.3rem 0.4rem;
+}
+
+.fp-new-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.fp-new-form input,
+.fp-new-form select {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    padding: 0.3rem 0.4rem;
+}
+.fp-new-form-row {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+.fp-new-form-row input {
+    flex: 1;
+}
+.fp-new-form-row button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+}
+
+.fp-summary {
+    background: var(--pico-background-color, #111);
+    border-radius: 0.4rem;
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.fp-type-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.25rem;
+}
+.fp-type-label {
+    font-size: 0.75rem;
+    color: var(--pico-muted-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fp-compliance-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    white-space: nowrap;
+}
+.fp-compliance-badge.ok {
+    background: #1a4a1a;
+    color: #6fcf6f;
+}
+.fp-compliance-badge.fail {
+    background: #4a1a1a;
+    color: #cf6f6f;
+}
+
+.fp-pv-row, .fp-dmg-row {
+    display: flex;
+    gap: 0.75rem;
+}
+.fp-pv-row span, .fp-dmg-row span {
+    font-size: 0.8rem;
+}
+
+.fp-requirements {
+    margin: 0.25rem 0 0;
+    padding: 0 0 0 1rem;
+    font-size: 0.75rem;
+    color: #cf6f6f;
+    list-style: disc;
+}
+.fp-requirements li {
+    margin-bottom: 0.15rem;
+}
+
+.fp-unit-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex: 1;
+}
+.fp-unit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.3rem;
+    border-radius: 0.3rem;
+    font-size: 0.78rem;
+}
+.fp-unit-item:hover {
+    background: var(--fp-border);
+}
+.fp-unit-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.fp-unit-pv {
+    color: var(--pico-muted-color);
+    flex-shrink: 0;
+}
+.fp-unit-remove {
+    background: none;
+    border: none;
+    color: var(--pico-muted-color);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    line-height: 1;
+    flex-shrink: 0;
+    opacity: 0;
+}
+.fp-unit-item:hover .fp-unit-remove {
+    opacity: 1;
+}
+
+.fp-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--fp-border);
+}
+.fp-action-btn {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.6rem;
+    text-align: center;
+    width: 100%;
+}
+
+/* ── Add-to-force button in Tabulator ────────────────── */
+.add-to-force-btn {
+    background: none;
+    border: 1px solid var(--pico-primary);
+    color: var(--pico-primary);
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+.add-to-force-btn:hover {
+    background: var(--pico-primary);
+    color: var(--pico-primary-inverse);
+}
+.add-to-force-btn.added {
+    background: var(--pico-primary);
+    color: var(--pico-primary-inverse);
+}
+.add-to-force-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 /* ── Detail page ─────────────────────────────────────── */
 .unit-detail-layout {
     display: grid;

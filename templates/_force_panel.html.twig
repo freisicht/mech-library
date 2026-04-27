@@ -1,0 +1,60 @@
+{# Force panel — included in base.html.twig; state is loaded via force.js #}
+<aside id="force-panel" class="force-panel" aria-label="Active formation">
+    <div class="force-panel-header">
+        <span class="force-panel-title" id="fp-title">Force Builder</span>
+        <button id="fp-toggle" class="fp-icon-btn" title="Toggle panel" aria-expanded="true">◀</button>
+    </div>
+
+    {# Formation selector #}
+    <div class="fp-selector" id="fp-selector">
+        <select id="fp-formation-select" title="Active formation">
+            <option value="">— no active formation —</option>
+        </select>
+        <button id="fp-new-btn" class="secondary fp-icon-btn" title="New formation">+</button>
+    </div>
+
+    {# New-formation form (hidden by default) #}
+    <div id="fp-new-form" class="fp-new-form" hidden>
+        <input id="fp-new-name" type="text" placeholder="Formation name" autocomplete="off">
+        <select id="fp-new-type" title="Formation type">
+            <option value="custom">Custom</option>
+        </select>
+        <div class="fp-new-form-row">
+            <input id="fp-new-budget" type="number" placeholder="PV budget" min="0">
+            <button id="fp-new-save" class="contrast" type="button">Create</button>
+            <button id="fp-new-cancel" class="secondary outline" type="button">Cancel</button>
+        </div>
+    </div>
+
+    {# Summary strip #}
+    <div class="fp-summary" id="fp-summary" hidden>
+        <div class="fp-type-row">
+            <span id="fp-type-label" class="fp-type-label"></span>
+            <span id="fp-compliance-badge" class="fp-compliance-badge"></span>
+        </div>
+        <div class="fp-pv-row">
+            <span>PV: <strong id="fp-pv-sum">0</strong></span>
+            <span id="fp-pv-budget-display"></span>
+        </div>
+        <div class="fp-dmg-row" title="Total damage S / M / L">
+            S:<strong id="fp-dmg-s">0</strong>
+            M:<strong id="fp-dmg-m">0</strong>
+            L:<strong id="fp-dmg-l">0</strong>
+        </div>
+        {# Unmet requirements #}
+        <ul id="fp-requirements" class="fp-requirements" hidden></ul>
+    </div>
+
+    {# Unit list #}
+    <ol id="fp-unit-list" class="fp-unit-list"></ol>
+
+    {# Panel actions #}
+    <div class="fp-actions" id="fp-actions" hidden>
+        <button id="fp-suggest-btn" class="secondary outline fp-action-btn" type="button"
+                title="Pre-fill filters from formation constraints">
+            Show matching units
+        </button>
+        <a id="fp-print-link" href="#" target="_blank" class="secondary outline fp-action-btn"
+           role="button">Print</a>
+    </div>
+</aside>

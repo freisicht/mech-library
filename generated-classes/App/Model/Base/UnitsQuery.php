@@ -165,6 +165,16 @@ use function strtolower;
  * @method static rightJoinWithUnitAbilities() Adds a RIGHT JOIN clause and with to the query using the UnitAbilities relation
  * @method static innerJoinWithUnitAbilities() Adds a INNER JOIN clause and with to the query using the UnitAbilities relation
  *
+ * @method static leftJoinFormationUnits($relationAlias = null) Adds a LEFT JOIN clause to the query using the FormationUnits relation
+ * @method static rightJoinFormationUnits($relationAlias = null) Adds a RIGHT JOIN clause to the query using the FormationUnits relation
+ * @method static innerJoinFormationUnits($relationAlias = null) Adds a INNER JOIN clause to the query using the FormationUnits relation
+ *
+ * @method static joinWithFormationUnits($joinType = \Propel\Runtime\ActiveQuery\Criteria::INNER_JOIN) Adds a join clause and with to the query using the FormationUnits relation
+ *
+ * @method static leftJoinWithFormationUnits() Adds a LEFT JOIN clause and with to the query using the FormationUnits relation
+ * @method static rightJoinWithFormationUnits() Adds a RIGHT JOIN clause and with to the query using the FormationUnits relation
+ * @method static innerJoinWithFormationUnits() Adds a INNER JOIN clause and with to the query using the FormationUnits relation
+ *
  * @method \App\Model\Units|null findOne(\Propel\Runtime\Connection\ConnectionInterface|null $con = null) Return the first \App\Model\Units matching the query
  * @method \App\Model\Units findOneOrCreate(\Propel\Runtime\Connection\ConnectionInterface|null $con = null) Return the first \App\Model\Units matching the query, or a new \App\Model\Units object populated from the query conditions when no match is found
  *
@@ -2876,6 +2886,184 @@ abstract class UnitsQuery extends TypedModelCriteria
     {
         /** @var \App\Model\UnitAbilitiesQuery<static> $q */
         $q = $this->useInQuery('UnitAbilities', $modelAlias, $queryClass, Criteria::NOT_IN);
+
+        return $q;
+    }
+
+    /**
+     * Filter the query by a related FormationUnits object
+     *
+     * @param \App\Model\Base\FormationUnits|\Propel\Runtime\Collection\ObjectCollection<\App\Model\Base\FormationUnits> $formationUnits the related object to use as filter
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this
+     */
+    public function filterByFormationUnits(FormationUnits|ObjectCollection $formationUnits, ?string $comparison = null)
+    {
+        if ($formationUnits instanceof FormationUnits) {
+                $this->addUsingOperator($this->resolveLocalColumnByName('id'), $formationUnits->getUnitId(), $comparison);
+        } elseif ($formationUnits instanceof ObjectCollection) {
+            $this
+                ->useFormationUnitsQuery()
+                ->filterByPrimaryKeys($formationUnits->getPrimaryKeys())
+                ->endUse();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Adds a JOIN clause to the query using the FormationUnits relation
+     *
+     * @param string|null $relationAlias Optional alias for the relation
+     * @param string|null $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this
+     */
+    public function joinFormationUnits(?string $relationAlias = null, ?string $joinType = Criteria::INNER_JOIN)
+    {
+        $tableMap = $this->getTableMap();
+        $relationMap = $tableMap->getRelation('FormationUnits');
+
+        // create a ModelJoin object for this join
+        $join = new ModelJoin();
+        $join->setJoinType($joinType);
+        $leftAlias = $this->useAliasInSQL ? $this->getModelAlias() : null;
+        $join->setupJoinCondition($this, $relationMap, $leftAlias, $relationAlias);
+        $previousJoin = $this->getPreviousJoin();
+        if ($previousJoin instanceof ModelJoin) {
+            $join->setPreviousJoin($previousJoin);
+        }
+
+        // add the ModelJoin to the current object
+        if ($relationAlias) {
+            $this->addAlias($relationAlias, $relationMap->getRightTable()->getName());
+            $this->addJoinObject($join, $relationAlias);
+        } else {
+            $this->addJoinObject($join, 'FormationUnits');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Use the FormationUnits relation FormationUnits object
+     *
+     * @see useQuery()
+     *
+     * @param string|null $relationAlias optional alias for the relation,
+     *                                   to be used as main alias in the secondary query
+     * @param string $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return \App\Model\FormationUnitsQuery<static> A secondary query class using the current class as primary query
+     */
+    public function useFormationUnitsQuery(?string $relationAlias = null, string $joinType = Criteria::INNER_JOIN)
+    {
+        /** @var \App\Model\FormationUnitsQuery<static> $query */
+        $query = $this->joinFormationUnits($relationAlias, $joinType)
+            ->useQuery($relationAlias ?: 'FormationUnits', '\App\Model\FormationUnitsQuery');
+
+        return $query;
+    }
+
+    /**
+     * Use the FormationUnits relation FormationUnits object
+     *
+     * @param callable(\App\Model\FormationUnitsQuery<mixed>):\App\Model\FormationUnitsQuery<mixed> $callable A function working on the related query
+     * @param string|null $relationAlias optional alias for the relation
+     * @param string|null $joinType Accepted values are null, 'left join', 'right join', 'inner join'
+     *
+     * @return $this
+     */
+    public function withFormationUnitsQuery(
+        callable $callable,
+        ?string $relationAlias = null,
+        ?string $joinType = Criteria::INNER_JOIN
+    ) {
+        $relatedQuery = $this->useFormationUnitsQuery(
+            $relationAlias,
+            $joinType,
+        );
+        $callable($relatedQuery);
+        $relatedQuery->endUse();
+
+        return $this;
+    }
+
+    /**
+     * Use the relation to FormationUnits table for an EXISTS query.
+     *
+     * @phpstan-param \Propel\Runtime\ActiveQuery\FilterExpression\ExistsFilter::TYPE_* $typeOfExists
+     *
+     * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useExistsQuery()
+     *
+     * @param string|null $modelAlias sets an alias for the nested query
+     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param string $typeOfExists Either ExistsQueryCriterion::TYPE_EXISTS or ExistsQueryCriterion::TYPE_NOT_EXISTS
+     *
+     * @return \App\Model\FormationUnitsQuery<static> The inner query object of the EXISTS statement
+     */
+    public function useFormationUnitsExistsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfExists = 'EXISTS')
+    {
+        /** @var \App\Model\FormationUnitsQuery<static> $q */
+        $q = $this->useExistsQuery('FormationUnits', $modelAlias, $queryClass, $typeOfExists);
+
+        return $q;
+    }
+
+    /**
+     * Use the relation to FormationUnits table for a NOT EXISTS query.
+     *
+     * @see useFormationUnitsExistsQuery()
+     *
+     * @param string|null $modelAlias sets an alias for the nested query
+     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     *
+     * @return \App\Model\FormationUnitsQuery<static> The inner query object of the NOT EXISTS statement
+     */
+    public function useFormationUnitsNotExistsQuery(?string $modelAlias = null, ?string $queryClass = null)
+    {
+        /** @var \App\Model\FormationUnitsQuery<static> $q*/
+        $q = $this->useExistsQuery('FormationUnits', $modelAlias, $queryClass, 'NOT EXISTS');
+
+        return $q;
+    }
+
+    /**
+     * Use the relation to FormationUnits table for an IN query.
+     *
+     * @phpstan-param \Propel\Runtime\ActiveQuery\Criteria::*IN $typeOfIn
+     *
+     * @see \Propel\Runtime\ActiveQuery\ModelCriteria::useInQuery()
+     *
+     * @param string|null $modelAlias sets an alias for the nested query
+     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     * @param string $typeOfIn Criteria::IN or Criteria::NOT_IN
+     *
+     * @return \App\Model\FormationUnitsQuery<static> The inner query object of the IN statement
+     */
+    public function useInFormationUnitsQuery(?string $modelAlias = null, ?string $queryClass = null, string $typeOfIn = Criteria::IN)
+    {
+        /** @var \App\Model\FormationUnitsQuery<static> $q */
+        $q = $this->useInQuery('FormationUnits', $modelAlias, $queryClass, $typeOfIn);
+
+        return $q;
+    }
+
+    /**
+     * Use the relation to FormationUnits table for a NOT IN query.
+     *
+     * @see useFormationUnitsInQuery()
+     *
+     * @param string|null $modelAlias sets an alias for the nested query
+     * @param class-string<\Propel\Runtime\ActiveQuery\ModelCriteria>|null $queryClass Allows to use a custom query class for the exists query, like ExtendedBookQuery::class
+     *
+     * @return \App\Model\FormationUnitsQuery<static> The inner query object of the NOT IN statement
+     */
+    public function useNotInFormationUnitsQuery(?string $modelAlias = null, ?string $queryClass = null)
+    {
+        /** @var \App\Model\FormationUnitsQuery<static> $q */
+        $q = $this->useInQuery('FormationUnits', $modelAlias, $queryClass, Criteria::NOT_IN);
 
         return $q;
     }

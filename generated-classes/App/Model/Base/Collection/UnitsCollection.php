@@ -94,4 +94,18 @@ class UnitsCollection extends ObjectCollection
         return $collection;
     }
 
+    /**
+     * @param \Propel\Runtime\ActiveQuery\Criteria|null $criteria
+     * @param \Propel\Runtime\Connection\ConnectionInterface|null $con
+     *
+     * @return \App\Model\Base\Collection\FormationUnitsCollection
+     */
+    public function populateFormationUnitss(?Criteria $criteria = null, ?ConnectionInterface $con = null): FormationUnitsCollection
+    {
+        /** @var \App\Model\Base\Collection\FormationUnitsCollection $collection */
+        $collection = $this->populateRelation('FormationUnits', $criteria, $con);
+
+        return $collection;
+    }
+
 }
