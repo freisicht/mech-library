@@ -312,7 +312,7 @@
         if (titleEl)   titleEl.textContent = f.name;
         if (nameRowEl) nameRowEl.hidden    = renameFormEl ? !renameFormEl.hidden : false;
         if (typeLabel) typeLabel.textContent = typeName(f.formation_type);
-        if (printLink) printLink.href = '/formations/' + f.id + '/print';
+        if (printLink) printLink.href = '/formations/' + f.id + '/print.pdf';
 
         if (pvSum) pvSum.textContent = String(f.pv_sum ?? 0);
         if (pvBudgetEl) {

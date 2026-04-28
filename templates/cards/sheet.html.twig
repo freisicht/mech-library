@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ formation.name }} — Alpha Strike Cards</title>
+    <style>
+        body  { font-family: sans-serif; color: #000; margin: 0; padding: 0; font-size: 9pt; }
+
+        table.as-grid { width: 100%; border-collapse: separate; border-spacing: 3mm; }
+        td.as-cell {
+            width: 50%; vertical-align: top; padding: 2.5mm 3mm;
+            border: 1.2pt solid #000;
+        }
+
+        table.as-card { width: 100%; border-collapse: collapse; }
+        table.as-card td { padding: 1.2mm 0; vertical-align: top; }
+
+        .as-name-cell  { border-bottom: 0.5pt solid #000; }
+        .as-pv-cell    { border-bottom: 0.5pt solid #000; text-align: right; width: 18mm; }
+        .as-title      { font-size: 12pt; font-weight: bold; }
+        .as-variant    { font-size: 8.5pt; color: #444; }
+        .as-pv-label   { font-size: 7pt; color: #555; }
+        .as-pv-val     { font-size: 17pt; font-weight: bold; }
+
+        .as-meta-cell  { font-size: 8.5pt; line-height: 1.5; border-bottom: 0.4pt solid #888; }
+
+        .as-stats-cell { padding: 1.5mm 2mm 1.5mm 2mm !important; }
+        table.as-stats { width: 100%; border-collapse: collapse; }
+        table.as-stats td { border: 0.4pt solid #000; text-align: center; padding: 1mm 0; }
+        tr.as-stats-head td { background: #e6e6e6; font-size: 7.5pt; font-weight: bold; }
+        tr.as-stats-row  td { font-size: 11pt; font-weight: bold; }
+
+        .as-bars-cell  { font-size: 8.5pt; line-height: 1.7; }
+        .as-bar        { display: block; }
+        .as-bar b      { display: inline-block; min-width: 13mm; }
+        .as-pip-row    { font-size: 11pt; letter-spacing: 0.3mm; color: #000; }
+        .as-bar-num    { font-weight: bold; margin-left: 1.5mm; }
+
+        .as-specials-cell { font-size: 8.5pt; border-top: 0.4pt solid #888; line-height: 1.3; }
+
+        .as-foot-cell { font-size: 7.5pt; color: #555; border-top: 0.4pt solid #ccc; }
+        .as-foot-right { text-align: right; }
+    </style>
+</head>
+<body>
+
+{% set perPage = 4 %}
+{% set perRow  = 2 %}
+{% set units   = formation.units %}
+
+{% for page in units|batch(perPage) %}
+    <div{% if not loop.first %} style="page-break-before: always;"{% endif %}>
+        <table class="as-grid" cellspacing="0" cellpadding="0">
+            {% for row in page|batch(perRow) %}
+                <tr>
+                    {% for u in row %}
+                        <td class="as-cell">{% include 'cards/_card.html.twig' with { unit: u, skill: skill } only %}</td>
+                    {% endfor %}
+                    {% if row|length < perRow %}
+                        {% for i in 1..(perRow - row|length) %}<td></td>{% endfor %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endfor %}
+
+</body>
+</html>

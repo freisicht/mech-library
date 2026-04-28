@@ -13,13 +13,17 @@ use Propel\Runtime\Propel;
 final class FormationRepository
 {
     private const UNIT_COLUMNS = '
-        u.id, u.name, u.class, u.variant, u.tonnage,
-        u.bf_size, u.bf_move, u.bf_tmm AS tmm,
+        u.id, u.mul_id, u.name, u.class, u.variant, u.tonnage,
+        u.bf_type, u.bf_size, u.bf_move, u.bf_tmm AS tmm,
         u.bf_point_value AS pv,
-        u.bf_damage_short AS dmg_s,
-        u.bf_damage_medium AS dmg_m,
-        u.bf_damage_long AS dmg_l,
+        u.bf_damage_short AS dmg_s, u.bf_damage_short_min,
+        u.bf_damage_medium AS dmg_m, u.bf_damage_medium_min,
+        u.bf_damage_long AS dmg_l, u.bf_damage_long_min,
+        u.bf_damage_extreme, u.bf_damage_extreme_min,
+        u.bf_overheat,
         u.bf_armor AS armor,
+        u.bf_structure, u.bf_threshold,
+        u.bf_abilities,
         u.image_path,
         r.name AS role,
         fu.sort_order';

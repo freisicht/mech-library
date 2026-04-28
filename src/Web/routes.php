@@ -6,6 +6,7 @@ use App\Web\Controller\ApiArmiesController;
 use App\Web\Controller\ApiFormationsController;
 use App\Web\Controller\ApiUnitsController;
 use App\Web\Controller\FormationPrintController;
+use App\Web\Controller\FormationPrintPdfController;
 use App\Web\Controller\UnitDetailController;
 use App\Web\Controller\UnitListController;
 use Slim\App;
@@ -46,6 +47,9 @@ return static function (App $app): void {
     $app->put('/api/armies/{id:[0-9]+}', [ApiArmiesController::class, 'rename']);
     $app->delete('/api/armies/{id:[0-9]+}', [ApiArmiesController::class, 'delete']);
 
-    // Phase 3 — print view
+    // Phase 3 — print view (HTML summary table)
     $app->get('/formations/{id:[0-9]+}/print', FormationPrintController::class);
+
+    // Phase 3 — Alpha Strike card sheet (PDF)
+    $app->get('/formations/{id:[0-9]+}/print.pdf', FormationPrintPdfController::class);
 };
