@@ -92,14 +92,12 @@
                     return btn;
                 },
             },
-            { title: 'Name',      field: 'name',      sorter: 'string',  minWidth: 130,
+            { title: 'Name',      field: 'name',      sorter: 'string',  minWidth: 180,
                 formatter: function (cell) {
                     const row = cell.getRow().getData();
                     return '<a href="/units/' + row.id + '">' + (cell.getValue() || '') + '</a>';
                 }
             },
-            { title: 'Class',     field: 'class',     sorter: 'string',  minWidth: 100 },
-            { title: 'Variant',   field: 'variant',   sorter: 'string',  minWidth: 80 },
             { title: 'T',         field: 'tonnage',   sorter: 'number',  width: 55, hozAlign: 'right' },
             { title: 'PV',        field: 'pv',        sorter: 'number',  width: 55, hozAlign: 'right' },
             { title: 'Move',      field: 'move',      sorter: 'string',  width: 75, hozAlign: 'center' },

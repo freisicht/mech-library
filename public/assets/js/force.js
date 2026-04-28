@@ -16,6 +16,7 @@
 
     const panel           = document.getElementById('force-panel');
     const toggleBtn       = document.getElementById('fp-toggle');
+    const viewToggleBtn   = document.getElementById('fp-view-toggle');
     const selectEl        = document.getElementById('fp-formation-select');
     const newBtn          = document.getElementById('fp-new-btn');
     const newForm         = document.getElementById('fp-new-form');
@@ -93,6 +94,30 @@
         toggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             setCollapsed(!panel.classList.contains('collapsed'));
+        });
+    }
+
+    let detailedView = false;
+    try {
+        detailedView = localStorage.getItem('ml.fp.detailed') === '1';
+    } catch (_) { /* ignore */ }
+
+    function applyViewMode() {
+        panel.classList.toggle('detailed', detailedView);
+        if (viewToggleBtn) {
+            viewToggleBtn.setAttribute('aria-pressed', String(detailedView));
+            viewToggleBtn.title = detailedView ? 'Switch to compact view' : 'Switch to detailed view';
+        }
+    }
+    applyViewMode();
+
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            detailedView = !detailedView;
+            try { localStorage.setItem('ml.fp.detailed', detailedView ? '1' : '0'); } catch (_) { /* ignore */ }
+            applyViewMode();
+            render();
         });
     }
     // On mobile, tapping anywhere on the header bar toggles the drawer.
@@ -333,10 +358,14 @@
                 li.className = 'fp-unit-item';
                 li.dataset.unitId = String(u.id);
 
-                const nameSpan = document.createElement('span');
-                nameSpan.className   = 'fp-unit-name';
-                nameSpan.textContent = u.name + (u.variant ? ' ' + u.variant : '');
-                nameSpan.title       = nameSpan.textContent;
+                const main = document.createElement('div');
+                main.className = 'fp-unit-main';
+
+                const nameLink = document.createElement('a');
+                nameLink.className   = 'fp-unit-name';
+                nameLink.href        = '/units/' + u.id;
+                nameLink.textContent = u.name || '';
+                nameLink.title       = 'Open detail view';
 
                 const pvSpan = document.createElement('span');
                 pvSpan.className   = 'fp-unit-pv';
@@ -347,16 +376,38 @@
                 rmBtn.textContent = '✕';
                 rmBtn.title       = 'Remove from formation';
                 rmBtn.addEventListener('click', e => {
+                    e.preventDefault();
                     e.stopPropagation();
                     removeUnit(f.id, u.id);
                 });
 
-                li.appendChild(nameSpan);
-                li.appendChild(pvSpan);
-                li.appendChild(rmBtn);
+                main.appendChild(nameLink);
+                main.appendChild(pvSpan);
+                main.appendChild(rmBtn);
+                li.appendChild(main);
+
+                if (detailedView) {
+                    const meta = document.createElement('div');
+                    meta.className = 'fp-unit-meta';
+                    const role = u.role ? String(u.role) : '';
+                    const tonnage = u.tonnage ?? u.bf_size ?? '';
+                    meta.innerHTML =
+                        (role ? '<span class="fp-unit-tag">' + role + '</span>' : '') +
+                        (tonnage !== '' ? '<span class="fp-unit-tag">' + tonnage + 't</span>' : '') +
+                        '<span>MV ' + (u.bf_move ?? u.move ?? '?') + '</span>' +
+                        '<span>TMM ' + (u.tmm ?? '?') + '</span>' +
+                        '<span class="fp-unit-dmg">' +
+                            (u.dmg_s ?? '?') + '/' + (u.dmg_m ?? '?') + '/' + (u.dmg_l ?? '?') +
+                        '</span>' +
+                        '<span>A ' + (u.armor ?? '?') + '</span>';
+                    li.appendChild(meta);
+                }
+
                 unitList.appendChild(li);
             });
         }
+
+        if (viewToggleBtn) viewToggleBtn.hidden = !(f.units && f.units.length);
 
         syncAddButtons(f.units || []);
 

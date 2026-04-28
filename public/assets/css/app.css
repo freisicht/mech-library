@@ -1137,15 +1137,20 @@ button, .btn {
 }
 .fp-unit-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 5px 10px;
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
   transition: background 0.1s;
-  gap: 4px;
+  gap: 3px;
 }
 .fp-unit-item:hover { background: var(--bg3); }
+
+.fp-unit-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
 
 .fp-unit-name {
   font-family: 'JetBrains Mono', monospace;
@@ -1155,7 +1160,26 @@ button, .btn {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
 }
+.fp-unit-name:hover { color: var(--cyan); text-decoration: underline; }
+
+.fp-unit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-dim);
+  padding-left: 0;
+}
+.fp-unit-tag {
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.fp-unit-dmg { color: var(--amber); }
 .fp-unit-pv {
   font-family: 'Orbitron', monospace;
   font-size: 10px;
