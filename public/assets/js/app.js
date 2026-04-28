@@ -125,6 +125,23 @@
         void sorters;
     });
 
+    function highlightSortedColumn() {
+        const sorters = table.getSorters ? table.getSorters() : [];
+        const field = (sorters && sorters.length) ? sorters[0].field : null;
+        const root = document.getElementById('unit-table');
+        if (!root) return;
+        root.querySelectorAll('.ml-sorted-col').forEach(function (el) {
+            el.classList.remove('ml-sorted-col');
+        });
+        if (!field) return;
+        root.querySelectorAll('[tabulator-field="' + field + '"]').forEach(function (el) {
+            el.classList.add('ml-sorted-col');
+        });
+    }
+    table.on('dataSorted', highlightSortedColumn);
+    table.on('renderComplete', highlightSortedColumn);
+    table.on('tableBuilt', highlightSortedColumn);
+
     // ── Filter form ───────────────────────────────────────────────────────────
 
     const filterForm = qs('#filter-form');

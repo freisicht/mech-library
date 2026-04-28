@@ -698,6 +698,23 @@ button, .btn {
 
 .tabulator-col-sorter { color: var(--cyan) !important; }
 
+/* Highlight currently sorted column */
+.tabulator .tabulator-col.ml-sorted-col {
+  background: oklch(0.20 0.04 220) !important;
+}
+.tabulator .tabulator-col.ml-sorted-col .tabulator-col-title {
+  color: var(--cyan) !important;
+}
+.tabulator .tabulator-cell.ml-sorted-col {
+  background: oklch(from var(--cyan) l c h / 0.06) !important;
+}
+.tabulator .tabulator-row.tabulator-row-even .tabulator-cell.ml-sorted-col {
+  background: oklch(from var(--cyan) l c h / 0.10) !important;
+}
+.tabulator .tabulator-row:hover .tabulator-cell.ml-sorted-col {
+  background: oklch(from var(--cyan) l c h / 0.14) !important;
+}
+
 /* Rows */
 .tabulator .tabulator-row {
   background: var(--bg) !important;
