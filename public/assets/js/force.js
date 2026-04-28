@@ -76,18 +76,37 @@
 
     // ── Panel toggle ──────────────────────────────────────────────────────────
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            const collapsed = panel.classList.toggle('collapsed');
-            toggleBtn.textContent = collapsed ? '▶' : '▶';
+    const isMobile = () => window.matchMedia('(max-width: 700px)').matches;
+
+    function setCollapsed(collapsed) {
+        panel.classList.toggle('collapsed', collapsed);
+        if (toggleBtn) {
             toggleBtn.setAttribute('aria-expanded', String(!collapsed));
-            // On desktop the collapsed label (vertical strip) is shown;
-            // on mobile CSS hides it, nothing extra needed.
-            const collapsedLabel = panel.querySelector('.fp-collapsed-label');
-            if (collapsedLabel && window.innerWidth > 700) {
-                collapsedLabel.style.display = collapsed ? 'flex' : '';
+        }
+        const collapsedLabel = panel.querySelector('.fp-collapsed-label');
+        if (collapsedLabel && !isMobile()) {
+            collapsedLabel.style.display = collapsed ? 'flex' : '';
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setCollapsed(!panel.classList.contains('collapsed'));
+        });
+    }
+    // On mobile, tapping anywhere on the header bar toggles the drawer.
+    const headerEl = panel.querySelector('.force-panel-header');
+    if (headerEl) {
+        headerEl.addEventListener('click', () => {
+            if (isMobile()) {
+                setCollapsed(!panel.classList.contains('collapsed'));
             }
         });
+    }
+    // Start collapsed on mobile so the units list is reachable.
+    if (isMobile()) {
+        setCollapsed(true);
     }
 
     // ── Formation selector ────────────────────────────────────────────────────

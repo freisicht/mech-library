@@ -43,9 +43,11 @@
 
     const apiUrl = (window.ML && window.ML.apiUrl) ? window.ML.apiUrl : '/api/units';
 
+    const isMobile = window.matchMedia('(max-width: 700px)').matches;
+
     const table = new Tabulator('#unit-table', {
         layout: 'fitColumns',
-        height: '100%',
+        height: isMobile ? '70vh' : '100%',
         progressiveLoad: 'scroll',
         progressiveLoadScrollMargin: 200,
         paginationSize: 50,
@@ -122,24 +124,6 @@
         // Tabulator handles this internally via ajaxURL rebuild
         void sorters;
     });
-
-    // On mobile the page scrolls (not the table), so we manually trigger
-    // progressive load when the user nears the bottom of the document.
-    (function () {
-        var ticking = false;
-        window.addEventListener('scroll', function () {
-            if (ticking) return;
-            ticking = true;
-            requestAnimationFrame(function () {
-                ticking = false;
-                var distFromBottom = document.documentElement.scrollHeight
-                    - window.scrollY - window.innerHeight;
-                if (distFromBottom < 300 && table.getPage() < table.getPageMax()) {
-                    table.nextPage();
-                }
-            });
-        }, { passive: true });
-    }());
 
     // ── Filter form ───────────────────────────────────────────────────────────
 
