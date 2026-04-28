@@ -56,7 +56,7 @@
                     <td class="heat">
                         <div><span class="as-heat-label">HEAT</span> <span class="as-heat-ov">OV{{ ov }}</span></div>
                         <div class="as-heat-pips">
-                            {% if ov > 0 %}{% for i in 1..ov %}&#9744;{% endfor %}{% endif %}<span class="shutdown">&#9744;<sub>S</sub></span>
+                            {% if ov > 0 %}{% for i in 1..ov %}&#9633;{% endfor %}{% endif %}<span class="shutdown">&#9633;</span><span class="shutdown-label">S</span>
                         </div>
                     </td>
                 </tr>
@@ -98,12 +98,12 @@
     {# ── Critical Hits ── #}
     <tr>
         <td colspan="2" class="as-section">
-            <div class="as-section-label">◆ Critical Hits</div>
+            <div class="as-section-label">Critical Hits</div>
             <table class="as-crits" cellspacing="0" cellpadding="0">
-                <tr><td class="crit-name">Engine</td><td class="crit-pips">&#9744;</td><td class="crit-eff">+1 Heat</td></tr>
-                <tr><td class="crit-name">Fire Ctrl</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">+2 To-Hit ea.</td></tr>
-                <tr><td class="crit-name">MP</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">&frac12; MV ea.</td></tr>
-                <tr><td class="crit-name">Weapons</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">-1 Dmg ea.</td></tr>
+                <tr><td class="crit-name">Engine</td><td class="crit-pips">&#9633;</td><td class="crit-eff">+1 Heat</td></tr>
+                <tr><td class="crit-name">Fire Ctrl</td><td class="crit-pips">&#9633;&#9633;&#9633;&#9633;</td><td class="crit-eff">+2 To-Hit ea.</td></tr>
+                <tr><td class="crit-name">MP</td><td class="crit-pips">&#9633;&#9633;&#9633;&#9633;</td><td class="crit-eff">1/2 MV ea.</td></tr>
+                <tr><td class="crit-name">Weapons</td><td class="crit-pips">&#9633;&#9633;&#9633;&#9633;</td><td class="crit-eff">-1 Dmg ea.</td></tr>
             </table>
         </td>
     </tr>
@@ -120,7 +120,7 @@
         <td colspan="2" class="as-footer">
             <table class="as-foot" cellspacing="0" cellpadding="0">
                 <tr>
-                    <td>{{ unit.tonnage }}t · {{ unit.class }}{% if unit.role %} · {{ unit.role }}{% endif %}</td>
+                    <td>{{ unit.tonnage }}t | {{ unit.class }}{% if unit.role %} | {{ unit.role }}{% endif %}</td>
                     <td class="foot-r">MUL #{{ unit.mul_id ?? '' }}</td>
                 </tr>
             </table>
