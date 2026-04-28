@@ -4,48 +4,52 @@
     <meta charset="UTF-8">
     <title>{{ formation.name }} — Alpha Strike Cards</title>
     <style>
-        body  { font-family: sans-serif; color: #000; margin: 0; padding: 0; font-size: 9pt; }
+        body  { font-family: sans-serif; color: #000; margin: 0; padding: 0; font-size: 8.5pt; }
 
-        table.as-grid { width: 100%; border-collapse: separate; border-spacing: 3mm; }
+        table.as-grid { width: 100%; border-collapse: separate; border-spacing: 2.5mm; }
         td.as-cell {
-            width: 50%; vertical-align: top; padding: 2.5mm 3mm;
+            width: 50%; vertical-align: top; padding: 2mm 2.5mm;
             border: 1.2pt solid #000;
         }
 
         table.as-card { width: 100%; border-collapse: collapse; }
-        table.as-card td { padding: 1.2mm 0; vertical-align: top; }
+        table.as-card td { padding: 0.8mm 0; vertical-align: top; }
 
         .as-name-cell  { border-bottom: 0.5pt solid #000; }
-        .as-pv-cell    { border-bottom: 0.5pt solid #000; text-align: right; width: 18mm; }
-        .as-title      { font-size: 12pt; font-weight: bold; }
-        .as-variant    { font-size: 8.5pt; color: #444; }
-        .as-pv-label   { font-size: 7pt; color: #555; }
-        .as-pv-val     { font-size: 17pt; font-weight: bold; }
+        .as-pv-cell    { border-bottom: 0.5pt solid #000; text-align: right; vertical-align: middle; width: 14mm; font-size: 17pt; font-weight: bold; }
+        .as-title      { font-size: 12pt; font-weight: bold; line-height: 1.1; }
 
-        .as-meta-cell  { font-size: 8.5pt; line-height: 1.5; border-bottom: 0.4pt solid #888; }
+        .as-meta-cell  { font-size: 8.5pt; line-height: 1.4; border-bottom: 0.4pt solid #888; }
 
-        .as-stats-cell { padding: 1.5mm 2mm 1.5mm 2mm !important; }
-        table.as-stats { width: 100%; border-collapse: collapse; }
-        table.as-stats td { border: 0.4pt solid #000; text-align: center; padding: 1mm 0; }
-        tr.as-stats-head td { background: #e6e6e6; font-size: 7.5pt; font-weight: bold; }
-        tr.as-stats-row  td { font-size: 11pt; font-weight: bold; }
+        .as-stats-cell { border-bottom: 0.4pt solid #888; font-size: 9pt; line-height: 1.3; }
+        .as-dmg-label  { font-size: 7.5pt; color: #555; margin-right: 2mm; }
+        .as-dmg        { display: inline; margin-right: 4mm; font-size: 11pt; font-weight: bold; }
+        .as-dmg b      { font-weight: bold; font-size: 8.5pt; color: #555; margin-right: 0.8mm; }
 
-        .as-bars-cell  { font-size: 8.5pt; line-height: 1.7; }
+        .as-heat-cell  { font-size: 8.5pt; border-bottom: 0.4pt solid #888; line-height: 1.3; }
+
+        .as-bars-cell  { font-size: 8.5pt; line-height: 1.6; }
         .as-bar        { display: block; }
-        .as-bar b      { display: inline-block; min-width: 13mm; }
-        .as-pip-row    { font-size: 11pt; letter-spacing: 0.3mm; color: #000; }
-        .as-bar-num    { font-weight: bold; margin-left: 1.5mm; }
+        .as-bar b      { display: inline-block; min-width: 4mm; }
+        .as-pip-row    { font-size: 11pt; letter-spacing: 0.3mm; }
+        .as-pip-armor  { color: #000; }
+        .as-pip-struct { color: #aaa; }
+        .as-bar-num    { font-weight: bold; margin-left: 1mm; font-size: 8.5pt; }
 
-        .as-specials-cell { font-size: 8.5pt; border-top: 0.4pt solid #888; line-height: 1.3; }
+        .as-crit-cell  { font-size: 7.5pt; line-height: 1.45; border-top: 0.4pt solid #888; }
+        .as-crit i     { font-style: normal; font-weight: bold; display: inline-block; min-width: 14mm; }
+        .as-crit-eff   { color: #555; margin-left: 1mm; }
 
-        .as-foot-cell { font-size: 7.5pt; color: #555; border-top: 0.4pt solid #ccc; }
+        .as-specials-cell { font-size: 8pt; border-top: 0.4pt solid #888; line-height: 1.3; }
+
+        .as-foot-cell  { font-size: 7pt; color: #555; border-top: 0.4pt solid #ccc; }
         .as-foot-right { text-align: right; }
     </style>
 </head>
 <body>
 
-{% set perPage = 4 %}
 {% set perRow  = 2 %}
+{% set perPage = 6 %}
 {% set units   = formation.units %}
 
 {% for page in units|batch(perPage) %}
