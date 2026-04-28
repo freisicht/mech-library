@@ -123,6 +123,24 @@
         void sorters;
     });
 
+    // On mobile the page scrolls (not the table), so we manually trigger
+    // progressive load when the user nears the bottom of the document.
+    (function () {
+        var ticking = false;
+        window.addEventListener('scroll', function () {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(function () {
+                ticking = false;
+                var distFromBottom = document.documentElement.scrollHeight
+                    - window.scrollY - window.innerHeight;
+                if (distFromBottom < 300 && table.getPage() < table.getPageMax()) {
+                    table.nextPage();
+                }
+            });
+        }, { passive: true });
+    }());
+
     // ── Filter form ───────────────────────────────────────────────────────────
 
     const filterForm = qs('#filter-form');

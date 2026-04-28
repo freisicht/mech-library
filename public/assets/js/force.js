@@ -81,8 +81,10 @@
             const collapsed = panel.classList.toggle('collapsed');
             toggleBtn.textContent = collapsed ? '▶' : '▶';
             toggleBtn.setAttribute('aria-expanded', String(!collapsed));
+            // On desktop the collapsed label (vertical strip) is shown;
+            // on mobile CSS hides it, nothing extra needed.
             const collapsedLabel = panel.querySelector('.fp-collapsed-label');
-            if (collapsedLabel) {
+            if (collapsedLabel && window.innerWidth > 700) {
                 collapsedLabel.style.display = collapsed ? 'flex' : '';
             }
         });

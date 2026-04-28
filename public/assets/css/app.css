@@ -496,7 +496,7 @@ button, .btn {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 22px;
 }
 
 .filter-grid {
@@ -1555,9 +1555,28 @@ article {
     overflow: visible;
   }
   .force-panel {
+    order: -1;
     width: 100%;
     border-left: none;
-    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    max-height: 45vh;
+    overflow-y: auto;
+  }
+  /* on mobile collapse = just hide the body, not shrink to 28px */
+  .force-panel.collapsed {
+    width: 100%;
+    max-height: none;
+    overflow: hidden;
+  }
+  .force-panel.collapsed .fp-panel-body {
+    display: none;
+  }
+  .force-panel.collapsed .fp-collapsed-label {
+    display: none;
+  }
+  /* show a simple "tap to expand" hint in the header when collapsed */
+  .force-panel.collapsed .force-panel-header {
+    border-bottom: none;
   }
   #unit-table {
     height: 60vh;
