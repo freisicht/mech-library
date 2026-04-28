@@ -11,6 +11,10 @@ namespace App\Formation;
  *   bf_size  (int|null)
  *   bf_move  (string|null)  — raw string e.g. "8\"j", "10"
  *   role     (string|null)  — role name from DB join
+ *   dmg_s    (int|float|string|null) — short-range Alpha Strike damage value
+ *   dmg_m    (int|float|string|null) — medium-range Alpha Strike damage value
+ *   dmg_l    (int|float|string|null) — long-range Alpha Strike damage value
+ *   armor    (int|null)     — Alpha Strike armor pip count
  *
  * Move is extracted as a numeric inch value by stripping the type suffix.
  */
@@ -57,13 +61,18 @@ final class FormationRulesEngine
     private function applyRule(array $rule, array $units): ?string
     {
         return match ($rule['type']) {
-            'min_count_by_size' => $this->checkMinCountBySize($rule, $units),
-            'max_size_all'      => $this->checkMaxSizeAll($rule, $units),
-            'no_size'           => $this->checkNoSize($rule, $units),
-            'min_move_all'      => $this->checkMinMoveAll($rule, $units),
-            'min_pct_fast'      => $this->checkMinPctFast($rule, $units),
-            'min_pct_by_role'   => $this->checkMinPctByRole($rule, $units),
-            default             => null,
+            'min_count_by_size'     => $this->checkMinCountBySize($rule, $units),
+            'min_pct_by_size'       => $this->checkMinPctBySize($rule, $units),
+            'max_size_all'          => $this->checkMaxSizeAll($rule, $units),
+            'no_size'               => $this->checkNoSize($rule, $units),
+            'min_move_all'          => $this->checkMinMoveAll($rule, $units),
+            'min_pct_fast'          => $this->checkMinPctFast($rule, $units),
+            'min_pct_by_role'       => $this->checkMinPctByRole($rule, $units),
+            'min_count_by_role'     => $this->checkMinCountByRole($rule, $units),
+            'min_pct_with_attack'   => $this->checkMinPctWithAttack($rule, $units),
+            'min_count_with_attack' => $this->checkMinCountWithAttack($rule, $units),
+            'min_armor_total'       => $this->checkMinArmorTotal($rule, $units),
+            default                 => null,
         };
     }
 
@@ -162,6 +171,129 @@ final class FormationRulesEngine
             return $rule['label'];
         }
         return null;
+    }
+
+    /**
+     * @param array<string, mixed>       $rule
+     * @param list<array<string, mixed>> $units
+     */
+    private function checkMinPctBySize(array $rule, array $units): ?string
+    {
+        $count = count($units);
+        $sizeMin = (int) $rule['size'];
+        $sizeMax = isset($rule['size_max']) ? (int) $rule['size_max'] : PHP_INT_MAX;
+        $qualifying = 0;
+        foreach ($units as $u) {
+            $size = (int) ($u['bf_size'] ?? 0);
+            if ($size >= $sizeMin && $size <= $sizeMax) {
+                $qualifying++;
+            }
+        }
+        $pct = ($qualifying / $count) * 100;
+        if ($pct < (float) $rule['pct']) {
+            return $rule['label'];
+        }
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed>       $rule
+     * @param list<array<string, mixed>> $units
+     */
+    private function checkMinCountByRole(array $rule, array $units): ?string
+    {
+        $qualifying = 0;
+        foreach ($units as $u) {
+            if (in_array($u['role'] ?? '', $rule['roles'], true)) {
+                $qualifying++;
+            }
+        }
+        if ($qualifying < (int) $rule['count']) {
+            return $rule['label'];
+        }
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed>       $rule
+     * @param list<array<string, mixed>> $units
+     */
+    private function checkMinPctWithAttack(array $rule, array $units): ?string
+    {
+        $count = count($units);
+        $qualifying = 0;
+        foreach ($units as $u) {
+            if ($this->attackValue($u, (string) $rule['range']) >= (float) $rule['value']) {
+                $qualifying++;
+            }
+        }
+        $pct = ($qualifying / $count) * 100;
+        if ($pct < (float) $rule['pct']) {
+            return $rule['label'];
+        }
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed>       $rule
+     * @param list<array<string, mixed>> $units
+     */
+    private function checkMinCountWithAttack(array $rule, array $units): ?string
+    {
+        $qualifying = 0;
+        foreach ($units as $u) {
+            if ($this->attackValue($u, (string) $rule['range']) >= (float) $rule['value']) {
+                $qualifying++;
+            }
+        }
+        if ($qualifying < (int) $rule['count']) {
+            return $rule['label'];
+        }
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed>       $rule
+     * @param list<array<string, mixed>> $units
+     */
+    private function checkMinArmorTotal(array $rule, array $units): ?string
+    {
+        $total = 0;
+        foreach ($units as $u) {
+            $total += (int) ($u['armor'] ?? 0);
+        }
+        if ($total < (int) $rule['total']) {
+            return $rule['label'];
+        }
+        return null;
+    }
+
+    /**
+     * Read a damage value from a unit row. Range is one of "s", "m", "l".
+     * Damage values may be stored as numeric strings or contain a trailing "*"
+     * for minimal damage; "*" is treated as 0.5.
+     *
+     * @param array<string, mixed> $u
+     */
+    private function attackValue(array $u, string $range): float
+    {
+        $key = match ($range) {
+            's' => 'dmg_s',
+            'm' => 'dmg_m',
+            'l' => 'dmg_l',
+            default => null,
+        };
+        if ($key === null || ! array_key_exists($key, $u)) {
+            return 0.0;
+        }
+        $raw = (string) ($u[$key] ?? '');
+        if ($raw === '') {
+            return 0.0;
+        }
+        if (str_contains($raw, '*')) {
+            return 0.5;
+        }
+        return (float) $raw;
     }
 
     // -------------------------------------------------------------------------
