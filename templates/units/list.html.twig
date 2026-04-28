@@ -63,12 +63,12 @@
                     <span class="range-sep">—</span>
                     <input type="number" name="move_max" placeholder="max" min="0"
                            value="{{ params.move_max ?? '' }}">
+                    <div style="flex: 1;">
+                        <input type="checkbox" name="jump" value="1" style="flex: 0;"
+                            {% if params.jump ?? false %}checked{% endif %}>
+                        <span class="label">j only</span>
+                    </div>
                 </div>
-                <label class="jump-label">
-                    <input type="checkbox" name="jump" value="1"
-                           {% if params.jump ?? false %}checked{% endif %}>
-                    Jump only
-                </label>
             </div>
 
         </div>{# /.filter-grid #}
