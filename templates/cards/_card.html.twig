@@ -1,73 +1,129 @@
-{# One Alpha Strike card. Sized via parent grid cell (3x2 on A4). #}
-{% set armor   = unit.armor ?? 0 %}
-{% set struc   = unit.bf_structure ?? 0 %}
-{% set hasE    = (unit.bf_damage_extreme ?? 0) > 0 %}
-{% set ov      = unit.bf_overheat ?? 0 %}
+{# One Alpha Strike card — mpdf-kompatibles Tabellen-Layout #}
+{% set armor = unit.armor ?? 0 %}
+{% set struc = unit.bf_structure ?? 0 %}
+{% set ov    = unit.bf_overheat ?? 0 %}
+{% set hasE  = (unit.bf_damage_extreme ?? 0) > 0 %}
+
 <table class="as-card" cellspacing="0" cellpadding="0">
+    {# ── Header: left = name+meta+dmg, right = mech image ── #}
     <tr>
-        <td class="as-name-cell">
-            <div class="as-title">{{ unit.name }}</div>
-        </td>
-        <td class="as-pv-cell">{{ unit.pv ?? '—' }}</td>
-    </tr>
-    <tr>
-        <td colspan="2" class="as-meta-cell">
-            <b>TP</b> {{ unit.bf_type ?? '—' }} &nbsp;
-            <b>SZ</b> {{ unit.bf_size ?? '—' }} &nbsp;
-            <b>MV</b> {{ unit.bf_move ?? '—' }} &nbsp;
-            <b>Skill</b> {{ skill }} &nbsp;
-            <b>TMM</b> {{ unit.tmm ?? '—' }}
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2" class="as-stats-cell">
-            <span class="as-dmg-label">DMG</span>
-            <span class="as-dmg"><b>S</b> {{ unit.dmg_s ?? 0 }}{{ unit.bf_damage_short_min ? '*' : '' }}</span>
-            <span class="as-dmg"><b>M</b> {{ unit.dmg_m ?? 0 }}{{ unit.bf_damage_medium_min ? '*' : '' }}</span>
-            <span class="as-dmg"><b>L</b> {{ unit.dmg_l ?? 0 }}{{ unit.bf_damage_long_min ? '*' : '' }}</span>
-            {% if hasE %}<span class="as-dmg"><b>E</b> {{ unit.bf_damage_extreme }}{{ unit.bf_damage_extreme_min ? '*' : '' }}</span>{% endif %}
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2" class="as-heat-cell">
-            <b>OV</b> {{ ov }} &nbsp;|&nbsp;
-            <b>Heat</b>
-            {% if ov > 0 %}{% for i in 1..ov %}&#9744;{{ i }} {% endfor %}{% endif %}&#9744;S
-        </td>
-    </tr>
-    <tr>
-        <td colspan="2" class="as-bars-cell">
-            <div class="as-bar">
-                <b>A</b>
-                <span class="as-pip-row as-pip-armor">{% if armor > 0 %}{% for i in 1..armor %}&#9633;{% endfor %}{% endif %}</span>
-                <span class="as-bar-num">({{ armor }})</span>
+        <td class="as-head-left">
+            {# Title row (name + PV) #}
+            <table class="as-title-row" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="as-title-cell">
+                        <span class="as-name">{{ unit.name }}</span>
+                    </td>
+                    <td class="as-pv-cell">
+                        <div class="as-pv-label">PV</div>
+                        <div class="as-pv-value">{{ unit.pv ?? '—' }}</div>
+                    </td>
+                </tr>
+            </table>
+
+            {# Meta row #}
+            <div class="as-meta">
+                <b>TP&nbsp;</b><span class="as-meta-val">{{ unit.bf_type ?? '—' }}</span>
+                <b>SZ&nbsp;</b><span class="as-meta-val">{{ unit.bf_size ?? '—' }}</span>
+                <b>MV&nbsp;</b><span class="as-meta-val">{{ unit.bf_move ?? '—' }}</span>
+                <b>TMM&nbsp;</b><span class="as-meta-val">{{ unit.tmm ?? '—' }}</span>
+                <b>SKILL&nbsp;</b><span class="as-meta-val">{{ skill }}</span>
             </div>
-            <div class="as-bar">
-                <b>S</b>
-                <span class="as-pip-row as-pip-struct">{% if struc > 0 %}{% for i in 1..struc %}&#9632;{% endfor %}{% endif %}</span>
-                <span class="as-bar-num">({{ struc }})</span>
-            </div>
-            {% if unit.bf_threshold %}
-                <div class="as-bar"><b>TH</b> <span class="as-bar-num">{{ unit.bf_threshold }}</span></div>
+
+            {# Damage + Heat #}
+            <table class="as-dmg-heat" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="dmg">
+                        <span class="as-dmg-block">
+                            <span class="as-dmg-range">S</span>
+                            <span class="as-dmg-val{% if (unit.dmg_s ?? 0) == 0 %} as-dmg-val-zero{% endif %}">{{ unit.dmg_s ?? 0 }}{{ unit.bf_damage_short_min ? '*' : '' }}</span>
+                        </span>
+                        <span class="as-dmg-block">
+                            <span class="as-dmg-range">M</span>
+                            <span class="as-dmg-val{% if (unit.dmg_m ?? 0) == 0 %} as-dmg-val-zero{% endif %}">{{ unit.dmg_m ?? 0 }}{{ unit.bf_damage_medium_min ? '*' : '' }}</span>
+                        </span>
+                        <span class="as-dmg-block">
+                            <span class="as-dmg-range">L</span>
+                            <span class="as-dmg-val{% if (unit.dmg_l ?? 0) == 0 %} as-dmg-val-zero{% endif %}">{{ unit.dmg_l ?? 0 }}{{ unit.bf_damage_long_min ? '*' : '' }}</span>
+                        </span>
+                        {% if hasE %}
+                            <span class="as-dmg-block">
+                                <span class="as-dmg-range">E</span>
+                                <span class="as-dmg-val">{{ unit.bf_damage_extreme }}{{ unit.bf_damage_extreme_min ? '*' : '' }}</span>
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="heat">
+                        <div><span class="as-heat-label">HEAT</span> <span class="as-heat-ov">OV{{ ov }}</span></div>
+                        <div class="as-heat-pips">
+                            {% if ov > 0 %}{% for i in 1..ov %}&#9744;{% endfor %}{% endif %}<span class="shutdown">&#9744;<sub>S</sub></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td class="as-head-right">
+            {% if unit.image_url %}
+                <img src="{{ unit.image_url }}" alt="{{ unit.name }}" width="90">
+            {% else %}
+                <div class="as-mech-placeholder">
+                    <span class="as-mech-placeholder-icon">⬡</span><br>
+                    Mech Art
+                </div>
             {% endif %}
         </td>
     </tr>
+
+    {# ── Armor + Structure ── #}
     <tr>
-        <td colspan="2" class="as-crit-cell">
-            <b>Crits</b><br>
-            <span class="as-crit"><i>Engine</i> &#9744; <span class="as-crit-eff">+1 Heat</span></span><br>
-            <span class="as-crit"><i>Fire Ctrl</i> &#9744;&#9744;&#9744;&#9744; <span class="as-crit-eff">+2 To-Hit ea.</span></span><br>
-            <span class="as-crit"><i>MP</i> &#9744;&#9744;&#9744;&#9744; <span class="as-crit-eff">&frac12; MV ea.</span></span><br>
-            <span class="as-crit"><i>Weapons</i> &#9744;&#9744;&#9744;&#9744; <span class="as-crit-eff">-1 Dmg ea.</span></span>
+        <td colspan="2" class="as-section">
+            <table class="as-bars" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td class="bar">
+                        <span class="as-bar-head">ARMOR</span> <span class="as-bar-count">({{ armor }})</span><br>
+                        <span class="as-pip-row as-pip-armor">{% if armor > 0 %}{% for i in 1..armor %}&#9633;{% endfor %}{% endif %}</span>
+                    </td>
+                    <td class="bar">
+                        <span class="as-bar-head">STRUCTURE</span> <span class="as-bar-count">({{ struc }})</span><br>
+                        <span class="as-pip-row as-pip-struct">{% if struc > 0 %}{% for i in 1..struc %}&#9633;{% endfor %}{% endif %}</span>
+                    </td>
+                    {% if unit.bf_threshold %}
+                        <td class="bar"><span class="as-bar-head">TH</span> <span class="as-bar-count">{{ unit.bf_threshold }}</span></td>
+                    {% endif %}
+                </tr>
+            </table>
         </td>
     </tr>
+
+    {# ── Critical Hits ── #}
     <tr>
-        <td colspan="2" class="as-specials-cell">
-            <b>Specials:</b> {{ unit.bf_abilities ?: '—' }}
+        <td colspan="2" class="as-section">
+            <div class="as-section-label">◆ Critical Hits</div>
+            <table class="as-crits" cellspacing="0" cellpadding="0">
+                <tr><td class="crit-name">Engine</td><td class="crit-pips">&#9744;</td><td class="crit-eff">+1 Heat</td></tr>
+                <tr><td class="crit-name">Fire Ctrl</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">+2 To-Hit ea.</td></tr>
+                <tr><td class="crit-name">MP</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">&frac12; MV ea.</td></tr>
+                <tr><td class="crit-name">Weapons</td><td class="crit-pips">&#9744;&#9744;&#9744;&#9744;</td><td class="crit-eff">-1 Dmg ea.</td></tr>
+            </table>
         </td>
     </tr>
+
+    {# ── Specials ── #}
     <tr>
-        <td class="as-foot-cell">{{ unit.tonnage }}t · {{ unit.class }}{% if unit.role %} · {{ unit.role }}{% endif %}</td>
-        <td class="as-foot-cell as-foot-right">MUL #{{ unit.mul_id ?? '' }}</td>
+        <td colspan="2" class="as-specials">
+            <b>Specials&nbsp;</b>{{ unit.bf_abilities ?: '—' }}
+        </td>
+    </tr>
+
+    {# ── Footer ── #}
+    <tr>
+        <td colspan="2" class="as-footer">
+            <table class="as-foot" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td>{{ unit.tonnage }}t · {{ unit.class }}{% if unit.role %} · {{ unit.role }}{% endif %}</td>
+                    <td class="foot-r">MUL #{{ unit.mul_id ?? '' }}</td>
+                </tr>
+            </table>
+        </td>
     </tr>
 </table>

@@ -4,46 +4,161 @@
     <meta charset="UTF-8">
     <title>{{ formation.name }} — Alpha Strike Cards</title>
     <style>
-        body  { font-family: sans-serif; color: #000; margin: 0; padding: 0; font-size: 8.5pt; }
+        body { font-family: jetbrainsmono, monospace; color: #000; margin: 0; padding: 0; font-size: 7.5pt; }
 
-        table.as-grid { width: 100%; border-collapse: separate; border-spacing: 2.5mm; }
-        td.as-cell {
-            width: 50%; vertical-align: top; padding: 2mm 2.5mm;
-            border: 1.2pt solid #000;
+        /* ── Outer 2-up grid ── */
+        table.as-grid { width: 100%; border-collapse: separate; border-spacing: 3mm; }
+        td.as-cell { width: 50%; vertical-align: top; padding: 0; }
+
+        /* ── Card layout (each card = single outer table with full border) ── */
+        table.as-card {
+            width: 100%; border-collapse: collapse;
+            border: 1.4pt solid #000;
+        }
+        table.as-card td { vertical-align: top; padding: 0; }
+
+        /* Header: name+meta+dmg block on left, image on right */
+        .as-head-left  { padding: 1.5mm 2.5mm; border-right: 0.7pt solid #000; }
+        .as-head-right {
+            width: 32mm;
+            background-color: #f3f3f3;
+            border-left: 0.7pt solid #000;
+            text-align: center; vertical-align: middle;
+            padding: 1.5mm;
+        }
+        .as-head-right img { width: 28mm; height: auto; }
+        .as-mech-placeholder {
+            color: #bbb;
+            font-family: orbitron, sans-serif;
+            font-size: 5pt; letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+        .as-mech-placeholder-icon { font-size: 18pt; color: #ddd; line-height: 1; }
+
+        /* Title row */
+        .as-title-row { width: 100%; border-bottom: 0.4pt solid #aaa; padding-bottom: 1mm; margin-bottom: 1mm; }
+        .as-title-cell { vertical-align: top; padding-right: 2mm; }
+        .as-name {
+            font-family: orbitron, sans-serif;
+            font-size: 11pt; font-weight: bold;
+            letter-spacing: 0.04em;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+        .as-pv-cell { vertical-align: top; text-align: right; width: 14mm; }
+        .as-pv-label {
+            font-family: orbitron, sans-serif;
+            font-size: 5.5pt; font-weight: bold; color: #777;
+            letter-spacing: 0.18em;
+            line-height: 1;
+        }
+        .as-pv-value {
+            font-family: orbitron, sans-serif;
+            font-size: 17pt; font-weight: bold; color: #000;
+            line-height: 1;
         }
 
-        table.as-card { width: 100%; border-collapse: collapse; }
-        table.as-card td { padding: 0.8mm 0; vertical-align: top; }
+        /* Meta row */
+        .as-meta {
+            font-size: 6.5pt; line-height: 1.5;
+            border-bottom: 0.3pt solid #ccc;
+            padding-bottom: 1mm; margin-bottom: 1mm;
+        }
+        .as-meta b {
+            font-family: orbitron, sans-serif;
+            font-size: 5.5pt; color: #777;
+            letter-spacing: 0.1em; font-weight: bold;
+            padding-right: 0.8mm;
+        }
+        .as-meta-val { font-weight: bold; padding-right: 3.5mm; }
 
-        .as-name-cell  { border-bottom: 0.5pt solid #000; }
-        .as-pv-cell    { border-bottom: 0.5pt solid #000; text-align: right; vertical-align: middle; width: 14mm; font-size: 17pt; font-weight: bold; }
-        .as-title      { font-size: 12pt; font-weight: bold; line-height: 1.1; }
+        /* Damage + Heat row (two-cell table) */
+        table.as-dmg-heat { width: 100%; border-collapse: collapse; }
+        table.as-dmg-heat td.dmg { padding: 0; }
+        table.as-dmg-heat td.heat {
+            border-left: 0.3pt solid #ccc;
+            padding-left: 2mm;
+            width: 22mm;
+            vertical-align: middle;
+        }
+        .as-dmg-block {
+            display: inline-block;
+            margin-right: 3mm;
+        }
+        .as-dmg-range {
+            font-family: orbitron, sans-serif;
+            font-size: 5.5pt; font-weight: bold; color: #777;
+            letter-spacing: 0.1em;
+            margin-right: 0.5mm;
+        }
+        .as-dmg-val {
+            font-family: orbitron, sans-serif;
+            font-size: 15pt; font-weight: bold; color: #000;
+        }
+        .as-dmg-val-zero { color: #ccc; }
 
-        .as-meta-cell  { font-size: 8.5pt; line-height: 1.4; border-bottom: 0.4pt solid #888; }
+        .as-heat-label {
+            font-family: orbitron, sans-serif;
+            font-size: 5pt; font-weight: bold; color: #777;
+            letter-spacing: 0.12em;
+        }
+        .as-heat-ov {
+            font-family: orbitron, sans-serif;
+            font-size: 7pt; font-weight: bold; color: #000;
+        }
+        .as-heat-pips { font-family: jetbrainsmono, monospace; font-size: 11pt; line-height: 1; letter-spacing: 0.3mm; }
+        .as-heat-pips .shutdown { color: #888; }
 
-        .as-stats-cell { border-bottom: 0.4pt solid #888; font-size: 9pt; line-height: 1.3; }
-        .as-dmg-label  { font-size: 7.5pt; color: #555; margin-right: 2mm; }
-        .as-dmg        { display: inline; margin-right: 4mm; font-size: 11pt; font-weight: bold; }
-        .as-dmg b      { font-weight: bold; font-size: 8.5pt; color: #555; margin-right: 0.8mm; }
+        /* Section blocks (full-width below the header) */
+        .as-section { padding: 1.2mm 2.5mm; border-top: 0.4pt solid #ccc; }
+        .as-section-label {
+            font-family: orbitron, sans-serif;
+            font-size: 5pt; font-weight: bold; color: #777;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            margin-bottom: 0.8mm;
+        }
 
-        .as-heat-cell  { font-size: 8.5pt; border-bottom: 0.4pt solid #888; line-height: 1.3; }
+        /* Armor + Structure */
+        table.as-bars { width: 100%; border-collapse: collapse; }
+        table.as-bars td { padding: 0; vertical-align: top; }
+        table.as-bars td.bar { width: 50%; padding-right: 2mm; }
+        .as-bar-head {
+            font-family: orbitron, sans-serif;
+            font-size: 5pt; color: #777; font-weight: bold;
+            letter-spacing: 0.1em;
+        }
+        .as-bar-count { font-family: orbitron, sans-serif; font-size: 6.5pt; font-weight: bold; color: #000; }
+        .as-pip-row { font-family: jetbrainsmono, monospace; font-size: 11pt; letter-spacing: 0.3mm; line-height: 1; }
+        .as-pip-armor { color: #000; }
+        .as-pip-struct { color: #888; }
 
-        .as-bars-cell  { font-size: 8.5pt; line-height: 1.6; }
-        .as-bar        { display: block; }
-        .as-bar b      { display: inline-block; min-width: 4mm; }
-        .as-pip-row    { font-size: 11pt; letter-spacing: 0.3mm; }
-        .as-pip-armor  { color: #000; }
-        .as-pip-struct { color: #aaa; }
-        .as-bar-num    { font-weight: bold; margin-left: 1mm; font-size: 8.5pt; }
+        /* Critical Hits */
+        table.as-crits { width: 100%; border-collapse: collapse; }
+        table.as-crits td { padding: 0.2mm 0; vertical-align: middle; }
+        td.crit-name {
+            font-family: orbitron, sans-serif;
+            font-size: 5.5pt; font-weight: bold;
+            letter-spacing: 0.04em;
+            width: 17mm;
+        }
+        td.crit-pips { font-family: jetbrainsmono, monospace; font-size: 9pt; letter-spacing: 0.4mm; width: 22mm; }
+        td.crit-eff  { font-family: orbitron, sans-serif; font-size: 5.5pt; color: #777; }
 
-        .as-crit-cell  { font-size: 7.5pt; line-height: 1.45; border-top: 0.4pt solid #888; }
-        .as-crit i     { font-style: normal; font-weight: bold; display: inline-block; min-width: 14mm; }
-        .as-crit-eff   { color: #555; margin-left: 1mm; }
+        /* Specials + Footer */
+        .as-specials  { padding: 1.2mm 2.5mm; border-top: 0.4pt solid #ccc; font-size: 7pt; line-height: 1.3; }
+        .as-specials b {
+            font-family: orbitron, sans-serif;
+            font-size: 5pt; color: #777; font-weight: bold;
+            letter-spacing: 0.18em;
+            padding-right: 2mm;
+            text-transform: uppercase;
+        }
 
-        .as-specials-cell { font-size: 8pt; border-top: 0.4pt solid #888; line-height: 1.3; }
-
-        .as-foot-cell  { font-size: 7pt; color: #555; border-top: 0.4pt solid #ccc; }
-        .as-foot-right { text-align: right; }
+        .as-footer { padding: 1mm 2.5mm; background-color: #f0f0f0; border-top: 0.5pt solid #bbb; }
+        table.as-foot { width: 100%; border-collapse: collapse; }
+        table.as-foot td { font-family: orbitron, sans-serif; font-size: 6pt; color: #666; padding: 0; }
+        td.foot-r { text-align: right; }
     </style>
 </head>
 <body>
