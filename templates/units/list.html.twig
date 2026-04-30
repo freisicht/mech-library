@@ -146,17 +146,14 @@
 
             <div class="filter-cell">
                 <label for="era">Era</label>
-                <div class="select-wrap">
-                <select id="era" name="era">
-                    <option value="">All eras</option>
+                <select id="era" name="era[]" multiple>
                     {% for e in options.eras %}
                         <option value="{{ e.id }}"
-                            {% if (params.era ?? '')~ '' == e.id~ '' %}selected{% endif %}>
+                            {% if e.id~ '' in (params.era ?? []) %}selected{% endif %}>
                             {{ e.name }}{% if e.start_year %} ({{ e.start_year }}){% endif %}
                         </option>
                     {% endfor %}
                 </select>
-                </div>
             </div>
 
             <div class="filter-cell filter-range">

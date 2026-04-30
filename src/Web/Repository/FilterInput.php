@@ -38,7 +38,8 @@ final class FilterInput
     /** @var list<int> */
     public array $techIds = [];
 
-    public ?int $eraId = null;
+    /** @var list<int> */
+    public array $eraIds = [];
 
     public ?int $yearMin = null;
 
@@ -90,7 +91,16 @@ final class FilterInput
             ? array_values(array_map(intval(...), $techs))
             : [];
 
-        $f->eraId   = $int($params['era'] ?? null);
+        $eras = $params['era'] ?? null;
+        if (is_array($eras)) {
+            $f->eraIds = array_values(array_filter(
+                array_map(intval(...), $eras),
+                static fn (int $i) => $i > 0,
+            ));
+        } elseif (is_numeric($eras)) {
+            $f->eraIds = [(int) $eras];
+        }
+
         $f->yearMin = $int($params['year_min'] ?? null);
         $f->yearMax = $int($params['year_max'] ?? null);
 

@@ -30,7 +30,7 @@
         for (const [k, v] of Object.entries(params)) {
             if (Array.isArray(v)) {
                 v.forEach(function (item) {
-                    parts.push(encodeURIComponent('ability[]') + '=' + encodeURIComponent(item));
+                    parts.push(encodeURIComponent(k + '[]') + '=' + encodeURIComponent(item));
                 });
             } else {
                 parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
@@ -44,6 +44,49 @@
     const apiUrl = (window.ML && window.ML.apiUrl) ? window.ML.apiUrl : '/api/units';
 
     const isMobile = window.matchMedia('(max-width: 700px)').matches;
+
+    // ── Column visibility persistence ────────────────────────────────────────
+    const COL_VIS_KEY = 'ml.unitTable.colVisibility';
+    function loadColVis() {
+        try {
+            const raw = localStorage.getItem(COL_VIS_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (e) { return {}; }
+    }
+    function saveColVis(map) {
+        try { localStorage.setItem(COL_VIS_KEY, JSON.stringify(map)); } catch (e) {}
+    }
+    const colVis = loadColVis();
+
+    function buildColMenu() {
+        const menu = [];
+        table.getColumns().forEach(function (col) {
+            const def = col.getDefinition();
+            if (!def.field || def.field === 'id') return;
+            const visible = col.isVisible();
+            const label = document.createElement('span');
+            label.style.display = 'inline-flex';
+            label.style.alignItems = 'center';
+            label.style.gap = '6px';
+            const mark = document.createElement('span');
+            mark.textContent = visible ? '☑' : '☐';
+            mark.style.width = '14px';
+            const text = document.createElement('span');
+            text.textContent = def.title || def.field;
+            label.appendChild(mark);
+            label.appendChild(text);
+            menu.push({
+                label: label,
+                action: function (e) {
+                    e.stopPropagation();
+                    col.toggle();
+                    colVis[def.field] = col.isVisible();
+                    saveColVis(colVis);
+                },
+            });
+        });
+        return menu;
+    }
 
     const table = new Tabulator('#unit-table', {
         layout: 'fitColumns',
@@ -74,8 +117,11 @@
         initialSort: [{ column: 'name', dir: 'asc' }],
         columns: [
             {
-                title: '', field: 'id', sorter: false, width: 46, hozAlign: 'center',
+                title: '<span class="col-menu-icon" title="Spalten anzeigen/verbergen">⋮</span>',
+                titleFormatter: 'html',
+                field: 'id', sorter: false, width: 46, hozAlign: 'center',
                 headerSort: false, resizable: false,
+                headerMenu: buildColMenu,
                 formatter: function (cell) {
                     const id  = cell.getValue();
                     const btn = document.createElement('button');
@@ -139,6 +185,15 @@
     table.on('dataSorted', highlightSortedColumn);
     table.on('renderComplete', highlightSortedColumn);
     table.on('tableBuilt', highlightSortedColumn);
+    table.on('tableBuilt', function () {
+        Object.entries(colVis).forEach(function (entry) {
+            const field = entry[0], visible = entry[1];
+            const col = table.getColumn(field);
+            if (!col) return;
+            if (visible && !col.isVisible()) col.show();
+            if (!visible && col.isVisible()) col.hide();
+        });
+    });
 
     // ── Filter form ───────────────────────────────────────────────────────────
 

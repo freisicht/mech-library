@@ -183,9 +183,13 @@ final class UnitRepository
                 $params[":tech_{$i}"] = $tid;
             }
         }
-        if ($f->eraId !== null) {
-            $conds[]           = 'u.era_id = :era_id';
-            $params[':era_id'] = $f->eraId;
+        $yearActive = $f->yearMin !== null || $f->yearMax !== null;
+        if ($f->eraIds !== [] && !$yearActive) {
+            $ph = implode(',', array_map(static fn (int $i) => ":era_{$i}", array_keys($f->eraIds)));
+            $conds[] = "u.era_id IN ({$ph})";
+            foreach ($f->eraIds as $i => $eid) {
+                $params[":era_{$i}"] = $eid;
+            }
         }
         if ($f->yearMin !== null) {
             $conds[]             = 'u.era_start >= :year_min';

@@ -21,6 +21,9 @@ final class UnitListController
     public function __invoke(Request $request, Response $response): Response
     {
         $params  = $request->getQueryParams();
+        if (isset($params['era']) && !is_array($params['era'])) {
+            $params['era'] = [$params['era']];
+        }
         $filter  = FilterInput::fromQueryParams($params);
         $options = $this->repo->getFilterOptions();
 
