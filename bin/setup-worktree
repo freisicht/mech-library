@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Set up a freshly created git worktree so `composer test` works.
+# See docs/AGENT_WORKFLOW.md for rationale.
+
+set -euo pipefail
+
+WORKTREE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MAIN_ROOT="/Library/WebServer/Documents/mech_library"
+
+if [ "$WORKTREE_ROOT" = "$MAIN_ROOT" ]; then
+    echo "setup-worktree: refusing to run inside the main checkout ($MAIN_ROOT)." >&2
+    exit 1
+fi
+
+cd "$WORKTREE_ROOT"
+
+if [ ! -f "$MAIN_ROOT/.env" ]; then
+    echo "setup-worktree: $MAIN_ROOT/.env not found — set it up in the main checkout first." >&2
+    exit 1
+fi
+
+if [ ! -e .env ]; then
+    ln -s "$MAIN_ROOT/.env" .env
+    echo "✓ linked .env"
+else
+    echo "• .env already present"
+fi
+
+if [ ! -d vendor ]; then
+    composer install --no-interaction
+    echo "✓ vendor/ installed"
+else
+    echo "• vendor/ already present"
+fi
+
+php -v >/dev/null
+composer --version >/dev/null
+echo "✓ ready — run: composer test"

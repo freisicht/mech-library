@@ -89,7 +89,7 @@ mech_library/
 - **Merge to main:** fast-forward or squash-merge after the phase is complete and tests pass. No merge commits with noise.
 - **Tags:** `v0.1.0`, `v0.2.0` etc. at the end of each phase.
 - **Never:** force-push to `main`, `--no-verify`, amend a pushed commit, commit `.env`, commit `vendor/`, commit `data/raw/` or `public/images/units/`.
-- **Agents may commit only when the user has asked** ("commit das", "mach einen commit", phase-end checkpoint, etc.). Otherwise leave changes staged or unstaged for the user to review.
+- **Agents commit and fast-forward-merge to `main` automatically when `composer test` passes.** They never push to a remote unless the user asks. Full procedure (worktree setup, what counts as verification, when to stop and ask) is in [docs/AGENT_WORKFLOW.md](docs/AGENT_WORKFLOW.md) — read it before any task that will end in a commit.
 
 ## Definition of done (per phase)
 
