@@ -1308,12 +1308,46 @@ details[open] .fp-armies-summary::after { content: '▼'; }
   padding: 0 0 4px;
 }
 .fp-army-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 3px 10px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   color: var(--text-dim);
 }
 .fp-army-item:hover { background: var(--bg3); }
+.fp-army-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fp-army-channel {
+  flex: 0 0 auto;
+  max-width: 110px;
+  font-size: 10px;
+  padding: 1px 3px;
+  background: var(--bg2, #0f1419);
+  color: var(--text-dim);
+  border: 1px solid var(--border, #1f2937);
+}
+.fp-army-del {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  line-height: 14px;
+  padding: 0;
+  background: transparent;
+  color: var(--text-faint, #64748b);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+}
+.fp-army-del:hover {
+  color: oklch(0.7 0.18 25);
+  border-color: oklch(0.5 0.18 25 / 0.6);
+}
 .fp-army-empty {
   color: var(--text-faint);
   font-style: italic;

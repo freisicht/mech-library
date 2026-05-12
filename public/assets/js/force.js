@@ -9,7 +9,8 @@
         formation:     null,  // active formation object or null
         allTypes:      [],    // [{slug, name, faction}, …]
         allFormations: [],    // [{id, name, army_id, army_name}, …]
-        allArmies:     [],    // [{id, name, formations: []}, …]
+        allArmies:     [],    // [{id, name, required_mm_channel_id, formations: []}, …]
+        myChannels:    [],    // [{id, display_name}, …] — MM channels current user is in
     };
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -59,10 +60,12 @@
         apiFetch('/api/armies'),
         apiFetch('/api/formations'),
         apiFetch('/api/formations/active'),
-    ]).then(([types, armies, formations, activeData]) => {
+        apiFetch('/api/me/channels').catch(() => []),
+    ]).then(([types, armies, formations, activeData, channels]) => {
         state.allTypes     = types;
         state.allArmies    = armies;
         state.allFormations = formations;
+        state.myChannels   = Array.isArray(channels) ? channels : [];
 
         populateTypeDropdown(newTypeSelect, types);
         populateArmyDropdown(newArmySelect, armies);
@@ -557,13 +560,100 @@
         }
         armies.forEach(a => {
             const li = document.createElement('li');
-            li.className   = 'fp-army-item';
-            li.textContent = a.name;
+            li.className = 'fp-army-item';
+
+            const nameEl = document.createElement('span');
+            nameEl.className   = 'fp-army-name';
+            nameEl.textContent = a.name;
             if (a.formations && a.formations.length > 0) {
-                li.title = a.formations.length + ' formation(s)';
+                nameEl.title = a.formations.length + ' formation(s)';
             }
+            li.appendChild(nameEl);
+
+            li.appendChild(buildChannelSelect(a));
+            li.appendChild(buildDeleteButton(a));
+
             armyListEl.appendChild(li);
         });
+    }
+
+    function buildChannelSelect(army) {
+        const sel = document.createElement('select');
+        sel.className = 'fp-army-channel';
+        sel.title     = 'Restrict visibility to a Mattermost channel (— public = all logged-in users)';
+
+        const pubOpt = document.createElement('option');
+        pubOpt.value = '';
+        pubOpt.textContent = '— public —';
+        sel.appendChild(pubOpt);
+
+        const current = army.required_mm_channel_id || '';
+        let currentPresent = (current === '');
+
+        state.myChannels.forEach(ch => {
+            const opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = ch.display_name || ch.name || ch.id;
+            if (ch.id === current) currentPresent = true;
+            sel.appendChild(opt);
+        });
+
+        // If the army is gated to a channel the current user isn't in, show
+        // a disabled placeholder so the value isn't silently lost.
+        if (!currentPresent) {
+            const opt = document.createElement('option');
+            opt.value = current;
+            opt.textContent = '(channel not in your list)';
+            opt.disabled = true;
+            sel.appendChild(opt);
+        }
+        sel.value = current;
+
+        sel.addEventListener('change', () => {
+            const next = sel.value;
+            apiFetch('/api/armies/' + army.id, {
+                method: 'PUT',
+                body: JSON.stringify({ name: army.name, required_mm_channel_id: next }),
+            }).then(() => {
+                army.required_mm_channel_id = next || null;
+            }).catch(err => {
+                console.error('[force] update army channel', err);
+                sel.value = army.required_mm_channel_id || '';
+            });
+        });
+        return sel;
+    }
+
+    function buildDeleteButton(army) {
+        const btn = document.createElement('button');
+        btn.type        = 'button';
+        btn.className   = 'fp-army-del';
+        btn.title       = 'Delete army';
+        btn.textContent = '×';
+        btn.addEventListener('click', () => {
+            const fcount = (army.formations || []).length;
+            const msg = fcount > 0
+                ? 'Delete army "' + army.name + '"? Its ' + fcount + ' formation(s) will become standalone (not deleted).'
+                : 'Delete army "' + army.name + '"?';
+            if (!window.confirm(msg)) return;
+
+            apiFetch('/api/armies/' + army.id, { method: 'DELETE' })
+                .then(() => {
+                    state.allArmies = state.allArmies.filter(x => x.id !== army.id);
+                    state.allFormations.forEach(f => {
+                        if (Number(f.army_id) === Number(army.id)) {
+                            f.army_id = null;
+                            f.army_name = null;
+                        }
+                    });
+                    renderArmyList(state.allArmies);
+                    populateArmyDropdown(newArmySelect, state.allArmies);
+                    const activeId = state.formation ? state.formation.id : null;
+                    populateFormationSelector(state.allFormations, activeId ? { id: activeId } : null);
+                })
+                .catch(err => console.error('[force] delete army', err));
+        });
+        return btn;
     }
 
     function apiFetch(url, opts) {
