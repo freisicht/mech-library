@@ -5,13 +5,25 @@ declare(strict_types=1);
 use App\Web\Controller\ApiArmiesController;
 use App\Web\Controller\ApiFormationsController;
 use App\Web\Controller\ApiUnitsController;
+use App\Web\Controller\AuthController;
 use App\Web\Controller\FormationPrintController;
 use App\Web\Controller\FormationPrintPdfController;
+use App\Web\Controller\MeController;
 use App\Web\Controller\UnitDetailController;
 use App\Web\Controller\UnitListController;
 use Slim\App;
 
 return static function (App $app): void {
+    // Phase 4 — auth (Mattermost OAuth2)
+    $app->get('/auth/login', [AuthController::class, 'showLogin']);
+    $app->get('/auth/start', [AuthController::class, 'start']);
+    $app->get('/auth/callback', [AuthController::class, 'callback']);
+    $app->get('/auth/logout', [AuthController::class, 'logout']);
+
+    // Current user (for UI)
+    $app->get('/api/me', [MeController::class, 'me']);
+    $app->get('/api/me/channels', [MeController::class, 'channels']);
+
     // Phase 2 — unit list + detail
     $app->get('/', UnitListController::class);
     $app->get('/units/{id:[0-9]+}', UnitDetailController::class);

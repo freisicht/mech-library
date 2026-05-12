@@ -30,6 +30,7 @@ bin/console mul:images         # download unit images
 - [`docs/PLAN.md`](docs/PLAN.md) — phased roadmap and handoff prompts.
 - [`docs/MUL_API.md`](docs/MUL_API.md) — reverse-engineered masterunitlist.info JSON endpoints.
 - [`docs/SCHEMA.md`](docs/SCHEMA.md) — DB schema and rationale (added in phase 1).
+- [`docs/AUTH.md`](docs/AUTH.md) — Mattermost OAuth login and per-army channel gating.
 
 ## Legal note
 

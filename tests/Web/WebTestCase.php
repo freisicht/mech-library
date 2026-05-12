@@ -25,6 +25,8 @@ abstract class WebTestCase extends TestCase
     protected function setUp(): void
     {
         $this->loadEnv();
+        $_ENV['MM_AUTH_DISABLED'] = '1';
+        putenv('MM_AUTH_DISABLED=1');
         $this->app     = AppFactory::create(dirname(__DIR__, 2));
         $this->importer = new UnitImporter();
     }

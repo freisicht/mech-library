@@ -139,8 +139,25 @@
   <table name="armies" idMethod="native" phpName="Armies">
     <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
     <column name="name" phpName="Name" type="VARCHAR" size="128" required="true"/>
+    <column name="required_mm_channel_id" phpName="RequiredMmChannelId" type="VARCHAR" size="32"/>
     <column name="created_at" phpName="CreatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
     <column name="updated_at" phpName="UpdatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"/>
+    <vendor type="mysql">
+      <parameter name="Engine" value="InnoDB"/>
+    </vendor>
+  </table>
+  <table name="users" idMethod="native" phpName="Users">
+    <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
+    <column name="mm_user_id" phpName="MmUserId" type="VARCHAR" size="32" required="true"/>
+    <column name="username" phpName="Username" type="VARCHAR" size="128" required="true"/>
+    <column name="email" phpName="Email" type="VARCHAR" size="255"/>
+    <column name="channels_json" phpName="ChannelsJson" type="LONGVARCHAR"/>
+    <column name="channels_refreshed_at" phpName="ChannelsRefreshedAt" type="TIMESTAMP"/>
+    <column name="last_login_at" phpName="LastLoginAt" type="TIMESTAMP"/>
+    <column name="created_at" phpName="CreatedAt" type="TIMESTAMP" required="true" defaultExpr="CURRENT_TIMESTAMP"/>
+    <unique name="uq_mm_user_id">
+      <unique-column name="mm_user_id"/>
+    </unique>
     <vendor type="mysql">
       <parameter name="Engine" value="InnoDB"/>
     </vendor>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in — Mech Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <style>
+        .login-shell { min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg,#0a0e14); }
+        .login-card { padding:32px 28px; border:1px solid var(--border,#1f2937); background:var(--panel,#0f1419); max-width:380px; width:100%; text-align:center; }
+        .login-card h1 { font-family:'Orbitron',monospace; font-size:18px; letter-spacing:0.12em; margin:0 0 8px; color:var(--cyan,#22d3ee); }
+        .login-card p { font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-dim,#94a3b8); margin:0 0 20px; }
+        .login-btn { display:inline-block; padding:10px 22px; border:1px solid var(--cyan,#22d3ee); color:var(--cyan,#22d3ee); background:transparent; text-decoration:none; font-family:'Orbitron',monospace; font-size:12px; letter-spacing:0.12em; transition:all 0.12s; }
+        .login-btn:hover { background:var(--cyan,#22d3ee); color:#0a0e14; }
+    </style>
+</head>
+<body>
+<div class="login-shell">
+    <div class="login-card">
+        <h1>MECHLIBRARY</h1>
+        <p>Access requires a Mattermost account on mm.freisicht.net.</p>
+        <a class="login-btn" href="/auth/start?next={{ next|url_encode }}">Sign in with Mattermost</a>
+    </div>
+</div>
+</body>
+</html>

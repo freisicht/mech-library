@@ -30,6 +30,13 @@
         <span class="topbar-subtitle">ALPHA STRIKE FORCE BUILDER</span>
         <div class="topbar-right">
             <span class="topbar-status">● SYS ONLINE</span>
+            {% set _u = current_user() %}
+            {% if _u %}
+                <span class="topbar-user" style="margin-left:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);">
+                    {{ _u.username }}
+                    · <a href="/auth/logout" style="color:var(--cyan);text-decoration:none;">logout</a>
+                </span>
+            {% endif %}
         </div>
     </header>
 

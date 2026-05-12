@@ -11,6 +11,7 @@
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
         "guzzlehttp/guzzle": "^7.9",
+        "league/oauth2-client": "^2.7",
         "monolog/monolog": "^3.7",
         "mpdf/mpdf": "^8.3",
         "perplorm/perpl": "^2.0",

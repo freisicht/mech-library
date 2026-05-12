@@ -26,10 +26,17 @@ final class ApiArmiesController
         if ($name === '') {
             return $this->json($response, ['error' => 'name is required'], 422);
         }
+        $channel = isset($body['required_mm_channel_id'])
+            ? $this->normalizeChannelId((string) $body['required_mm_channel_id'])
+            : null;
 
-        $id = $this->armies->create($name);
+        $id = $this->armies->create($name, $channel);
 
-        return $this->json($response, ['id' => $id, 'name' => $name], 201);
+        return $this->json($response, [
+            'id'                     => $id,
+            'name'                   => $name,
+            'required_mm_channel_id' => $channel,
+        ], 201);
     }
 
     /** @param array<string, mixed> $args */
@@ -48,7 +55,20 @@ final class ApiArmiesController
 
         $this->armies->rename($id, $name);
 
+        if (array_key_exists('required_mm_channel_id', $body)) {
+            $this->armies->setRequiredChannel(
+                $id,
+                $this->normalizeChannelId((string) $body['required_mm_channel_id']),
+            );
+        }
+
         return $this->json($response, ['id' => $id, 'name' => $name]);
+    }
+
+    private function normalizeChannelId(string $raw): ?string
+    {
+        $raw = trim($raw);
+        return $raw === '' ? null : $raw;
     }
 
     /** @param array<string, mixed> $args */

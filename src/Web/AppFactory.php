@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Web;
 
+use App\Auth\AuthMiddleware;
 use App\Bootstrap;
 use Slim\App;
 use Slim\Factory\AppFactory as SlimAppFactory;
@@ -30,9 +31,10 @@ final class AppFactory
             $_ENV['APP_DEBUG'] ?? getenv('APP_DEBUG') ?: false,
             FILTER_VALIDATE_BOOLEAN,
         );
-        $app->addErrorMiddleware($debug, true, true);
-
         (require __DIR__ . '/routes.php')($app);
+
+        $app->add(AuthMiddleware::class);
+        $app->addErrorMiddleware($debug, true, true);
 
         return $app;
     }

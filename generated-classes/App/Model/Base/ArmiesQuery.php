@@ -24,11 +24,13 @@ use function sprintf;
  *
  * @method static orderById($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the id column
  * @method static orderByName($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the name column
+ * @method static orderByRequiredMmChannelId($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the required_mm_channel_id column
  * @method static orderByCreatedAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the created_at column
  * @method static orderByUpdatedAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the updated_at column
  *
  * @method static groupById() Group by the id column
  * @method static groupByName() Group by the name column
+ * @method static groupByRequiredMmChannelId() Group by the required_mm_channel_id column
  * @method static groupByCreatedAt() Group by the created_at column
  * @method static groupByUpdatedAt() Group by the updated_at column
  *
@@ -55,6 +57,7 @@ use function sprintf;
  *
  * @method \App\Model\Armies|null findOneById(int $id) Return the first \App\Model\Armies filtered by the id column
  * @method \App\Model\Armies|null findOneByName(string $name) Return the first \App\Model\Armies filtered by the name column
+ * @method \App\Model\Armies|null findOneByRequiredMmChannelId(string $required_mm_channel_id) Return the first \App\Model\Armies filtered by the required_mm_channel_id column
  * @method \App\Model\Armies|null findOneByCreatedAt(string $created_at) Return the first \App\Model\Armies filtered by the created_at column
  * @method \App\Model\Armies|null findOneByUpdatedAt(string $updated_at) Return the first \App\Model\Armies filtered by the updated_at column
  *
@@ -63,6 +66,7 @@ use function sprintf;
  *
  * @method \App\Model\Armies requireOneById(int $id) Return the first \App\Model\Armies filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Armies requireOneByName(string $name) Return the first \App\Model\Armies filtered by the name column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Armies requireOneByRequiredMmChannelId(string $required_mm_channel_id) Return the first \App\Model\Armies filtered by the required_mm_channel_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Armies requireOneByCreatedAt(string $created_at) Return the first \App\Model\Armies filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Armies requireOneByUpdatedAt(string $updated_at) Return the first \App\Model\Armies filtered by the updated_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
@@ -71,6 +75,7 @@ use function sprintf;
  *
  * @method array<\App\Model\Armies>|\Propel\Runtime\Collection\Collection<\App\Model\Armies> findById(int|array<int> $id) Return \App\Model\Armies objects filtered by the id column
  * @method array<\App\Model\Armies>|\Propel\Runtime\Collection\Collection<\App\Model\Armies> findByName(string|array<string> $name) Return \App\Model\Armies objects filtered by the name column
+ * @method array<\App\Model\Armies>|\Propel\Runtime\Collection\Collection<\App\Model\Armies> findByRequiredMmChannelId(string|array<string> $required_mm_channel_id) Return \App\Model\Armies objects filtered by the required_mm_channel_id column
  * @method array<\App\Model\Armies>|\Propel\Runtime\Collection\Collection<\App\Model\Armies> findByCreatedAt(string|array<string> $created_at) Return \App\Model\Armies objects filtered by the created_at column
  * @method array<\App\Model\Armies>|\Propel\Runtime\Collection\Collection<\App\Model\Armies> findByUpdatedAt(string|array<string> $updated_at) Return \App\Model\Armies objects filtered by the updated_at column
  *
@@ -173,7 +178,7 @@ abstract class ArmiesQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildArmies
     {
-        $sql = 'SELECT `id`, `name`, `created_at`, `updated_at` FROM `armies` WHERE `id` = :p0';
+        $sql = 'SELECT `id`, `name`, `required_mm_channel_id`, `created_at`, `updated_at` FROM `armies` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');
@@ -337,6 +342,32 @@ abstract class ArmiesQuery extends TypedModelCriteria
             $comparison = Criteria::IN;
         }
         $this->addUsingOperator($resolvedColumn, $name, $comparison);
+
+        return $this;
+    }
+
+    /**
+     * Filter the query on the required_mm_channel_id column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByRequiredMmChannelId('fooValue'); // WHERE required_mm_channel_id = 'fooValue'
+     * $query->filterByRequiredMmChannelId('%fooValue%', Criteria::LIKE); // WHERE required_mm_channel_id LIKE '%fooValue%'
+     * $query->filterByRequiredMmChannelId(['foo', 'bar']); // WHERE required_mm_channel_id IN ('foo', 'bar')
+     * </code>
+     *
+     * @param array<string>|string|null $requiredMmChannelId The value to use as filter.
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this
+     */
+    public function filterByRequiredMmChannelId($requiredMmChannelId = null, ?string $comparison = null)
+    {
+        $resolvedColumn = $this->resolveLocalColumnByName('required_mm_channel_id');
+        if ($comparison === null && is_array($requiredMmChannelId)) {
+            $comparison = Criteria::IN;
+        }
+        $this->addUsingOperator($resolvedColumn, $requiredMmChannelId, $comparison);
 
         return $this;
     }

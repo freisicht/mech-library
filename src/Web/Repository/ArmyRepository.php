@@ -4,18 +4,27 @@ declare(strict_types=1);
 
 namespace App\Web\Repository;
 
+use App\Auth\ArmyVisibility;
 use App\Model\Armies;
 use PDO;
 use Propel\Runtime\Propel;
 
 final class ArmyRepository
 {
+    public function __construct(private readonly ArmyVisibility $visibility)
+    {
+    }
+
     /** @return list<array{id: int, name: string, formations: list<array<string, mixed>>}> */
     public function findAll(): array
     {
+        $vis = $this->visibility->clause('armies');
         $armies = $this->exec(
-            'SELECT id, name FROM armies ORDER BY name',
-            [],
+            'SELECT id, name, required_mm_channel_id
+             FROM armies
+             WHERE ' . $vis['sql'] . '
+             ORDER BY name',
+            $vis['params'],
         )->fetchAll(PDO::FETCH_ASSOC);
 
         if ($armies === []) {
@@ -52,17 +61,26 @@ final class ArmyRepository
     {
         /** @var array<string, mixed>|false $row */
         $row = $this->exec(
-            'SELECT id, name, created_at FROM armies WHERE id = :id',
+            'SELECT id, name, required_mm_channel_id, created_at FROM armies WHERE id = :id',
             [':id' => $id],
         )->fetch(PDO::FETCH_ASSOC);
 
-        return $row === false ? null : $row;
+        if ($row === false) {
+            return null;
+        }
+        if (!$this->visibility->canAccessArmy(
+            isset($row['required_mm_channel_id']) ? (string) $row['required_mm_channel_id'] : null,
+        )) {
+            return null;
+        }
+        return $row;
     }
 
-    public function create(string $name): int
+    public function create(string $name, ?string $requiredMmChannelId = null): int
     {
         $army = new Armies();
         $army->setName($name);
+        $army->setRequiredMmChannelId($requiredMmChannelId);
         $army->save();
         return $army->getId();
     }
@@ -72,6 +90,14 @@ final class ArmyRepository
         $this->exec(
             'UPDATE armies SET name = :name WHERE id = :id',
             [':name' => $name, ':id' => $id],
+        );
+    }
+
+    public function setRequiredChannel(int $id, ?string $channelId): void
+    {
+        $this->exec(
+            'UPDATE armies SET required_mm_channel_id = :ch WHERE id = :id',
+            [':ch' => $channelId, ':id' => $id],
         );
     }
 

@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Web;
 
+use App\Auth\CurrentUser;
+use App\Auth\MattermostClient;
+use App\Auth\MattermostProvider;
 use DI\Container;
 use DI\ContainerBuilder;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\ClientInterface as GuzzleClientInterface;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
 use Monolog\Logger;
@@ -24,14 +29,22 @@ final class ContainerFactory
 
         $builder = new ContainerBuilder();
         $builder->addDefinitions([
-            Environment::class => static function () use ($rootDir, $debug): Environment {
+            Environment::class => static function (Container $c) use ($rootDir, $debug): Environment {
                 $loader = new FilesystemLoader($rootDir . '/templates');
 
-                return new Environment($loader, [
+                $env = new Environment($loader, [
                     'cache'            => $debug ? false : $rootDir . '/var/cache/twig',
                     'auto_reload'      => true,
                     'strict_variables' => true,
                 ]);
+
+                $current = $c->get(CurrentUser::class);
+                $env->addFunction(new \Twig\TwigFunction(
+                    'current_user',
+                    static fn () => $current->user(),
+                ));
+
+                return $env;
             },
             LoggerInterface::class => static function () use ($rootDir): LoggerInterface {
                 $logger = new Logger('web');
@@ -42,8 +55,40 @@ final class ContainerFactory
 
                 return $logger;
             },
+            CurrentUser::class => static fn (): CurrentUser => new CurrentUser(),
+            GuzzleClientInterface::class => static fn (): GuzzleClientInterface => new GuzzleClient([
+                'timeout' => 10.0,
+            ]),
+            MattermostProvider::class => static function (): MattermostProvider {
+                $base     = self::env('MM_BASE_URL', 'https://mm.freisicht.net');
+                $clientId = self::env('MM_OAUTH_CLIENT_ID', '');
+                $secret   = self::env('MM_OAUTH_CLIENT_SECRET', '');
+                $redirect = self::env('MM_OAUTH_REDIRECT_URI', 'https://mechlib.hyperhabitat.de/auth/callback');
+                return new MattermostProvider([
+                    'baseUrl'      => $base,
+                    'clientId'     => $clientId,
+                    'clientSecret' => $secret,
+                    'redirectUri'  => $redirect,
+                ]);
+            },
+            MattermostClient::class => static function (Container $c): MattermostClient {
+                return new MattermostClient(
+                    $c->get(GuzzleClientInterface::class),
+                    self::env('MM_BASE_URL', 'https://mm.freisicht.net'),
+                );
+            },
         ]);
 
         return $builder->build();
+    }
+
+    private static function env(string $key, string $default): string
+    {
+        /** @var mixed $v */
+        $v = $_ENV[$key] ?? getenv($key);
+        if ($v === false || $v === '' || $v === null) {
+            return $default;
+        }
+        return (string) $v;
     }
 }

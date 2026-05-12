@@ -15,6 +15,7 @@ $serviceContainer->initDatabaseMapFromDumps(array (
       'unit_abilities' => '\\App\\Model\\Map\\UnitAbilitiesTableMap',
       'unit_types' => '\\App\\Model\\Map\\UnitTypesTableMap',
       'units' => '\\App\\Model\\Map\\UnitsTableMap',
+      'users' => '\\App\\Model\\Map\\UsersTableMap',
     ),
     'tablesByPhpName' => 
     array (
@@ -28,6 +29,7 @@ $serviceContainer->initDatabaseMapFromDumps(array (
       '\\UnitAbilities' => '\\App\\Model\\Map\\UnitAbilitiesTableMap',
       '\\UnitTypes' => '\\App\\Model\\Map\\UnitTypesTableMap',
       '\\Units' => '\\App\\Model\\Map\\UnitsTableMap',
+      '\\Users' => '\\App\\Model\\Map\\UsersTableMap',
     ),
   ),
 ));

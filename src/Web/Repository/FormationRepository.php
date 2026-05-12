@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Web\Repository;
 
+use App\Auth\ArmyVisibility;
 use App\Formation\FormationRulesEngine;
 use App\Model\Formations as FormationsModel;
 use App\Model\FormationUnits as FormationUnitsModel;
@@ -28,20 +29,25 @@ final class FormationRepository
         r.name AS role,
         fu.sort_order';
 
-    public function __construct(private readonly FormationRulesEngine $rulesEngine)
-    {
+    public function __construct(
+        private readonly FormationRulesEngine $rulesEngine,
+        private readonly ArmyVisibility $visibility,
+    ) {
     }
 
     /** @return array<string, mixed>|null */
     public function findActive(): ?array
     {
+        $vis = $this->visibility->clause('a');
         /** @var array<string, mixed>|false $row */
         $row = $this->exec(
             'SELECT f.id, f.army_id, f.name, f.formation_type, f.pv_budget, f.is_active
              FROM formations f
+             LEFT JOIN armies a ON a.id = f.army_id
              WHERE f.is_active = 1
+               AND (f.army_id IS NULL OR ' . $vis['sql'] . ')
              LIMIT 1',
-            [],
+            $vis['params'],
         )->fetch(PDO::FETCH_ASSOC);
 
         if ($row === false) {
@@ -54,12 +60,15 @@ final class FormationRepository
     /** @return array<string, mixed>|null */
     public function findById(int $id): ?array
     {
+        $vis = $this->visibility->clause('a');
         /** @var array<string, mixed>|false $row */
         $row = $this->exec(
             'SELECT f.id, f.army_id, f.name, f.formation_type, f.pv_budget, f.is_active
              FROM formations f
-             WHERE f.id = :id',
-            [':id' => $id],
+             LEFT JOIN armies a ON a.id = f.army_id
+             WHERE f.id = :id
+               AND (f.army_id IS NULL OR ' . $vis['sql'] . ')',
+            array_merge([':id' => $id], $vis['params']),
         )->fetch(PDO::FETCH_ASSOC);
 
         return $row === false ? null : $this->hydrate($row);
@@ -86,12 +95,14 @@ final class FormationRepository
      */
     public function findAllForSelector(): array
     {
+        $vis = $this->visibility->clause('a');
         $rows = $this->exec(
             'SELECT f.id, f.name, f.army_id, a.name AS army_name
              FROM formations f
              LEFT JOIN armies a ON a.id = f.army_id
+             WHERE f.army_id IS NULL OR ' . $vis['sql'] . '
              ORDER BY (f.army_id IS NULL), a.name, f.name',
-            [],
+            $vis['params'],
         )->fetchAll(PDO::FETCH_ASSOC);
 
         /** @var list<array{id: int, name: string, army_id: int|null, army_name: string|null}> $rows */
