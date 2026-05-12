@@ -26,8 +26,10 @@ final class MattermostClient
 
     /**
      * Channels the user belongs to, with display info, across all teams.
+     * Direct- (D) and group- (G) message channels are filtered out — only
+     * named channels (Open 'O' / Private 'P') make sense for army gating.
      *
-     * @return list<array{id: string, display_name: string, name: string, team_id: string}>
+     * @return list<array{id: string, display_name: string, name: string, team_id: string, type: string}>
      */
     public function fetchChannels(string $accessToken, string $mmUserId): array
     {
@@ -46,6 +48,10 @@ final class MattermostClient
                 if (!is_array($ch) || !isset($ch['id']) || !is_string($ch['id'])) {
                     continue;
                 }
+                $type = (string) ($ch['type'] ?? '');
+                if ($type !== 'O' && $type !== 'P') {
+                    continue;
+                }
                 if (isset($seen[$ch['id']])) {
                     continue;
                 }
@@ -55,6 +61,7 @@ final class MattermostClient
                     'display_name' => (string) ($ch['display_name'] ?? $ch['name'] ?? $ch['id']),
                     'name'         => (string) ($ch['name'] ?? ''),
                     'team_id'      => (string) $team['id'],
+                    'type'         => $type,
                 ];
             }
         }
