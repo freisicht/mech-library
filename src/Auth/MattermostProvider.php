@@ -15,7 +15,7 @@ final class MattermostProvider extends AbstractProvider
 {
     use BearerAuthorizationTrait;
 
-    private string $baseUrl;
+    private string $mmBaseUrl = '';
 
     /**
      * @param array<string, mixed> $options
@@ -23,24 +23,26 @@ final class MattermostProvider extends AbstractProvider
      */
     public function __construct(array $options = [], array $collaborators = [])
     {
-        $this->baseUrl = rtrim((string) ($options['baseUrl'] ?? ''), '/');
+        $base = (string) ($options['baseUrl'] ?? '');
+        unset($options['baseUrl']);
         parent::__construct($options, $collaborators);
+        $this->mmBaseUrl = rtrim($base, '/');
     }
 
     public function getBaseAuthorizationUrl(): string
     {
-        return $this->baseUrl . '/oauth/authorize';
+        return $this->mmBaseUrl . '/oauth/authorize';
     }
 
     /** @param array<string, mixed> $params */
     public function getBaseAccessTokenUrl(array $params): string
     {
-        return $this->baseUrl . '/oauth/access_token';
+        return $this->mmBaseUrl . '/oauth/access_token';
     }
 
     public function getResourceOwnerDetailsUrl(AccessToken $token): string
     {
-        return $this->baseUrl . '/api/v4/users/me';
+        return $this->mmBaseUrl . '/api/v4/users/me';
     }
 
     /** @return string[] */
