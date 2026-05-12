@@ -590,13 +590,22 @@
         const current = army.required_mm_channel_id || '';
         let currentPresent = (current === '');
 
-        state.myChannels.forEach(ch => {
+        const named = state.myChannels.filter(c => c.type !== 'G');
+        const groups = state.myChannels.filter(c => c.type === 'G');
+        const appendOpt = (ch, parent) => {
             const opt = document.createElement('option');
             opt.value = ch.id;
             opt.textContent = ch.display_name || ch.name || ch.id;
             if (ch.id === current) currentPresent = true;
-            sel.appendChild(opt);
-        });
+            parent.appendChild(opt);
+        };
+        named.forEach(ch => appendOpt(ch, sel));
+        if (groups.length > 0) {
+            const grp = document.createElement('optgroup');
+            grp.label = 'Group DMs';
+            groups.forEach(ch => appendOpt(ch, grp));
+            sel.appendChild(grp);
+        }
 
         // If the army is gated to a channel the current user isn't in, show
         // a disabled placeholder so the value isn't silently lost.
