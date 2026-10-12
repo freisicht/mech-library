@@ -90,15 +90,20 @@ final class ApiUnitsTest extends WebTestCase
 
     public function testPaginationReturnsCorrectPage(): void
     {
-        // No search filter so the full DB is in scope (>>25 units from Phase 1 import)
-        $page1 = $this->getJson('/api/units?size=25&page=1');
-        $page2 = $this->getJson('/api/units?size=25&page=2');
+        // Smallest allowed page size is 25; setUp already created two units.
+        for ($mulId = 99920; $mulId < 99944; $mulId++) {
+            $this->importer->upsert($this->makeUnit($mulId));
+        }
+        $query = 'search=Test+Atlas&size=25';
+        $page1 = $this->getJson("/api/units?{$query}&page=1");
+        $page2 = $this->getJson("/api/units?{$query}&page=2");
 
         self::assertCount(25, $page1['data']);
         self::assertGreaterThan(1, $page1['last_page']);
 
         $ids1 = array_column($page1['data'], 'id');
         $ids2 = array_column($page2['data'], 'id');
+        self::assertNotEmpty($ids2);
         self::assertEmpty(array_intersect($ids1, $ids2), 'Page 1 and page 2 must not share rows');
     }
 

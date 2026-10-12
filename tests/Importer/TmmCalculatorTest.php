@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Importer;
 
 use App\Importer\TmmCalculator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class TmmCalculatorTest extends TestCase
@@ -35,7 +36,7 @@ final class TmmCalculatorTest extends TestCase
         ];
     }
 
-    /** @dataProvider provider */
+    #[DataProvider('provider')]
     public function testFromBfMove(string $bfMove, int $expectedTmm): void
     {
         self::assertSame($expectedTmm, TmmCalculator::fromBfMove($bfMove));
