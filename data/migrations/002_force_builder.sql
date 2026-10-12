@@ -1,7 +1,6 @@
 -- Migration 002: force builder tables (Army → Formation → formation_units)
 -- Idempotent via IF NOT EXISTS guards.
 
-USE mech_library;
 
 CREATE TABLE IF NOT EXISTS armies (
     id          INT UNSIGNED    NOT NULL AUTO_INCREMENT,

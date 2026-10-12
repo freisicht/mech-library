@@ -1,8 +1,6 @@
 -- Migration 001: initial schema
 -- Run once. Idempotent via IF NOT EXISTS / IF NOT EXISTS guards.
 
-CREATE DATABASE IF NOT EXISTS mech_library CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE mech_library;
 
 -- -------------------------------------------------------
 -- Lookup tables (seeded from MUL index pages)
