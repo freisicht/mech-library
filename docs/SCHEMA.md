@@ -110,7 +110,17 @@ automatically when either parent is deleted.
 
 ## Migration strategy
 
-Phase 1 uses plain SQL files in `data/migrations/` numbered `NNN_slug.sql`. The `db:migrate`
-command (to be wired up once Perpl models exist) tracks which migrations have been applied in
-a `schema_migrations` table. No ORM migration runner in Phase 1 — Perpl's Propel2 migration
-tooling is available but adds complexity; plain SQL is adequate and easy to review.
+Plain SQL files in `data/migrations/`, numbered `NNN_slug.sql`, applied in order with the
+`mysql` client against the database named in `DB_NAME` (the files contain no `USE`
+statement). There is no migration runner and no `schema_migrations` table: each file is run
+once on a fresh database. Perpl's Propel2 migration tooling is not used; plain SQL is
+adequate and easy to review.
+
+| File                    | Adds                                                        |
+| ----------------------- | ----------------------------------------------------------- |
+| `001_initial_schema.sql`| units, abilities and lookup tables                          |
+| `002_force_builder.sql` | `armies`, `formations`, `formation_units`                   |
+| `003_auth.sql`          | `users`, `armies.required_mm_channel_id` (see `docs/AUTH.md`) |
+
+When the schema changes, add a new numbered file, update `src/Model/schema.xml` and
+regenerate the models with `vendor/bin/perpl model:build`.

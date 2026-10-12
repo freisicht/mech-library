@@ -4,13 +4,13 @@ This file is loaded automatically by Claude Code at session start. **All agents 
 
 ## Project in one sentence
 
-A locally-hosted PHP/MySQL web application that mirrors BattleTech Alpha Strike unit data from masterunitlist.info into a searchable database with a force-builder on top.
+A self-hosted PHP/MySQL web application that mirrors BattleTech Alpha Strike unit data from masterunitlist.info into a searchable database with a force-builder on top.
 
 ## Tech stack — fixed, do not change without user approval
 
 | Layer        | Choice                                                                |
 | ------------ | --------------------------------------------------------------------- |
-| Language     | PHP 8.5+ (CLI for scrapers, web for UI)                               |
+| Language     | PHP 8.3+ (CLI for scrapers, web for UI)                               |
 | Database     | MySQL (existing local instance, see `.env`)                           |
 | ORM          | **perplorm/perpl** (maintained Propel2 fork)                          |
 | HTTP client  | guzzlehttp/guzzle                                                     |
@@ -56,7 +56,7 @@ mech_library/
 ├── templates/                 # Twig
 ├── data/
 │   ├── raw/                   # cached raw JSON dumps from MUL, gitignored
-│   └── migrations/            # SQL migrations or Perpl migration files
+│   └── migrations/            # numbered SQL migrations, see docs/SCHEMA.md
 ├── tests/
 └── var/
     ├── cache/
@@ -66,7 +66,7 @@ mech_library/
 ## Hard rules for all agents
 
 1. **Never re-research what is already documented.** Before exploring MUL endpoints, read `docs/MUL_API.md`. Before designing schema, read `docs/SCHEMA.md`. If a doc is missing or stale, update it as part of your task.
-2. **Stay inside the repo.** Do not write files outside `/Library/WebServer/Documents/mech_library/` without asking.
+2. **Stay inside the repo.** Do not write files outside the repository checkout without asking.
 3. **Never commit secrets.** `.env` is gitignored. Credentials go in `.env`, never in code or in `.env.example`.
 4. **No scope creep.** If the user asked for the scraper, do not also touch the web UI. Park ideas in `docs/PLAN.md` under "Backlog".
 5. **No invented dependencies.** Verify a Composer package exists on Packagist before adding it. The known-good list is in this file.

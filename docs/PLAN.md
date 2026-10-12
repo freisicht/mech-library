@@ -215,5 +215,5 @@ Ideas captured during work that are explicitly out of scope until promoted into 
 - Probabilistic match-up calculator.
 - PDF generation / MUL unit-card PDF download for print view.
 - BV (Classic BattleTech) support alongside Alpha Strike.
-- Force sharing between browsers / devices (app is currently single-user).
+- Login providers other than Mattermost (currently the only way in, see `docs/AUTH.md`).
 - Army hierarchy beyond two levels (Army → Formation).

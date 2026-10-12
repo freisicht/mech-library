@@ -5,7 +5,7 @@
 set -euo pipefail
 
 WORKTREE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MAIN_ROOT="/Library/WebServer/Documents/mech_library"
+MAIN_ROOT="$(git -C "$WORKTREE_ROOT" worktree list --porcelain | sed -n '1s/^worktree //p')"
 
 if [ "$WORKTREE_ROOT" = "$MAIN_ROOT" ]; then
     echo "setup-worktree: refusing to run inside the main checkout ($MAIN_ROOT)." >&2

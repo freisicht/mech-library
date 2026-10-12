@@ -15,8 +15,8 @@ points here.
 1. Set up the worktree once  →  bin/setup-worktree
 2. Implement on the branch
 3. Run  composer test        →  must pass green
-4. (UI changes) verify in browser at http://localhost/mech_library/
-   — but only AFTER step 5 because Apache serves the main checkout, not worktrees
+4. (UI changes) verify in the browser against the main checkout
+   — but only AFTER step 5 because the web server serves the main checkout, not worktrees
 5. git commit  (auto, when verification is green)
 6. git merge into main, fast-forward, from the main checkout
 7. UI smoke test in browser if relevant
@@ -25,11 +25,13 @@ points here.
 
 ## Where things live
 
-| Path                                                    | Role                                                     |
-| ------------------------------------------------------- | -------------------------------------------------------- |
-| `/Library/WebServer/Documents/mech_library/`            | **Main checkout.** Apache docroot. Has `vendor/`, `.env` |
-| `/Library/WebServer/Documents/mech_library/.claude/worktrees/<name>/` | Per-task worktrees on feature branches      |
-| `http://localhost/mech_library/`                        | Apache serves the **main checkout only**                 |
+| Path                                   | Role                                                     |
+| -------------------------------------- | -------------------------------------------------------- |
+| `<main>/`                              | **Main checkout.** Web server docroot. Has `vendor/`, `.env` |
+| `<main>/.claude/worktrees/<name>/`     | Per-task worktrees on feature branches                   |
+| your local URL for `<main>/public/`    | The web server serves the **main checkout only**         |
+
+`<main>` is wherever the repo is cloned; `git worktree list` prints it first.
 
 The MySQL DB is shared between main and all worktrees (one local instance).
 Schema changes from a worktree affect everyone immediately — be careful.
@@ -83,7 +85,7 @@ to be green.
 
 ### What the agent does NOT verify automatically
 
-- **UI behaviour in a real browser.** Apache serves only the main checkout;
+- **UI behaviour in a real browser.** The web server serves only the main checkout;
   the worktree is not reachable via HTTP. The agent merges first (step 6),
   then either does a manual browser check (if a browser-tool is available) or
   asks the user to look. The agent never claims a UI feature works without
@@ -116,7 +118,7 @@ After committing on the feature branch, the agent merges to `main` from the
 **main checkout**, not from inside the worktree:
 
 ```sh
-cd /Library/WebServer/Documents/mech_library
+cd <main>
 git fetch       # if remote exists
 git checkout main
 git merge --ff-only <feature-branch>
