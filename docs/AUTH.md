@@ -1,7 +1,7 @@
 # Authentication & Army Visibility
 
 The whole web UI is gated behind Mattermost OAuth2. Any user who can log in to
-`mm.freisicht.net` can use the site. Per-army access can be further restricted
+the Mattermost server configured in `MM_BASE_URL` can use the site. Per-army access can be further restricted
 to members of a specific Mattermost channel.
 
 ## How it works
@@ -38,17 +38,18 @@ inherit their army's visibility; standalone formations have no army gate).
 In Mattermost System Console → Integrations → OAuth 2.0 Applications:
 
 - Name: `Mech Library`
-- Callback URL: `https://mechlib.hyperhabitat.de/auth/callback`
-  (and/or `http://localhost/mech_library/auth/callback` for dev)
+- Callback URL: `https://mechlib.example.com/auth/callback`
+  (and/or the matching `http://localhost/.../auth/callback` for dev)
 - Get the **Client ID** and **Client Secret**
 
-Then set in `.env`:
+Then set in `.env` (`MM_BASE_URL` and `MM_OAUTH_REDIRECT_URI` are required; the
+app refuses to start the login flow without them):
 
 ```
-MM_BASE_URL=https://mm.freisicht.net
+MM_BASE_URL=https://mattermost.example.com
 MM_OAUTH_CLIENT_ID=…
 MM_OAUTH_CLIENT_SECRET=…
-MM_OAUTH_REDIRECT_URI=https://mechlib.hyperhabitat.de/auth/callback
+MM_OAUTH_REDIRECT_URI=https://mechlib.example.com/auth/callback
 ```
 
 ## Setting an army's required channel

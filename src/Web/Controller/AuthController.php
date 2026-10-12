@@ -29,7 +29,10 @@ final class AuthController
     public function showLogin(Request $request, Response $response): Response
     {
         $next = (string) ($request->getQueryParams()['next'] ?? '/');
-        $html = $this->twig->render('auth/login.html.twig', ['next' => $next]);
+        $html = $this->twig->render('auth/login.html.twig', [
+            'next'    => $next,
+            'mm_host' => $this->mm->host(),
+        ]);
         $response->getBody()->write($html);
         return $response->withHeader('Content-Type', 'text/html; charset=UTF-8');
     }

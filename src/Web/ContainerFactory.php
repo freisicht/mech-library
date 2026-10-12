@@ -60,10 +60,10 @@ final class ContainerFactory
                 'timeout' => 10.0,
             ]),
             MattermostProvider::class => static function (): MattermostProvider {
-                $base     = self::env('MM_BASE_URL', 'https://mm.freisicht.net');
+                $base     = self::requiredEnv('MM_BASE_URL');
                 $clientId = self::env('MM_OAUTH_CLIENT_ID', '');
                 $secret   = self::env('MM_OAUTH_CLIENT_SECRET', '');
-                $redirect = self::env('MM_OAUTH_REDIRECT_URI', 'https://mechlib.hyperhabitat.de/auth/callback');
+                $redirect = self::requiredEnv('MM_OAUTH_REDIRECT_URI');
                 return new MattermostProvider([
                     'baseUrl'      => $base,
                     'clientId'     => $clientId,
@@ -74,12 +74,21 @@ final class ContainerFactory
             MattermostClient::class => static function (Container $c): MattermostClient {
                 return new MattermostClient(
                     $c->get(GuzzleClientInterface::class),
-                    self::env('MM_BASE_URL', 'https://mm.freisicht.net'),
+                    self::requiredEnv('MM_BASE_URL'),
                 );
             },
         ]);
 
         return $builder->build();
+    }
+
+    private static function requiredEnv(string $key): string
+    {
+        $v = self::env($key, '');
+        if ($v === '') {
+            throw new \RuntimeException("{$key} is not set; see .env.example");
+        }
+        return $v;
     }
 
     private static function env(string $key, string $default): string

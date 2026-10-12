@@ -11,5 +11,7 @@
     </testsuites>
     <php>
         <env name="APP_ENV" value="test"/>
+        <env name="MM_BASE_URL" value="https://mattermost.invalid"/>
+        <env name="MM_OAUTH_REDIRECT_URI" value="http://localhost/auth/callback"/>
     </php>
 </phpunit>
