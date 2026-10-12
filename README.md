@@ -96,4 +96,4 @@ This repository contains no unit data or images. Each installation fetches them 
 its own use.
 
 The code is released under the [MIT License](LICENSE). Bundled third-party assets keep their own
-licenses, listed at the end of the license file.
+licenses, see [`THIRD_PARTY.md`](THIRD_PARTY.md).

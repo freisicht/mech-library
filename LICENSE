@@ -19,15 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
--------------------------------------------------------------------------------
-Third-party files bundled in this repository keep their own licenses:
-
-- public/assets/css/pico.min.css       Pico CSS, MIT (see file header)
-- public/assets/js/tabulator.min.js    Tabulator, MIT (see file header)
-- public/assets/css/tabulator.min.css  Tabulator, MIT
-- public/assets/fonts/Orbitron-*.ttf   SIL OFL 1.1, see public/assets/fonts/OFL-Orbitron.txt
-- public/assets/fonts/JetBrainsMono-*  SIL OFL 1.1, see public/assets/fonts/OFL-JetBrainsMono.txt
-
-BattleTech, Alpha Strike and related marks belong to their respective owners
-and are not covered by this license.
