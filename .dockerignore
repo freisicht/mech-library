@@ -1,0 +1,16 @@
+.git
+.github
+.claude
+.env
+.env.*
+!.env.example
+vendor
+data/raw
+public/images/units
+var/cache/*
+var/log/*
+tests
+docs
+*.cache
+.phpunit.result.cache
+.DS_Store

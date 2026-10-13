@@ -51,3 +51,24 @@ jobs:
 
       - name: Test
         run: composer test
+
+  docker:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start stack
+        run: |
+          cp .env.example .env
+          sed -i 's/^DB_PASS=.*/DB_PASS=ci-only-password/' .env
+          docker compose up -d --build --wait
+
+      - name: Smoke test
+        run: |
+          curl -fsS http://localhost:8080/auth/login | grep -q 'name="password"'
+          printf 'ci-password-123\n' | docker compose exec -T app bin/console user:add ci --password-stdin
+          docker compose exec -T app bin/console user:list | grep -q ci
+
+      - name: Logs
+        if: failure()
+        run: docker compose logs

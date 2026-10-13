@@ -239,5 +239,5 @@ Ideas captured during work that are explicitly out of scope until promoted into 
   and Mattermost exist, see `docs/AUTH.md` for what a new provider needs.
 - Discord: gate armies by server role, not only by server (needs a bot or
   `guilds.members.read` with its tight rate limit).
-- Easier setup for third parties: Docker Compose (app + MySQL), `mul:sync` wrapping seed/scrape/import/images, `app:doctor`.
+- Easier setup for third parties: `app:doctor` checking `.env`, database, writable dirs and auth config. (Docker Compose and `mul:sync` exist.)
 - Army hierarchy beyond two levels (Army → Formation).

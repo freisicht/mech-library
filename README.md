@@ -22,7 +22,33 @@ Built because the filters on MUL are not flexible enough for serious force compo
   Discord server, for example), so one instance can serve several gaming groups. See
   [`docs/AUTH.md`](docs/AUTH.md).
 
-## Requirements
+## Running with Docker
+
+The quickest way to try it: Docker with Compose, nothing else.
+
+```bash
+git clone https://github.com/freisicht/mech-library.git && cd mech-library
+cp .env.example .env            # set DB_PASS, and APP_DEBUG=false if others can reach it
+docker compose up -d            # app on http://localhost:8080, MySQL in its own container
+docker compose exec app bin/console user:add yourname
+```
+
+Migrations run on every start. The database, the MUL cache and the unit images live in Docker
+volumes and survive `docker compose down` (not `down -v`). Set `APP_PORT` in `.env` for another
+port. For a public instance put a reverse proxy with HTTPS in front of it.
+
+Filling the database takes about a day (see below), so start the sync in the background and
+follow its log:
+
+```bash
+docker compose exec -d app sh -c 'bin/console mul:sync --types=1,2,3,4,5,8,10 >> var/log/sync.log 2>&1'
+docker compose exec app tail -f var/log/sync.log
+docker compose exec app bin/console mul:images
+```
+
+If the container is recreated mid-sync, run the command again; it continues from the cache.
+
+## Requirements (manual setup)
 
 - PHP 8.3 or newer with `curl`, `json`, `mbstring`, `pdo_mysql`
 - MySQL 8 (or compatible)
@@ -30,7 +56,7 @@ Built because the filters on MUL are not flexible enough for serious force compo
 - A web server that can serve `public/` as the document root of its own host
   (the app expects to live at `/`, not in a subdirectory)
 
-## Setup
+## Manual setup
 
 ```bash
 composer install
