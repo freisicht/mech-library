@@ -23,6 +23,9 @@ final class UnitImporterTest extends TestCase
     /** @var int[] */
     private array $createdMulIds = [];
 
+    /** @var string[] */
+    private array $createdUids = [];
+
     protected function setUp(): void
     {
         $this->loadEnv();
@@ -32,6 +35,13 @@ final class UnitImporterTest extends TestCase
 
     protected function tearDown(): void
     {
+        foreach ($this->createdUids as $uid) {
+            $unit = UnitsQuery::create()->findOneByMulUid($uid);
+            if ($unit !== null) {
+                UnitAbilitiesQuery::create()->filterByUnitId($unit->getId())->delete();
+                $unit->delete();
+            }
+        }
         foreach ($this->createdMulIds as $mulId) {
             $unit = UnitsQuery::create()->findOneByMulId($mulId);
             if ($unit !== null) {
@@ -104,7 +114,7 @@ final class UnitImporterTest extends TestCase
         $unit = UnitsQuery::create()->findOneByMulId(99901);
         self::assertNotNull($unit);
         self::assertSame('Test Atlas TS-T1', $unit->getName());
-        self::assertSame(100, $unit->getTonnage());
+        self::assertSame(100.0, $unit->getTonnage());
     }
 
     public function testUpsertIsIdempotent(): void
@@ -175,5 +185,45 @@ final class UnitImporterTest extends TestCase
         unset($data['Id']);
         $changed = $this->importer->upsert($data);
         self::assertFalse($changed);
+    }
+
+    public function testUpsertByUidInsertsWithoutLegacyId(): void
+    {
+        $data = $this->makeUnit();
+        unset($data['Id']);
+        $data['Uid']     = 'TESTUID001';
+        $data['Tonnage'] = 1.5;
+        $data['TMM']     = null;
+        $this->createdUids[] = 'TESTUID001';
+
+        self::assertTrue($this->importer->upsert($data));
+        self::assertFalse($this->importer->upsert($data), 'second run must be a no-op');
+
+        $unit = UnitsQuery::create()->findOneByMulUid('TESTUID001');
+        self::assertNotNull($unit);
+        self::assertNull($unit->getMulId());
+        self::assertSame(1.5, $unit->getTonnage());
+        self::assertNull($unit->getBfTmm(), 'explicit TMM wins over the value derived from BFMove');
+    }
+
+    public function testUpsertByUidUpdatesLinkedLegacyUnit(): void
+    {
+        $data = $this->makeUnit();
+        $this->importer->upsert($data);
+        $unit = UnitsQuery::create()->findOneByMulId(99901);
+        self::assertNotNull($unit);
+        $unit->setMulUid('TESTUID002')->save();
+
+        $fresh = $data;
+        unset($fresh['Id']);
+        $fresh['Uid']          = 'TESTUID002';
+        $fresh['BFPointValue'] = 99;
+        self::assertTrue($this->importer->upsert($fresh));
+
+        $updated = UnitsQuery::create()->findOneByMulUid('TESTUID002');
+        self::assertNotNull($updated);
+        self::assertSame($unit->getId(), $updated->getId());
+        self::assertSame(99901, $updated->getMulId(), 'legacy id is kept');
+        self::assertSame(99, $updated->getBfPointValue());
     }
 }

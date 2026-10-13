@@ -14,7 +14,7 @@ use Propel\Runtime\Propel;
 final class FormationRepository
 {
     private const UNIT_COLUMNS = '
-        u.id, u.mul_id, u.name, u.class, u.variant, u.tonnage,
+        u.id, u.mul_id, u.mul_uid, u.name, u.class, u.variant, u.tonnage,
         u.bf_type, u.bf_size, u.bf_move, u.bf_tmm AS tmm,
         u.bf_point_value AS pv,
         u.bf_damage_short AS dmg_s, u.bf_damage_short_min,

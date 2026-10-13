@@ -30,7 +30,7 @@ final class MulClientTest extends TestCase
         rmdir($this->tmpDir);
     }
 
-    /** Build a MulClient with a no-op sleep so tests never actually wait 1s. */
+    /** Build a MulClient with a no-op sleep so tests never actually wait. */
     private function makeClient(MockHandler $mock): MulClient
     {
         $stack = HandlerStack::create($mock);
@@ -39,41 +39,42 @@ final class MulClientTest extends TestCase
             $http,
             $this->tmpDir,
             'https://example.com',
-            delayMs: 1000,
+            delayMs: MulClient::MIN_DELAY_MS,
             sleepFn: static function (int $_us): void {
             },
         );
     }
 
-    public function testFetchQuickListReturnsParsedJson(): void
+    public function testFetchRawReturnsBody(): void
     {
-        $payload = json_encode(['Units' => [['Id' => 1, 'Name' => 'Atlas AS7-D']]]);
-        $mock    = new MockHandler([new Response(200, [], $payload)]);
-        $client  = $this->makeClient($mock);
-
-        $result = $client->fetchQuickList(['Types' => 18, 'MinTons' => 100, 'MaxTons' => 100]);
-
-        self::assertArrayHasKey('Units', $result);
-        self::assertCount(1, $result['Units']);
-        self::assertSame('Atlas AS7-D', $result['Units'][0]['Name']);
-    }
-
-    public function testFetchQuickListHitsCache(): void
-    {
-        $payload = json_encode(['Units' => [['Id' => 2]]]);
-        // Only one response queued — a second real request would throw
-        $mock   = new MockHandler([new Response(200, [], $payload)]);
+        $mock   = new MockHandler([new Response(200, [], '{"files":{}}')]);
         $client = $this->makeClient($mock);
 
-        $params = ['Types' => 18, 'MinTons' => 20, 'MaxTons' => 20];
-        $client->fetchQuickList($params);
-        // Second call must use cache, not the mock (which has no more responses)
-        $result = $client->fetchQuickList($params);
-
-        self::assertArrayHasKey('Units', $result);
+        self::assertSame('{"files":{}}', $client->fetchRaw($client->url('data/manifest.json')));
     }
 
-    public function testFetchQuickListThrowsOnHttpError(): void
+    public function testFetchRawHitsCache(): void
+    {
+        // Only one response queued — a second real request would throw
+        $mock   = new MockHandler([new Response(200, [], 'page')]);
+        $client = $this->makeClient($mock);
+
+        $client->fetchRaw('https://example.com/u/ABC');
+
+        self::assertSame('page', $client->fetchRaw('https://example.com/u/ABC'));
+    }
+
+    public function testFetchRawWithoutCacheRequestsAgain(): void
+    {
+        $mock   = new MockHandler([new Response(200, [], 'v1'), new Response(200, [], 'v2')]);
+        $client = $this->makeClient($mock);
+
+        $client->fetchRaw('https://example.com/data/manifest.json', useCache: false);
+
+        self::assertSame('v2', $client->fetchRaw('https://example.com/data/manifest.json', useCache: false));
+    }
+
+    public function testFetchRawThrowsOnHttpError(): void
     {
         $mock = new MockHandler([
             new RequestException('Server error', new Request('GET', 'test')),
@@ -81,23 +82,26 @@ final class MulClientTest extends TestCase
         $client = $this->makeClient($mock);
 
         $this->expectException(RuntimeException::class);
-        $client->fetchQuickList(['Types' => 18, 'MinTons' => 5, 'MaxTons' => 5]);
+        $client->fetchRaw('https://example.com/u/ABC');
+    }
+
+    public function testUrlJoinsBaseAndPath(): void
+    {
+        $client = $this->makeClient(new MockHandler([]));
+
+        self::assertSame('https://example.com/data/units.json', $client->url('/data/units.json'));
     }
 
     public function testDelayBelowMinimumIsRejected(): void
     {
         $http = new Client();
         $this->expectException(\InvalidArgumentException::class);
-        new MulClient($http, $this->tmpDir, 'https://example.com', 500);
+        new MulClient($http, $this->tmpDir, 'https://example.com', 1000);
     }
 
     public function testThrottleCallsSleepFn(): void
     {
-        $payload   = json_encode(['Units' => []]);
-        $mock      = new MockHandler([
-            new Response(200, [], $payload),
-            new Response(200, [], $payload),
-        ]);
+        $mock       = new MockHandler([new Response(200, [], 'a'), new Response(200, [], 'b')]);
         $sleepCalls = [];
         $sleepFn    = static function (int $us) use (&$sleepCalls): void {
             $sleepCalls[] = $us;
@@ -105,12 +109,11 @@ final class MulClientTest extends TestCase
 
         $stack  = HandlerStack::create($mock);
         $http   = new Client(['handler' => $stack]);
-        $client = new MulClient($http, $this->tmpDir, 'https://example.com', 1000, null, $sleepFn);
+        $client = new MulClient($http, $this->tmpDir, 'https://example.com', MulClient::MIN_DELAY_MS, null, $sleepFn);
 
-        $client->fetchQuickList(['Types' => 18, 'MinTons' => 5, 'MaxTons' => 5]);
-        $client->fetchQuickList(['Types' => 18, 'MinTons' => 10, 'MaxTons' => 10]);
+        $client->fetchRaw('https://example.com/u/A');
+        $client->fetchRaw('https://example.com/u/B');
 
-        // Sleep should have been called at least once for the second request
         self::assertNotEmpty($sleepCalls, 'sleepFn should be called between requests');
     }
 }

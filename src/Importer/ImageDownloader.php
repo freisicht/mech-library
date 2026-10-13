@@ -28,8 +28,8 @@ final class ImageDownloader
     }
 
     /**
-     * Download images for all units that have an image_url but no local file,
-     * or whose remote content has changed (different SHA-256).
+     * Download images for all units that have an image_url but no local file.
+     * Existing files are not re-checked: every request to MUL costs 10 s.
      *
      * @return array{downloaded: int, skipped: int, failed: int}
      */
@@ -52,7 +52,7 @@ final class ImageDownloader
                 }
             } catch (\Throwable $e) {
                 $this->logger->warning('Image download failed', [
-                    'mul_id' => $unit->getMulId(),
+                    'unit' => $unit->getMulUid() ?? $unit->getMulId(),
                     'url'    => $unit->getImageUrl(),
                     'error'  => $e->getMessage(),
                 ]);
@@ -73,15 +73,21 @@ final class ImageDownloader
             return false;
         }
 
+        $existing = $unit->getImagePath();
+        if ($existing !== null && is_file($this->imageDir . '/' . basename($existing))) {
+            return false;
+        }
+
         $ext      = $this->extensionFromUrl($url);
-        $localRel = 'images/units/' . $unit->getMulId() . '.' . $ext;
-        $localAbs = $this->imageDir . '/' . $unit->getMulId() . '.' . $ext;
+        $file     = ($unit->getMulUid() ?? (string) $unit->getMulId()) . '.' . $ext;
+        $localRel = 'images/units/' . $file;
+        $localAbs = $this->imageDir . '/' . $file;
 
         $body = $this->client->fetchRaw($url, useCache: false);
         $hash = hash('sha256', $body);
 
         if ($unit->getImageHash() === $hash && file_exists($localAbs)) {
-            $this->logger->debug('Image unchanged, skipping', ['mul_id' => $unit->getMulId()]);
+            $this->logger->debug('Image unchanged, skipping', ['unit' => $unit->getMulUid() ?? $unit->getMulId()]);
             return false;
         }
 
@@ -93,7 +99,7 @@ final class ImageDownloader
         $unit->setImageHash($hash);
         $unit->save();
 
-        $this->logger->info('Image downloaded', ['mul_id' => $unit->getMulId(), 'path' => $localRel]);
+        $this->logger->info('Image downloaded', ['unit' => $unit->getMulUid() ?? $unit->getMulId(), 'path' => $localRel]);
 
         return true;
     }

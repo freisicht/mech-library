@@ -12,8 +12,8 @@ use RuntimeException;
 
 final class MulClient
 {
-    private const DEFAULT_DELAY_MS = 1000;
-    private const MIN_DELAY_MS     = 1000;
+    // robots.txt on masterunitlist.battletech.com asks for Crawl-delay: 10.
+    public const MIN_DELAY_MS = 10000;
 
     private float $lastRequestTime = 0.0;
     private LoggerInterface $logger;
@@ -27,7 +27,7 @@ final class MulClient
         private readonly ClientInterface $httpClient,
         private readonly string $cacheDir,
         private readonly string $baseUrl,
-        private readonly int $delayMs = self::DEFAULT_DELAY_MS,
+        private readonly int $delayMs = self::MIN_DELAY_MS,
         ?LoggerInterface $logger = null,
         ?callable $sleepFn = null,
     ) {
@@ -46,50 +46,13 @@ final class MulClient
         }
     }
 
-    /**
-     * Fetch /Unit/QuickList with the given query parameters.
-     * Returns the decoded JSON array on success.
-     *
-     * @param array<string, scalar> $params
-     * @return array<string, mixed>
-     */
-    public function fetchQuickList(array $params): array
+    public function url(string $path): string
     {
-        $cacheKey  = $this->cacheKey('QuickList', $params);
-        $cachePath = $this->cacheDir . '/' . $cacheKey . '.json';
-
-        if (file_exists($cachePath)) {
-            $this->logger->debug('MulClient cache hit', ['key' => $cacheKey]);
-            $body = file_get_contents($cachePath);
-            if ($body === false) {
-                throw new RuntimeException("Cannot read cache file: {$cachePath}");
-            }
-            return $this->decode($body);
-        }
-
-        $this->throttle();
-
-        $url = rtrim($this->baseUrl, '/') . '/Unit/QuickList';
-        $this->logger->info('MulClient fetch', ['url' => $url, 'params' => $params]);
-
-        try {
-            $response = $this->httpClient->request('GET', $url, ['query' => $params]);
-        } catch (GuzzleException $e) {
-            throw new RuntimeException("MUL HTTP error: {$e->getMessage()}", 0, $e);
-        }
-
-        $body = (string) $response->getBody();
-
-        if (file_put_contents($cachePath, $body) === false) {
-            throw new RuntimeException("Cannot write cache file: {$cachePath}");
-        }
-
-        return $this->decode($body);
+        return rtrim($this->baseUrl, '/') . '/' . ltrim($path, '/');
     }
 
     /**
-     * Fetch an arbitrary URL and return the response body as a string.
-     * Used for HTML pages (Faction/Index, Era/Index) and image downloads.
+     * Fetch a URL and return the response body as a string.
      */
     public function fetchRaw(string $url, bool $useCache = true): string
     {
@@ -143,15 +106,5 @@ final class MulClient
     {
         ksort($params);
         return $prefix . '_' . md5(serialize($params));
-    }
-
-    /** @return array<string, mixed> */
-    private function decode(string $json): array
-    {
-        $data = json_decode($json, true);
-        if (!is_array($data)) {
-            throw new RuntimeException('MUL response is not a JSON object');
-        }
-        return $data;
     }
 }

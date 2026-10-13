@@ -16,7 +16,6 @@ use App\Model\Units;
 use App\Model\UnitsQuery;
 use App\Model\UnitTypes;
 use App\Model\UnitTypesQuery;
-use Propel\Runtime\Propel;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -49,15 +48,19 @@ final class UnitImporter
      */
     public function upsert(array $data): bool
     {
+        $uid   = isset($data['Uid']) ? (string) $data['Uid'] : null;
         $mulId = isset($data['Id']) ? (int) $data['Id'] : null;
-        if ($mulId === null) {
-            $this->logger->warning('Skipping unit without Id', ['data' => $data]);
+        if ($uid === null && $mulId === null) {
+            $this->logger->warning('Skipping unit without Id or Uid', ['data' => $data]);
             return false;
         }
 
         $this->ensureLookups($data);
 
-        $unit = UnitsQuery::create()->findOneByMulId($mulId) ?? new Units();
+        $existing = $uid !== null
+            ? UnitsQuery::create()->findOneByMulUid($uid)
+            : UnitsQuery::create()->findOneByMulId((int) $mulId);
+        $unit  = $existing ?? new Units();
         $isNew = $unit->isNew();
 
         $this->mapFields($unit, $data);
@@ -73,78 +76,24 @@ final class UnitImporter
         UnitAbilitiesQuery::create()->filterByUnitId($unit->getId())->delete();
         $this->insertAbilities($unit->getId(), (string) ($data['BFAbilities'] ?? ''));
 
-        $this->logger->debug('Upserted unit', ['mul_id' => $mulId, 'new' => $isNew]);
+        $this->logger->debug('Upserted unit', ['mul_id' => $mulId, 'mul_uid' => $uid, 'new' => $isNew]);
 
         return true;
-    }
-
-    /**
-     * Import all JSON files from the given directory.
-     * Returns [inserted, updated, skipped] counts.
-     *
-     * @return array{inserted: int, updated: int, skipped: int}
-     */
-    public function importDirectory(string $dir): array
-    {
-        $counts = ['inserted' => 0, 'updated' => 0, 'skipped' => 0];
-
-        foreach (glob($dir . '/*.json') ?: [] as $file) {
-            $raw = file_get_contents($file);
-            if ($raw === false) {
-                $this->logger->warning('Cannot read file', ['file' => $file]);
-                continue;
-            }
-
-            $decoded = json_decode($raw, true);
-            if (!is_array($decoded)) {
-                $this->logger->warning('Invalid JSON', ['file' => $file]);
-                continue;
-            }
-
-            $units = $decoded['Units'] ?? [$decoded];
-            if (!is_array($units)) {
-                continue;
-            }
-
-            $con = Propel::getConnection();
-            $con->beginTransaction();
-            try {
-                foreach ($units as $unit) {
-                    if (!is_array($unit)) {
-                        continue;
-                    }
-                    $mulId  = isset($unit['Id']) ? (int) $unit['Id'] : null;
-                    $exists = $mulId !== null
-                        && UnitsQuery::create()->findOneByMulId($mulId) !== null;
-
-                    $changed = $this->upsert($unit);
-
-                    if (!$changed) {
-                        $counts['skipped']++;
-                    } elseif ($exists) {
-                        $counts['updated']++;
-                    } else {
-                        $counts['inserted']++;
-                    }
-                }
-                $con->commit();
-            } catch (\Throwable $e) {
-                $con->rollBack();
-                throw $e;
-            }
-        }
-
-        return $counts;
     }
 
     /** @param array<string, mixed> $data */
     private function mapFields(Units $unit, array $data): void
     {
-        $unit->setMulId((int) ($data['Id'] ?? 0));
+        if (isset($data['Id'])) {
+            $unit->setMulId((int) $data['Id']);
+        }
+        if (isset($data['Uid'])) {
+            $unit->setMulUid((string) $data['Uid']);
+        }
         $unit->setName((string) ($data['Name'] ?? ''));
         $unit->setClass((string) ($data['Class'] ?? ''));
         $unit->setVariant((string) ($data['Variant'] ?? ''));
-        $unit->setTonnage((int) ($data['Tonnage'] ?? 0));
+        $unit->setTonnage((float) ($data['Tonnage'] ?? 0));
         $unit->setBattleValue(isset($data['BattleValue']) ? (int) $data['BattleValue'] : null);
         $unit->setCost(isset($data['Cost']) ? (string) (int) $data['Cost'] : null);
         $unit->setRules((string) ($data['Rules'] ?? ''));
@@ -168,8 +117,11 @@ final class UnitImporter
         $unit->setBfSize(isset($data['BFSize']) ? (int) $data['BFSize'] : null);
         $bfMove = isset($data['BFMove']) ? (string) $data['BFMove'] : null;
         $unit->setBfMove($bfMove);
-        // MUL always sends BFTMM=0; derive it from BFMove instead.
-        $unit->setBfTmm(TmmCalculator::fromBfMove($bfMove ?? ''));
+        // The old MUL always sent BFTMM=0, so it is derived from BFMove unless
+        // the record carries a real value under `TMM` (unit pages, null for aero).
+        $unit->setBfTmm(array_key_exists('TMM', $data)
+            ? (isset($data['TMM']) ? (int) $data['TMM'] : null)
+            : TmmCalculator::fromBfMove($bfMove ?? ''));
         $unit->setBfArmor(isset($data['BFArmor']) ? (int) $data['BFArmor'] : null);
         $unit->setBfStructure(isset($data['BFStructure']) ? (int) $data['BFStructure'] : null);
         $unit->setBfThreshold(isset($data['BFThreshold']) ? (int) $data['BFThreshold'] : null);
