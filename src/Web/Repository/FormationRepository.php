@@ -160,17 +160,8 @@ final class FormationRepository
         $this->exec('DELETE FROM formations WHERE id = :id', [':id' => $id]);
     }
 
-    public function addUnit(int $formationId, int $unitId): bool
+    public function addUnit(int $formationId, int $unitId): void
     {
-        $existing = $this->exec(
-            'SELECT id FROM formation_units WHERE formation_id = :f AND unit_id = :u',
-            [':f' => $formationId, ':u' => $unitId],
-        )->fetch(PDO::FETCH_ASSOC);
-
-        if ($existing !== false) {
-            return false;
-        }
-
         $maxOrder = (int) ((string) ($this->exec(
             'SELECT COALESCE(MAX(sort_order), -1) FROM formation_units WHERE formation_id = :f',
             [':f' => $formationId],
@@ -181,15 +172,13 @@ final class FormationRepository
         $fu->setUnitId($unitId);
         $fu->setSortOrder($maxOrder + 1);
         $fu->save();
-
-        return true;
     }
 
-    public function removeUnit(int $formationId, int $unitId): void
+    public function removeEntry(int $formationId, int $entryId): void
     {
         $this->exec(
-            'DELETE FROM formation_units WHERE formation_id = :f AND unit_id = :u',
-            [':f' => $formationId, ':u' => $unitId],
+            'DELETE FROM formation_units WHERE formation_id = :f AND id = :e',
+            [':f' => $formationId, ':e' => $entryId],
         );
     }
 
@@ -229,12 +218,12 @@ final class FormationRepository
     private function fetchUnits(int $formationId): array
     {
         $rows = $this->exec(
-            'SELECT' . self::UNIT_COLUMNS . '
+            'SELECT fu.id AS entry_id,' . self::UNIT_COLUMNS . '
              FROM formation_units fu
              JOIN units u ON u.id = fu.unit_id
              LEFT JOIN roles r ON r.id = u.role_id
              WHERE fu.formation_id = :f
-             ORDER BY fu.sort_order, u.name',
+             ORDER BY fu.sort_order, fu.id',
             [':f' => $formationId],
         )->fetchAll(PDO::FETCH_ASSOC);
 

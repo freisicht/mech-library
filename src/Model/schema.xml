@@ -201,10 +201,10 @@
     <index name="idx_fu_unit_id">
       <index-column name="unit_id"/>
     </index>
-    <unique name="uq_formation_unit">
-      <unique-column name="formation_id"/>
-      <unique-column name="unit_id"/>
-    </unique>
+    <index name="idx_fu_formation">
+      <index-column name="formation_id"/>
+      <index-column name="sort_order"/>
+    </index>
     <vendor type="mysql">
       <parameter name="Engine" value="InnoDB"/>
     </vendor>

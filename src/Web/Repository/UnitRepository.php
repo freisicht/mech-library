@@ -97,7 +97,11 @@ final class UnitRepository
 
         /** @var list<array{id: int, name: string, start_year: int|null}> $eras */
         $eras = $this->exec(
-            'SELECT id, name, start_year FROM eras ORDER BY start_year IS NULL, start_year, name',
+            // MUL /Era/Index carries no years, so fall back to the earliest unit of each era.
+            'SELECT e.id, e.name, e.start_year FROM eras e
+             LEFT JOIN (SELECT era_id, MIN(era_start) AS first_year FROM units GROUP BY era_id) fy
+                    ON fy.era_id = e.id
+             ORDER BY COALESCE(e.start_year, fy.first_year) IS NULL, COALESCE(e.start_year, fy.first_year), e.name',
         )->fetchAll(PDO::FETCH_ASSOC);
 
         /** @var list<string> $tags */

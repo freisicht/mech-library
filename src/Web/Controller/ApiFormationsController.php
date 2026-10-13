@@ -141,19 +141,18 @@ final class ApiFormationsController
             return $this->json($response, ['error' => 'unit_id is required'], 422);
         }
 
-        $added = $this->formations->addUnit($formationId, $unitId);
-        $status = $added ? 201 : 200;
+        $this->formations->addUnit($formationId, $unitId);
 
-        return $this->json($response, $this->formations->findById($formationId), $status);
+        return $this->json($response, $this->formations->findById($formationId), 201);
     }
 
     /** @param array<string, mixed> $args */
-    public function removeUnit(Request $request, Response $response, array $args): Response
+    public function removeEntry(Request $request, Response $response, array $args): Response
     {
         $formationId = (int) $args['id'];
-        $unitId      = (int) $args['unitId'];
+        $entryId     = (int) $args['entryId'];
 
-        $this->formations->removeUnit($formationId, $unitId);
+        $this->formations->removeEntry($formationId, $entryId);
 
         $formation = $this->formations->findById($formationId);
         if ($formation === null) {

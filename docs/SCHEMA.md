@@ -99,7 +99,8 @@ One row per named force-builder formation. Key columns:
 
 Junction table. Columns:
 
-- **`formation_id` / `unit_id`**: composite unique key prevents duplicate adds.
+- **`formation_id` / `unit_id`**: not unique. The same unit may appear several times in one
+  formation (migration 005); each row is one model on the table, addressed by its own `id`.
 - **`sort_order`**: append-only counter incremented by `FormationRepository::addUnit()`.
   Drives the display order in the force panel.
 
@@ -122,6 +123,7 @@ adequate and easy to review.
 | `002_force_builder.sql` | `armies`, `formations`, `formation_units`                   |
 | `003_auth.sql`          | `users`, `armies.required_mm_channel_id` (see `docs/AUTH.md`) |
 | `004_auth_providers.sql`| `users.provider`/`external_id`/`password_hash`, channels renamed to groups |
+| `005_formation_unit_duplicates.sql` | drops `uq_formation_unit`, allows the same unit twice |
 
 When the schema changes, add a new numbered file, update `src/Model/schema.xml` and
 regenerate the models with `vendor/bin/perpl model:build`.

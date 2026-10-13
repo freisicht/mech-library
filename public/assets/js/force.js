@@ -381,7 +381,7 @@
                 rmBtn.addEventListener('click', e => {
                     e.preventDefault();
                     e.stopPropagation();
-                    removeUnit(f.id, u.id);
+                    removeEntry(f.id, u.entry_id);
                 });
 
                 main.appendChild(nameLink);
@@ -443,10 +443,10 @@
         });
     }
 
-    function removeUnit(formationId, unitId) {
-        apiFetch('/api/formations/' + formationId + '/units/' + unitId, { method: 'DELETE' })
+    function removeEntry(formationId, entryId) {
+        apiFetch('/api/formations/' + formationId + '/entries/' + entryId, { method: 'DELETE' })
             .then(updated => { state.formation = updated; render(); })
-            .catch(err => console.error('[force] removeUnit', err));
+            .catch(err => console.error('[force] removeEntry', err));
     }
 
     // Make addUnit globally available so the Tabulator formatter and detail page can call it

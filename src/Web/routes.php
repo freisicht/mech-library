@@ -56,8 +56,8 @@ return static function (App $app): void {
     // Phase 3 — formation unit management
     $app->post('/api/formations/{id:[0-9]+}/units', [ApiFormationsController::class, 'addUnit']);
     $app->delete(
-        '/api/formations/{id:[0-9]+}/units/{unitId:[0-9]+}',
-        [ApiFormationsController::class, 'removeUnit'],
+        '/api/formations/{id:[0-9]+}/entries/{entryId:[0-9]+}',
+        [ApiFormationsController::class, 'removeEntry'],
     );
 
     // Phase 3 — army CRUD

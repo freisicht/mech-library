@@ -173,15 +173,21 @@ final class FormationApiTest extends WebTestCase
         self::assertCount(1, $body['units']);
         self::assertSame(1, $body['unit_count']);
 
-        // Add same unit again → 200 (already present, idempotent)
+        // Same unit again → second entry
         $response2 = $this->post('/api/formations/' . $formationId . '/units', ['unit_id' => $unitId]);
-        self::assertSame(200, $response2->getStatusCode());
+        self::assertSame(201, $response2->getStatusCode());
+        $body2 = json_decode((string) $response2->getBody(), true);
+        self::assertCount(2, $body2['units']);
+        self::assertSame($unitId, (int) $body2['units'][1]['id']);
+        self::assertNotSame($body2['units'][0]['entry_id'], $body2['units'][1]['entry_id']);
 
-        // Remove
-        $response3 = $this->delete('/api/formations/' . $formationId . '/units/' . $unitId);
+        // Removing one entry keeps the other copy
+        $firstEntry = (int) $body2['units'][0]['entry_id'];
+        $response3  = $this->delete('/api/formations/' . $formationId . '/entries/' . $firstEntry);
         self::assertSame(200, $response3->getStatusCode());
         $body3 = json_decode((string) $response3->getBody(), true);
-        self::assertCount(0, $body3['units']);
+        self::assertCount(1, $body3['units']);
+        self::assertSame((int) $body2['units'][1]['entry_id'], (int) $body3['units'][0]['entry_id']);
     }
 
     public function testAddUnitReturnsComplianceAndSummary(): void

@@ -144,15 +144,15 @@
                     return '<a href="/units/' + row.id + '">' + (cell.getValue() || '') + '</a>';
                 }
             },
-            { title: 'T',         field: 'tonnage',   sorter: 'number',  width: 55, hozAlign: 'right' },
+            { title: 'T',         field: 'tonnage',   sorter: 'number',  width: 55, visible: false, hozAlign: 'right' },
             { title: 'PV',        field: 'pv',        sorter: 'number',  width: 55, hozAlign: 'right' },
             { title: 'Move',      field: 'move',      sorter: 'string',  width: 75, hozAlign: 'center' },
-            { title: 'TMM',       field: 'tmm',       sorter: 'number',  width: 60, hozAlign: 'right' },
+            { title: 'TMM',       field: 'tmm',       sorter: 'number',  width: 60, visible: false, hozAlign: 'right' },
             { title: 'S',         field: 'dmg_s',     sorter: 'number',  width: 45, hozAlign: 'center' },
             { title: 'M',         field: 'dmg_m',     sorter: 'number',  width: 45, hozAlign: 'center' },
             { title: 'L',         field: 'dmg_l',     sorter: 'number',  width: 45, hozAlign: 'center' },
             { title: 'Armor',     field: 'armor',     sorter: 'number',  width: 62, hozAlign: 'right' },
-            { title: 'Str',       field: 'structure', sorter: 'number',  width: 55, hozAlign: 'right' },
+            { title: 'Str',       field: 'structure', sorter: 'number',  width: 55, visible: false, hozAlign: 'right' },
             { title: 'Abilities', field: 'abilities', sorter: false,     minWidth: 180, formatter: 'plaintext' },
         ],
         rowFormatter: function (row) {
