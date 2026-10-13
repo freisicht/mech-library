@@ -42,8 +42,13 @@ final class AuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        $uid  = Session::userId();
-        $user = $uid === null ? null : $this->users->find($uid);
+        // No logout here: the session may hold pre-login state (CSRF token, OAuth
+        // state) that a parallel request such as /favicon.ico must not wipe.
+        $uid = Session::userId();
+        if ($uid === null) {
+            return $this->unauthorized($request);
+        }
+        $user = $this->users->find($uid);
         // A session from another provider (after AUTH_PROVIDER was switched) does not count.
         if ($user === null || $user->getProvider() !== $this->config->provider) {
             Session::logout();

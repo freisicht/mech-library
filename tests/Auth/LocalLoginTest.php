@@ -72,6 +72,14 @@ final class LocalLoginTest extends TestCase
         self::assertSame([['id' => 'tuesday', 'display_name' => 'tuesday']], $groups);
     }
 
+    public function testUnauthenticatedRequestKeepsLoginFormState(): void
+    {
+        $this->request('GET', '/auth/login');
+        $csrf = (string) Session::get('login_csrf');
+        self::assertSame(401, $this->request('GET', '/api/armies')->getStatusCode());
+        self::assertSame($csrf, Session::get('login_csrf'));
+    }
+
     public function testWrongPasswordIsRejected(): void
     {
         $response = $this->login($this->username, 'wrong password');
