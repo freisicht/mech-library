@@ -27,6 +27,7 @@ use function strtolower;
  *
  * @method static orderById($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the id column
  * @method static orderByMulId($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the mul_id column
+ * @method static orderByMulUid($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the mul_uid column
  * @method static orderByName($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the name column
  * @method static orderByClass($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the class column
  * @method static orderByVariant($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the variant column
@@ -68,6 +69,7 @@ use function strtolower;
  *
  * @method static groupById() Group by the id column
  * @method static groupByMulId() Group by the mul_id column
+ * @method static groupByMulUid() Group by the mul_uid column
  * @method static groupByName() Group by the name column
  * @method static groupByClass() Group by the class column
  * @method static groupByVariant() Group by the variant column
@@ -180,10 +182,11 @@ use function strtolower;
  *
  * @method \App\Model\Units|null findOneById(int $id) Return the first \App\Model\Units filtered by the id column
  * @method \App\Model\Units|null findOneByMulId(int $mul_id) Return the first \App\Model\Units filtered by the mul_id column
+ * @method \App\Model\Units|null findOneByMulUid(string $mul_uid) Return the first \App\Model\Units filtered by the mul_uid column
  * @method \App\Model\Units|null findOneByName(string $name) Return the first \App\Model\Units filtered by the name column
  * @method \App\Model\Units|null findOneByClass(string $class) Return the first \App\Model\Units filtered by the class column
  * @method \App\Model\Units|null findOneByVariant(string $variant) Return the first \App\Model\Units filtered by the variant column
- * @method \App\Model\Units|null findOneByTonnage(int $tonnage) Return the first \App\Model\Units filtered by the tonnage column
+ * @method \App\Model\Units|null findOneByTonnage(float $tonnage) Return the first \App\Model\Units filtered by the tonnage column
  * @method \App\Model\Units|null findOneByBattleValue(int $battle_value) Return the first \App\Model\Units filtered by the battle_value column
  * @method \App\Model\Units|null findOneByCost(string $cost) Return the first \App\Model\Units filtered by the cost column
  * @method \App\Model\Units|null findOneByRules(string $rules) Return the first \App\Model\Units filtered by the rules column
@@ -224,10 +227,11 @@ use function strtolower;
  *
  * @method \App\Model\Units requireOneById(int $id) Return the first \App\Model\Units filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByMulId(int $mul_id) Return the first \App\Model\Units filtered by the mul_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Units requireOneByMulUid(string $mul_uid) Return the first \App\Model\Units filtered by the mul_uid column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByName(string $name) Return the first \App\Model\Units filtered by the name column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByClass(string $class) Return the first \App\Model\Units filtered by the class column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByVariant(string $variant) Return the first \App\Model\Units filtered by the variant column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method \App\Model\Units requireOneByTonnage(int $tonnage) Return the first \App\Model\Units filtered by the tonnage column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Units requireOneByTonnage(float $tonnage) Return the first \App\Model\Units filtered by the tonnage column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByBattleValue(int $battle_value) Return the first \App\Model\Units filtered by the battle_value column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByCost(string $cost) Return the first \App\Model\Units filtered by the cost column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Units requireOneByRules(string $rules) Return the first \App\Model\Units filtered by the rules column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
@@ -268,10 +272,11 @@ use function strtolower;
  *
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findById(int|array<int> $id) Return \App\Model\Units objects filtered by the id column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByMulId(int|array<int> $mul_id) Return \App\Model\Units objects filtered by the mul_id column
+ * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByMulUid(string|array<string> $mul_uid) Return \App\Model\Units objects filtered by the mul_uid column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByName(string|array<string> $name) Return \App\Model\Units objects filtered by the name column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByClass(string|array<string> $class) Return \App\Model\Units objects filtered by the class column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByVariant(string|array<string> $variant) Return \App\Model\Units objects filtered by the variant column
- * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByTonnage(int|array<int> $tonnage) Return \App\Model\Units objects filtered by the tonnage column
+ * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByTonnage(float|array<float> $tonnage) Return \App\Model\Units objects filtered by the tonnage column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByBattleValue(int|array<int> $battle_value) Return \App\Model\Units objects filtered by the battle_value column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByCost(string|array<string> $cost) Return \App\Model\Units objects filtered by the cost column
  * @method array<\App\Model\Units>|\Propel\Runtime\Collection\Collection<\App\Model\Units> findByRules(string|array<string> $rules) Return \App\Model\Units objects filtered by the rules column
@@ -406,7 +411,7 @@ abstract class UnitsQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildUnits
     {
-        $sql = 'SELECT `id`, `mul_id`, `name`, `class`, `variant`, `tonnage`, `battle_value`, `cost`, `rules`, `date_introduced`, `era_id`, `era_start`, `image_url`, `is_published`, `mul_release`, `type_id`, `technology_id`, `role_id`, `bf_type`, `bf_size`, `bf_move`, `bf_tmm`, `bf_armor`, `bf_structure`, `bf_threshold`, `bf_damage_short`, `bf_damage_short_min`, `bf_damage_medium`, `bf_damage_medium_min`, `bf_damage_long`, `bf_damage_long_min`, `bf_damage_extreme`, `bf_damage_extreme_min`, `bf_overheat`, `bf_point_value`, `bf_abilities`, `image_path`, `image_hash`, `created_at`, `updated_at` FROM `units` WHERE `id` = :p0';
+        $sql = 'SELECT `id`, `mul_id`, `mul_uid`, `name`, `class`, `variant`, `tonnage`, `battle_value`, `cost`, `rules`, `date_introduced`, `era_id`, `era_start`, `image_url`, `is_published`, `mul_release`, `type_id`, `technology_id`, `role_id`, `bf_type`, `bf_size`, `bf_move`, `bf_tmm`, `bf_armor`, `bf_structure`, `bf_threshold`, `bf_damage_short`, `bf_damage_short_min`, `bf_damage_medium`, `bf_damage_medium_min`, `bf_damage_long`, `bf_damage_long_min`, `bf_damage_extreme`, `bf_damage_extreme_min`, `bf_overheat`, `bf_point_value`, `bf_abilities`, `image_path`, `image_hash`, `created_at`, `updated_at` FROM `units` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');
@@ -587,6 +592,32 @@ abstract class UnitsQuery extends TypedModelCriteria
             }
         }
         $this->addUsingOperator($resolvedColumn, $mulId, $comparison);
+
+        return $this;
+    }
+
+    /**
+     * Filter the query on the mul_uid column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByMulUid('fooValue'); // WHERE mul_uid = 'fooValue'
+     * $query->filterByMulUid('%fooValue%', Criteria::LIKE); // WHERE mul_uid LIKE '%fooValue%'
+     * $query->filterByMulUid(['foo', 'bar']); // WHERE mul_uid IN ('foo', 'bar')
+     * </code>
+     *
+     * @param array<string>|string|null $mulUid The value to use as filter.
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this
+     */
+    public function filterByMulUid($mulUid = null, ?string $comparison = null)
+    {
+        $resolvedColumn = $this->resolveLocalColumnByName('mul_uid');
+        if ($comparison === null && is_array($mulUid)) {
+            $comparison = Criteria::IN;
+        }
+        $this->addUsingOperator($resolvedColumn, $mulUid, $comparison);
 
         return $this;
     }

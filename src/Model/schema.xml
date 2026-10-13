@@ -60,11 +60,12 @@
   </table>
   <table name="units" idMethod="native" phpName="Units">
     <column name="id" phpName="Id" type="INTEGER" sqlType="int unsigned" primaryKey="true" autoIncrement="true" required="true"/>
-    <column name="mul_id" phpName="MulId" type="INTEGER" sqlType="int unsigned" required="true"/>
+    <column name="mul_id" phpName="MulId" type="INTEGER" sqlType="int unsigned"/>
+    <column name="mul_uid" phpName="MulUid" type="VARCHAR" size="16"/>
     <column name="name" phpName="Name" type="VARCHAR" size="255" required="true"/>
     <column name="class" phpName="Class" type="VARCHAR" size="128" required="true" defaultValue=""/>
     <column name="variant" phpName="Variant" type="VARCHAR" size="128" required="true" defaultValue=""/>
-    <column name="tonnage" phpName="Tonnage" type="TINYINT" sqlType="tinyint unsigned" required="true" defaultValue="0"/>
+    <column name="tonnage" phpName="Tonnage" type="FLOAT" required="true" defaultValue="0"/>
     <column name="battle_value" phpName="BattleValue" type="INTEGER" sqlType="int unsigned"/>
     <column name="cost" phpName="Cost" type="BIGINT" sqlType="bigint unsigned"/>
     <column name="rules" phpName="Rules" type="VARCHAR" size="32" required="true" defaultValue=""/>
@@ -131,6 +132,9 @@
     </index>
     <unique name="uq_mul_id">
       <unique-column name="mul_id"/>
+    </unique>
+    <unique name="uq_mul_uid">
+      <unique-column name="mul_uid"/>
     </unique>
     <vendor type="mysql">
       <parameter name="Engine" value="InnoDB"/>
