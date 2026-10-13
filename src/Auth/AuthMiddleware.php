@@ -11,7 +11,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
 
 /**
- * Gates the whole site behind a Mattermost login. Routes whose path begins with
+ * Gates the whole site behind a login. Routes whose path begins with
  * /auth/ are public (login/callback/logout). Everything else requires a user.
  *
  * On a missing session: HTML requests redirect to /auth/login (with ?next=…),
@@ -19,12 +19,13 @@ use Slim\Psr7\Response;
  */
 final class AuthMiddleware implements MiddlewareInterface
 {
-    private const CHANNEL_TTL_SECONDS = 300;
+    private const GROUP_TTL_SECONDS = 300;
 
     public function __construct(
+        private readonly AuthConfig $config,
         private readonly UserRepository $users,
         private readonly CurrentUser $current,
-        private readonly MattermostClient $mm,
+        private readonly GroupSource $groups,
     ) {
     }
 
@@ -35,38 +36,37 @@ final class AuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        // Test bypass — set MM_AUTH_DISABLED=1 to short-circuit auth (used by phpunit).
-        $bypass = $_ENV['MM_AUTH_DISABLED'] ?? getenv('MM_AUTH_DISABLED');
+        // Test bypass: AUTH_DISABLED=1 short-circuits auth (used by phpunit).
+        $bypass = $_ENV['AUTH_DISABLED'] ?? getenv('AUTH_DISABLED');
         if (filter_var($bypass, FILTER_VALIDATE_BOOLEAN)) {
             return $handler->handle($request);
         }
 
         $uid  = Session::userId();
         $user = $uid === null ? null : $this->users->find($uid);
-        if ($user === null) {
+        // A session from another provider (after AUTH_PROVIDER was switched) does not count.
+        if ($user === null || $user->getProvider() !== $this->config->provider) {
             Session::logout();
             return $this->unauthorized($request);
         }
 
-        $this->refreshChannelsIfStale($user);
+        $this->refreshGroupsIfStale($user);
         $this->current->set($user, $this->users);
         return $handler->handle($request);
     }
 
-    private function refreshChannelsIfStale(\App\Model\Users $user): void
+    private function refreshGroupsIfStale(\App\Model\Users $user): void
     {
-        if (!$this->users->channelsAreStale($user, self::CHANNEL_TTL_SECONDS)) {
-            return;
-        }
-        $token = Session::get('mm_access_token');
-        if (!is_string($token) || $token === '') {
+        if (!$this->users->groupsAreStale($user, self::GROUP_TTL_SECONDS)) {
             return;
         }
         try {
-            $channels = $this->mm->fetchChannelIds($token, $user->getMmUserId());
-            $this->users->setChannels($user, $channels);
+            $groups = $this->groups->fetchGroupIds($user);
+            if ($groups !== null) {
+                $this->users->setGroups($user, $groups);
+            }
         } catch (\Throwable) {
-            // keep stale cache on failure — don't lock the user out over an MM hiccup
+            // keep stale cache on failure, don't lock the user out over a provider hiccup
         }
     }
 

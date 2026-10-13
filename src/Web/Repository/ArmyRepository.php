@@ -20,7 +20,7 @@ final class ArmyRepository
     {
         $vis = $this->visibility->clause('armies');
         $armies = $this->exec(
-            'SELECT id, name, required_mm_channel_id
+            'SELECT id, name, required_group_id
              FROM armies
              WHERE ' . $vis['sql'] . '
              ORDER BY name',
@@ -61,7 +61,7 @@ final class ArmyRepository
     {
         /** @var array<string, mixed>|false $row */
         $row = $this->exec(
-            'SELECT id, name, required_mm_channel_id, created_at FROM armies WHERE id = :id',
+            'SELECT id, name, required_group_id, created_at FROM armies WHERE id = :id',
             [':id' => $id],
         )->fetch(PDO::FETCH_ASSOC);
 
@@ -69,18 +69,18 @@ final class ArmyRepository
             return null;
         }
         if (!$this->visibility->canAccessArmy(
-            isset($row['required_mm_channel_id']) ? (string) $row['required_mm_channel_id'] : null,
+            isset($row['required_group_id']) ? (string) $row['required_group_id'] : null,
         )) {
             return null;
         }
         return $row;
     }
 
-    public function create(string $name, ?string $requiredMmChannelId = null): int
+    public function create(string $name, ?string $requiredGroupId = null): int
     {
         $army = new Armies();
         $army->setName($name);
-        $army->setRequiredMmChannelId($requiredMmChannelId);
+        $army->setRequiredGroupId($requiredGroupId);
         $army->save();
         return $army->getId();
     }
@@ -93,11 +93,11 @@ final class ArmyRepository
         );
     }
 
-    public function setRequiredChannel(int $id, ?string $channelId): void
+    public function setRequiredGroup(int $id, ?string $groupId): void
     {
         $this->exec(
-            'UPDATE armies SET required_mm_channel_id = :ch WHERE id = :id',
-            [':ch' => $channelId, ':id' => $id],
+            'UPDATE armies SET required_group_id = :grp WHERE id = :id',
+            [':grp' => $groupId, ':id' => $id],
         );
     }
 

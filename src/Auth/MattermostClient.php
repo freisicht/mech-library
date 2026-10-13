@@ -15,11 +15,6 @@ final class MattermostClient
     ) {
     }
 
-    public function host(): string
-    {
-        return (string) parse_url($this->baseUrl, PHP_URL_HOST);
-    }
-
     /** @return list<string> Mattermost channel IDs the user belongs to (across all teams) */
     public function fetchChannelIds(string $accessToken, string $mmUserId): array
     {

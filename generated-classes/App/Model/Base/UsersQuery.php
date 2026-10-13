@@ -21,20 +21,24 @@ use function sprintf;
  * Base class that represents a query for the `users` table.
  *
  * @method static orderById($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the id column
- * @method static orderByMmUserId($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the mm_user_id column
+ * @method static orderByProvider($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the provider column
+ * @method static orderByExternalId($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the external_id column
  * @method static orderByUsername($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the username column
  * @method static orderByEmail($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the email column
- * @method static orderByChannelsJson($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the channels_json column
- * @method static orderByChannelsRefreshedAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the channels_refreshed_at column
+ * @method static orderByPasswordHash($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the password_hash column
+ * @method static orderByGroupsJson($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the groups_json column
+ * @method static orderByGroupsRefreshedAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the groups_refreshed_at column
  * @method static orderByLastLoginAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the last_login_at column
  * @method static orderByCreatedAt($order = \Propel\Runtime\ActiveQuery\Criteria::ASC) Order by the created_at column
  *
  * @method static groupById() Group by the id column
- * @method static groupByMmUserId() Group by the mm_user_id column
+ * @method static groupByProvider() Group by the provider column
+ * @method static groupByExternalId() Group by the external_id column
  * @method static groupByUsername() Group by the username column
  * @method static groupByEmail() Group by the email column
- * @method static groupByChannelsJson() Group by the channels_json column
- * @method static groupByChannelsRefreshedAt() Group by the channels_refreshed_at column
+ * @method static groupByPasswordHash() Group by the password_hash column
+ * @method static groupByGroupsJson() Group by the groups_json column
+ * @method static groupByGroupsRefreshedAt() Group by the groups_refreshed_at column
  * @method static groupByLastLoginAt() Group by the last_login_at column
  * @method static groupByCreatedAt() Group by the created_at column
  *
@@ -50,11 +54,13 @@ use function sprintf;
  * @method \App\Model\Users findOneOrCreate(\Propel\Runtime\Connection\ConnectionInterface|null $con = null) Return the first \App\Model\Users matching the query, or a new \App\Model\Users object populated from the query conditions when no match is found
  *
  * @method \App\Model\Users|null findOneById(int $id) Return the first \App\Model\Users filtered by the id column
- * @method \App\Model\Users|null findOneByMmUserId(string $mm_user_id) Return the first \App\Model\Users filtered by the mm_user_id column
+ * @method \App\Model\Users|null findOneByProvider(string $provider) Return the first \App\Model\Users filtered by the provider column
+ * @method \App\Model\Users|null findOneByExternalId(string $external_id) Return the first \App\Model\Users filtered by the external_id column
  * @method \App\Model\Users|null findOneByUsername(string $username) Return the first \App\Model\Users filtered by the username column
  * @method \App\Model\Users|null findOneByEmail(string $email) Return the first \App\Model\Users filtered by the email column
- * @method \App\Model\Users|null findOneByChannelsJson(string $channels_json) Return the first \App\Model\Users filtered by the channels_json column
- * @method \App\Model\Users|null findOneByChannelsRefreshedAt(string $channels_refreshed_at) Return the first \App\Model\Users filtered by the channels_refreshed_at column
+ * @method \App\Model\Users|null findOneByPasswordHash(string $password_hash) Return the first \App\Model\Users filtered by the password_hash column
+ * @method \App\Model\Users|null findOneByGroupsJson(string $groups_json) Return the first \App\Model\Users filtered by the groups_json column
+ * @method \App\Model\Users|null findOneByGroupsRefreshedAt(string $groups_refreshed_at) Return the first \App\Model\Users filtered by the groups_refreshed_at column
  * @method \App\Model\Users|null findOneByLastLoginAt(string $last_login_at) Return the first \App\Model\Users filtered by the last_login_at column
  * @method \App\Model\Users|null findOneByCreatedAt(string $created_at) Return the first \App\Model\Users filtered by the created_at column
  *
@@ -62,11 +68,13 @@ use function sprintf;
  * @method \App\Model\Users requireOne(\Propel\Runtime\Connection\ConnectionInterface|null $con = null) Return the first \App\Model\Users matching the query and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
  * @method \App\Model\Users requireOneById(int $id) Return the first \App\Model\Users filtered by the id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method \App\Model\Users requireOneByMmUserId(string $mm_user_id) Return the first \App\Model\Users filtered by the mm_user_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Users requireOneByProvider(string $provider) Return the first \App\Model\Users filtered by the provider column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Users requireOneByExternalId(string $external_id) Return the first \App\Model\Users filtered by the external_id column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Users requireOneByUsername(string $username) Return the first \App\Model\Users filtered by the username column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Users requireOneByEmail(string $email) Return the first \App\Model\Users filtered by the email column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method \App\Model\Users requireOneByChannelsJson(string $channels_json) Return the first \App\Model\Users filtered by the channels_json column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
- * @method \App\Model\Users requireOneByChannelsRefreshedAt(string $channels_refreshed_at) Return the first \App\Model\Users filtered by the channels_refreshed_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Users requireOneByPasswordHash(string $password_hash) Return the first \App\Model\Users filtered by the password_hash column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Users requireOneByGroupsJson(string $groups_json) Return the first \App\Model\Users filtered by the groups_json column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
+ * @method \App\Model\Users requireOneByGroupsRefreshedAt(string $groups_refreshed_at) Return the first \App\Model\Users filtered by the groups_refreshed_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Users requireOneByLastLoginAt(string $last_login_at) Return the first \App\Model\Users filtered by the last_login_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  * @method \App\Model\Users requireOneByCreatedAt(string $created_at) Return the first \App\Model\Users filtered by the created_at column and throws \Propel\Runtime\Exception\EntityNotFoundException when not found
  *
@@ -74,11 +82,13 @@ use function sprintf;
  * @method \App\Model\Base\Collection\UsersCollection findObjects(\Propel\Runtime\Connection\ConnectionInterface|null $con = null) Get \App\Model\Users objects in ObjectCollection
  *
  * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findById(int|array<int> $id) Return \App\Model\Users objects filtered by the id column
- * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByMmUserId(string|array<string> $mm_user_id) Return \App\Model\Users objects filtered by the mm_user_id column
+ * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByProvider(string|array<string> $provider) Return \App\Model\Users objects filtered by the provider column
+ * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByExternalId(string|array<string> $external_id) Return \App\Model\Users objects filtered by the external_id column
  * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByUsername(string|array<string> $username) Return \App\Model\Users objects filtered by the username column
  * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByEmail(string|array<string> $email) Return \App\Model\Users objects filtered by the email column
- * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByChannelsJson(string|array<string> $channels_json) Return \App\Model\Users objects filtered by the channels_json column
- * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByChannelsRefreshedAt(string|array<string> $channels_refreshed_at) Return \App\Model\Users objects filtered by the channels_refreshed_at column
+ * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByPasswordHash(string|array<string> $password_hash) Return \App\Model\Users objects filtered by the password_hash column
+ * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByGroupsJson(string|array<string> $groups_json) Return \App\Model\Users objects filtered by the groups_json column
+ * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByGroupsRefreshedAt(string|array<string> $groups_refreshed_at) Return \App\Model\Users objects filtered by the groups_refreshed_at column
  * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByLastLoginAt(string|array<string> $last_login_at) Return \App\Model\Users objects filtered by the last_login_at column
  * @method array<\App\Model\Users>|\Propel\Runtime\Collection\Collection<\App\Model\Users> findByCreatedAt(string|array<string> $created_at) Return \App\Model\Users objects filtered by the created_at column
  *
@@ -181,7 +191,7 @@ abstract class UsersQuery extends TypedModelCriteria
      */
     protected function findPkSimple($key, ConnectionInterface $con): ?ChildUsers
     {
-        $sql = 'SELECT `id`, `mm_user_id`, `username`, `email`, `channels_json`, `channels_refreshed_at`, `last_login_at`, `created_at` FROM `users` WHERE `id` = :p0';
+        $sql = 'SELECT `id`, `provider`, `external_id`, `username`, `email`, `password_hash`, `groups_json`, `groups_refreshed_at`, `last_login_at`, `created_at` FROM `users` WHERE `id` = :p0';
         $stmt = $con->prepare($sql);
         if (is_bool($stmt)) {
             throw new PropelException('Failed to initialize statement');
@@ -324,27 +334,53 @@ abstract class UsersQuery extends TypedModelCriteria
     }
 
     /**
-     * Filter the query on the mm_user_id column
+     * Filter the query on the provider column
      *
      * Example usage:
      * <code>
-     * $query->filterByMmUserId('fooValue'); // WHERE mm_user_id = 'fooValue'
-     * $query->filterByMmUserId('%fooValue%', Criteria::LIKE); // WHERE mm_user_id LIKE '%fooValue%'
-     * $query->filterByMmUserId(['foo', 'bar']); // WHERE mm_user_id IN ('foo', 'bar')
+     * $query->filterByProvider('fooValue'); // WHERE provider = 'fooValue'
+     * $query->filterByProvider('%fooValue%', Criteria::LIKE); // WHERE provider LIKE '%fooValue%'
+     * $query->filterByProvider(['foo', 'bar']); // WHERE provider IN ('foo', 'bar')
      * </code>
      *
-     * @param array<string>|string|null $mmUserId The value to use as filter.
+     * @param array<string>|string|null $provider The value to use as filter.
      * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this
      */
-    public function filterByMmUserId($mmUserId = null, ?string $comparison = null)
+    public function filterByProvider($provider = null, ?string $comparison = null)
     {
-        $resolvedColumn = $this->resolveLocalColumnByName('mm_user_id');
-        if ($comparison === null && is_array($mmUserId)) {
+        $resolvedColumn = $this->resolveLocalColumnByName('provider');
+        if ($comparison === null && is_array($provider)) {
             $comparison = Criteria::IN;
         }
-        $this->addUsingOperator($resolvedColumn, $mmUserId, $comparison);
+        $this->addUsingOperator($resolvedColumn, $provider, $comparison);
+
+        return $this;
+    }
+
+    /**
+     * Filter the query on the external_id column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByExternalId('fooValue'); // WHERE external_id = 'fooValue'
+     * $query->filterByExternalId('%fooValue%', Criteria::LIKE); // WHERE external_id LIKE '%fooValue%'
+     * $query->filterByExternalId(['foo', 'bar']); // WHERE external_id IN ('foo', 'bar')
+     * </code>
+     *
+     * @param array<string>|string|null $externalId The value to use as filter.
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this
+     */
+    public function filterByExternalId($externalId = null, ?string $comparison = null)
+    {
+        $resolvedColumn = $this->resolveLocalColumnByName('external_id');
+        if ($comparison === null && is_array($externalId)) {
+            $comparison = Criteria::IN;
+        }
+        $this->addUsingOperator($resolvedColumn, $externalId, $comparison);
 
         return $this;
     }
@@ -402,42 +438,68 @@ abstract class UsersQuery extends TypedModelCriteria
     }
 
     /**
-     * Filter the query on the channels_json column
+     * Filter the query on the password_hash column
      *
      * Example usage:
      * <code>
-     * $query->filterByChannelsJson('fooValue'); // WHERE channels_json = 'fooValue'
-     * $query->filterByChannelsJson('%fooValue%', Criteria::LIKE); // WHERE channels_json LIKE '%fooValue%'
-     * $query->filterByChannelsJson(['foo', 'bar']); // WHERE channels_json IN ('foo', 'bar')
+     * $query->filterByPasswordHash('fooValue'); // WHERE password_hash = 'fooValue'
+     * $query->filterByPasswordHash('%fooValue%', Criteria::LIKE); // WHERE password_hash LIKE '%fooValue%'
+     * $query->filterByPasswordHash(['foo', 'bar']); // WHERE password_hash IN ('foo', 'bar')
      * </code>
      *
-     * @param array<string>|string|null $channelsJson The value to use as filter.
+     * @param array<string>|string|null $passwordHash The value to use as filter.
      * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
      *
      * @return $this
      */
-    public function filterByChannelsJson($channelsJson = null, ?string $comparison = null)
+    public function filterByPasswordHash($passwordHash = null, ?string $comparison = null)
     {
-        $resolvedColumn = $this->resolveLocalColumnByName('channels_json');
-        if ($comparison === null && is_array($channelsJson)) {
+        $resolvedColumn = $this->resolveLocalColumnByName('password_hash');
+        if ($comparison === null && is_array($passwordHash)) {
             $comparison = Criteria::IN;
         }
-        $this->addUsingOperator($resolvedColumn, $channelsJson, $comparison);
+        $this->addUsingOperator($resolvedColumn, $passwordHash, $comparison);
 
         return $this;
     }
 
     /**
-     * Filter the query on the channels_refreshed_at column
+     * Filter the query on the groups_json column
      *
      * Example usage:
      * <code>
-     * $query->filterByChannelsRefreshedAt('2011-03-14'); // WHERE channels_refreshed_at = '2011-03-14'
-     * $query->filterByChannelsRefreshedAt('now'); // WHERE channels_refreshed_at = '2011-03-14'
-     * $query->filterByChannelsRefreshedAt(array('max' => 'yesterday')); // WHERE channels_refreshed_at > '2011-03-13'
+     * $query->filterByGroupsJson('fooValue'); // WHERE groups_json = 'fooValue'
+     * $query->filterByGroupsJson('%fooValue%', Criteria::LIKE); // WHERE groups_json LIKE '%fooValue%'
+     * $query->filterByGroupsJson(['foo', 'bar']); // WHERE groups_json IN ('foo', 'bar')
      * </code>
      *
-     * @param mixed $channelsRefreshedAt The value to use as filter.
+     * @param array<string>|string|null $groupsJson The value to use as filter.
+     * @param string|null $comparison Operator to use for the column comparison, defaults to Criteria::EQUAL
+     *
+     * @return $this
+     */
+    public function filterByGroupsJson($groupsJson = null, ?string $comparison = null)
+    {
+        $resolvedColumn = $this->resolveLocalColumnByName('groups_json');
+        if ($comparison === null && is_array($groupsJson)) {
+            $comparison = Criteria::IN;
+        }
+        $this->addUsingOperator($resolvedColumn, $groupsJson, $comparison);
+
+        return $this;
+    }
+
+    /**
+     * Filter the query on the groups_refreshed_at column
+     *
+     * Example usage:
+     * <code>
+     * $query->filterByGroupsRefreshedAt('2011-03-14'); // WHERE groups_refreshed_at = '2011-03-14'
+     * $query->filterByGroupsRefreshedAt('now'); // WHERE groups_refreshed_at = '2011-03-14'
+     * $query->filterByGroupsRefreshedAt(array('max' => 'yesterday')); // WHERE groups_refreshed_at > '2011-03-13'
+     * </code>
+     *
+     * @param mixed $groupsRefreshedAt The value to use as filter.
      *              Values can be integers (unix timestamps), DateTime objects, or strings.
      *              Empty strings are treated as NULL.
      *              Use scalar values for equality.
@@ -447,17 +509,17 @@ abstract class UsersQuery extends TypedModelCriteria
      *
      * @return $this
      */
-    public function filterByChannelsRefreshedAt($channelsRefreshedAt = null, ?string $comparison = null)
+    public function filterByGroupsRefreshedAt($groupsRefreshedAt = null, ?string $comparison = null)
     {
-        $resolvedColumn = $this->resolveLocalColumnByName('channels_refreshed_at');
-        if (is_array($channelsRefreshedAt)) {
+        $resolvedColumn = $this->resolveLocalColumnByName('groups_refreshed_at');
+        if (is_array($groupsRefreshedAt)) {
             $useMinMax = false;
-            if (isset($channelsRefreshedAt['min'])) {
-                $this->addUsingOperator($resolvedColumn, $channelsRefreshedAt['min'], Criteria::GREATER_EQUAL);
+            if (isset($groupsRefreshedAt['min'])) {
+                $this->addUsingOperator($resolvedColumn, $groupsRefreshedAt['min'], Criteria::GREATER_EQUAL);
                 $useMinMax = true;
             }
-            if (isset($channelsRefreshedAt['max'])) {
-                $this->addUsingOperator($resolvedColumn, $channelsRefreshedAt['max'], Criteria::LESS_EQUAL);
+            if (isset($groupsRefreshedAt['max'])) {
+                $this->addUsingOperator($resolvedColumn, $groupsRefreshedAt['max'], Criteria::LESS_EQUAL);
                 $useMinMax = true;
             }
             if ($useMinMax) {
@@ -467,7 +529,7 @@ abstract class UsersQuery extends TypedModelCriteria
                 $comparison = Criteria::IN;
             }
         }
-        $this->addUsingOperator($resolvedColumn, $channelsRefreshedAt, $comparison);
+        $this->addUsingOperator($resolvedColumn, $groupsRefreshedAt, $comparison);
 
         return $this;
     }

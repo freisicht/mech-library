@@ -14,12 +14,12 @@ final class CurrentUser
 {
     private ?Users $user = null;
     /** @var list<string>|null */
-    private ?array $channels = null;
+    private ?array $groups = null;
 
     public function set(Users $user, UserRepository $users): void
     {
-        $this->user     = $user;
-        $this->channels = $users->channels($user);
+        $this->user   = $user;
+        $this->groups = $users->groups($user);
     }
 
     public function user(): ?Users
@@ -33,13 +33,13 @@ final class CurrentUser
     }
 
     /** @return list<string> */
-    public function channelIds(): array
+    public function groupIds(): array
     {
-        return $this->channels ?? [];
+        return $this->groups ?? [];
     }
 
-    public function isInChannel(string $channelId): bool
+    public function isInGroup(string $groupId): bool
     {
-        return in_array($channelId, $this->channelIds(), true);
+        return in_array($groupId, $this->groupIds(), true);
     }
 }

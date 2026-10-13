@@ -9,8 +9,8 @@
         formation:     null,  // active formation object or null
         allTypes:      [],    // [{slug, name, faction, group}, …]
         allFormations: [],    // [{id, name, army_id, army_name}, …]
-        allArmies:     [],    // [{id, name, required_mm_channel_id, formations: []}, …]
-        myChannels:    [],    // [{id, display_name}, …] — MM channels current user is in
+        allArmies:     [],    // [{id, name, required_group_id, formations: []}, …]
+        myGroups:      [],    // [{id, display_name, type?}, …] groups the current user is in
     };
 
     // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -60,12 +60,12 @@
         apiFetch('/api/armies'),
         apiFetch('/api/formations'),
         apiFetch('/api/formations/active'),
-        apiFetch('/api/me/channels').catch(() => []),
-    ]).then(([types, armies, formations, activeData, channels]) => {
+        apiFetch('/api/me/groups').catch(() => []),
+    ]).then(([types, armies, formations, activeData, groups]) => {
         state.allTypes     = types;
         state.allArmies    = armies;
         state.allFormations = formations;
-        state.myChannels   = Array.isArray(channels) ? channels : [];
+        state.myGroups     = Array.isArray(groups) ? groups : [];
 
         populateTypeDropdown(newTypeSelect, types);
         populateArmyDropdown(newArmySelect, armies);
@@ -586,18 +586,18 @@
     function buildChannelSelect(army) {
         const sel = document.createElement('select');
         sel.className = 'fp-army-channel';
-        sel.title     = 'Restrict visibility to a Mattermost channel (— public = all logged-in users)';
+        sel.title     = 'Restrict visibility to a group (— public = all logged-in users)';
 
         const pubOpt = document.createElement('option');
         pubOpt.value = '';
         pubOpt.textContent = '— public —';
         sel.appendChild(pubOpt);
 
-        const current = army.required_mm_channel_id || '';
+        const current = army.required_group_id || '';
         let currentPresent = (current === '');
 
-        const named = state.myChannels.filter(c => c.type !== 'G');
-        const groups = state.myChannels.filter(c => c.type === 'G');
+        const named = state.myGroups.filter(c => c.type !== 'G');
+        const groupDms = state.myGroups.filter(c => c.type === 'G');
         const appendOpt = (ch, parent) => {
             const opt = document.createElement('option');
             opt.value = ch.id;
@@ -606,19 +606,19 @@
             parent.appendChild(opt);
         };
         named.forEach(ch => appendOpt(ch, sel));
-        if (groups.length > 0) {
+        if (groupDms.length > 0) {
             const grp = document.createElement('optgroup');
             grp.label = 'Group DMs';
-            groups.forEach(ch => appendOpt(ch, grp));
+            groupDms.forEach(ch => appendOpt(ch, grp));
             sel.appendChild(grp);
         }
 
-        // If the army is gated to a channel the current user isn't in, show
+        // If the army is gated to a group the current user isn't in, show
         // a disabled placeholder so the value isn't silently lost.
         if (!currentPresent) {
             const opt = document.createElement('option');
             opt.value = current;
-            opt.textContent = '(channel not in your list)';
+            opt.textContent = '(group not in your list)';
             opt.disabled = true;
             sel.appendChild(opt);
         }
@@ -628,12 +628,12 @@
             const next = sel.value;
             apiFetch('/api/armies/' + army.id, {
                 method: 'PUT',
-                body: JSON.stringify({ name: army.name, required_mm_channel_id: next }),
+                body: JSON.stringify({ name: army.name, required_group_id: next }),
             }).then(() => {
-                army.required_mm_channel_id = next || null;
+                army.required_group_id = next || null;
             }).catch(err => {
-                console.error('[force] update army channel', err);
-                sel.value = army.required_mm_channel_id || '';
+                console.error('[force] update army group', err);
+                sel.value = army.required_group_id || '';
             });
         });
         return sel;

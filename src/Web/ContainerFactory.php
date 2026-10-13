@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Web;
 
+use App\Auth\AuthConfig;
 use App\Auth\CurrentUser;
+use App\Auth\GroupSource;
+use App\Auth\LocalGroupSource;
 use App\Auth\MattermostClient;
+use App\Auth\MattermostGroupSource;
 use App\Auth\MattermostProvider;
 use DI\Container;
 use DI\ContainerBuilder;
@@ -56,6 +60,15 @@ final class ContainerFactory
                 return $logger;
             },
             CurrentUser::class => static fn (): CurrentUser => new CurrentUser(),
+            AuthConfig::class => static fn (): AuthConfig => AuthConfig::resolve(
+                self::env('AUTH_PROVIDER', ''),
+                self::env('MM_BASE_URL', ''),
+            ),
+            GroupSource::class => static function (Container $c): GroupSource {
+                return $c->get(AuthConfig::class)->isMattermost()
+                    ? $c->get(MattermostGroupSource::class)
+                    : $c->get(LocalGroupSource::class);
+            },
             GuzzleClientInterface::class => static fn (): GuzzleClientInterface => new GuzzleClient([
                 'timeout' => 10.0,
             ]),

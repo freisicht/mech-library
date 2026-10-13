@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Web\Controller;
 
 use App\Auth\CurrentUser;
-use App\Auth\MattermostClient;
-use App\Auth\Session;
+use App\Auth\GroupSource;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -14,7 +13,7 @@ final class MeController
 {
     public function __construct(
         private readonly CurrentUser $current,
-        private readonly MattermostClient $mm,
+        private readonly GroupSource $groups,
     ) {
     }
 
@@ -25,34 +24,31 @@ final class MeController
             return $this->json($response, ['error' => 'unauthenticated'], 401);
         }
         return $this->json($response, [
-            'id'           => $user->getId(),
-            'username'     => $user->getUsername(),
-            'email'        => $user->getEmail(),
-            'mm_user_id'   => $user->getMmUserId(),
-            'channel_ids'  => $this->current->channelIds(),
+            'id'          => $user->getId(),
+            'username'    => $user->getUsername(),
+            'email'       => $user->getEmail(),
+            'provider'    => $user->getProvider(),
+            'external_id' => $user->getExternalId(),
+            'group_ids'   => $this->current->groupIds(),
         ]);
     }
 
     /**
-     * Channels (id + display_name) for the current user. Used by army admin UI
-     * to populate the "required channel" dropdown.
+     * Groups (id + display_name) for the current user. Used by army admin UI
+     * to populate the "required group" dropdown.
      */
-    public function channels(Request $request, Response $response): Response
+    public function groups(Request $request, Response $response): Response
     {
         $user = $this->current->user();
         if ($user === null) {
             return $this->json($response, ['error' => 'unauthenticated'], 401);
         }
-        $token = Session::get('mm_access_token');
-        if (!is_string($token) || $token === '') {
-            return $this->json($response, ['error' => 'no access token in session'], 409);
-        }
         try {
-            $channels = $this->mm->fetchChannels($token, $user->getMmUserId());
-        } catch (\Throwable $e) {
-            return $this->json($response, ['error' => 'mattermost lookup failed'], 502);
+            $groups = $this->groups->listGroups($user);
+        } catch (\Throwable) {
+            return $this->json($response, ['error' => 'group lookup failed'], 502);
         }
-        return $this->json($response, $channels);
+        return $this->json($response, $groups);
     }
 
     private function json(Response $response, mixed $data, int $status = 200): Response

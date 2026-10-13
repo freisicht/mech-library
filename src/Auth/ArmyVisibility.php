@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Auth;
 
 /**
- * SQL helper for army-level channel gating.
+ * SQL helper for army-level group gating.
  *
- * An army is visible if its required_mm_channel_id is NULL, or if it equals one
- * of the channel IDs the current user is a member of (per their cached list).
+ * An army is visible if its required_group_id is NULL, or if it equals one
+ * of the groups the current user belongs to (per their cached list).
  *
  * Returned $sql fragment expects the armies table aliased as {alias} and is
  * always wrapped in parentheses so it can be ANDed into any WHERE clause.
@@ -24,32 +24,32 @@ final class ArmyVisibility
      */
     public function clause(string $armyAlias = 'a'): array
     {
-        $channels = $this->current->channelIds();
-        if ($channels === []) {
+        $groups = $this->current->groupIds();
+        if ($groups === []) {
             return [
-                'sql'    => "({$armyAlias}.required_mm_channel_id IS NULL)",
+                'sql'    => "({$armyAlias}.required_group_id IS NULL)",
                 'params' => [],
             ];
         }
         $params = [];
         $placeholders = [];
-        foreach (array_values($channels) as $i => $ch) {
-            $key = ":vis_ch_{$i}";
-            $params[$key]   = $ch;
+        foreach (array_values($groups) as $i => $g) {
+            $key = ":vis_grp_{$i}";
+            $params[$key]   = $g;
             $placeholders[] = $key;
         }
         $in = implode(', ', $placeholders);
         return [
-            'sql'    => "({$armyAlias}.required_mm_channel_id IS NULL OR {$armyAlias}.required_mm_channel_id IN ({$in}))",
+            'sql'    => "({$armyAlias}.required_group_id IS NULL OR {$armyAlias}.required_group_id IN ({$in}))",
             'params' => $params,
         ];
     }
 
-    public function canAccessArmy(?string $requiredChannelId): bool
+    public function canAccessArmy(?string $requiredGroupId): bool
     {
-        if ($requiredChannelId === null || $requiredChannelId === '') {
+        if ($requiredGroupId === null || $requiredGroupId === '') {
             return true;
         }
-        return $this->current->isInChannel($requiredChannelId);
+        return $this->current->isInGroup($requiredGroupId);
     }
 }

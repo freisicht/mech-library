@@ -2,27 +2,34 @@
 
 declare(strict_types=1);
 
+use App\Auth\AuthConfig;
 use App\Web\Controller\ApiArmiesController;
 use App\Web\Controller\ApiFormationsController;
 use App\Web\Controller\ApiUnitsController;
 use App\Web\Controller\AuthController;
 use App\Web\Controller\FormationPrintController;
 use App\Web\Controller\FormationPrintPdfController;
+use App\Web\Controller\MattermostAuthController;
 use App\Web\Controller\MeController;
 use App\Web\Controller\UnitDetailController;
 use App\Web\Controller\UnitListController;
 use Slim\App;
 
 return static function (App $app): void {
-    // Phase 4 — auth (Mattermost OAuth2)
+    // Auth, see docs/AUTH.md
     $app->get('/auth/login', [AuthController::class, 'showLogin']);
-    $app->get('/auth/start', [AuthController::class, 'start']);
-    $app->get('/auth/callback', [AuthController::class, 'callback']);
     $app->get('/auth/logout', [AuthController::class, 'logout']);
+    $container = $app->getContainer();
+    if ($container !== null && $container->get(AuthConfig::class)->isMattermost()) {
+        $app->get('/auth/start', [MattermostAuthController::class, 'start']);
+        $app->get('/auth/callback', [MattermostAuthController::class, 'callback']);
+    } else {
+        $app->post('/auth/login', [AuthController::class, 'login']);
+    }
 
     // Current user (for UI)
     $app->get('/api/me', [MeController::class, 'me']);
-    $app->get('/api/me/channels', [MeController::class, 'channels']);
+    $app->get('/api/me/groups', [MeController::class, 'groups']);
 
     // Phase 2 — unit list + detail
     $app->get('/', UnitListController::class);

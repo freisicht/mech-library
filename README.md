@@ -16,7 +16,7 @@ Built because the filters on MUL are not flexible enough for serious force compo
 - **Force builder:** armies and formations with live PV totals and rule checks for the Alpha
   Strike formation types (Battle Lance, Fire Support Lance, Heavy Battle Star, …).
 - **Print view and PDF** with Alpha Strike style unit cards.
-- **Login via Mattermost** (OAuth2). Armies can be limited to members of a Mattermost channel,
+- **Login** with local accounts or via Mattermost (OAuth2). Armies can be limited to a group,
   so one instance can serve several gaming groups. See [`docs/AUTH.md`](docs/AUTH.md).
 
 ## Requirements
@@ -26,13 +26,12 @@ Built because the filters on MUL are not flexible enough for serious force compo
 - Composer
 - A web server that can serve `public/` as the document root of its own host
   (the app expects to live at `/`, not in a subdirectory)
-- A Mattermost server with an OAuth2 app for login
 
 ## Setup
 
 ```bash
 composer install
-cp .env.example .env    # DB credentials and Mattermost settings
+cp .env.example .env    # DB credentials, login provider
 ```
 
 Create the database and apply the migrations in order:
@@ -53,9 +52,17 @@ bin/console mul:import          # data/raw/*.json into MySQL, idempotent
 bin/console mul:images          # unit images into public/images/units/
 ```
 
+Create a login:
+
+```bash
+bin/console user:add yourname
+```
+
 Then point a virtual host at `public/`. For Apache, `public/.htaccess` handles the rewrites
-(needs `AllowOverride All` and `mod_rewrite`). Register the OAuth app in Mattermost as
-described in [`docs/AUTH.md`](docs/AUTH.md).
+(needs `AllowOverride All` and `mod_rewrite`).
+
+To log in with Mattermost instead of local accounts, set `AUTH_PROVIDER=mattermost` and
+register an OAuth app as described in [`docs/AUTH.md`](docs/AUTH.md).
 
 ## Development
 
@@ -74,7 +81,7 @@ Symfony Console, Guzzle, Tabulator and Pico CSS. No frontend build step.
 - [`docs/MUL_API.md`](docs/MUL_API.md): the masterunitlist.info JSON endpoints as far as we
   understand them
 - [`docs/SCHEMA.md`](docs/SCHEMA.md): database schema and rationale
-- [`docs/AUTH.md`](docs/AUTH.md): Mattermost login and per-army channel gating
+- [`docs/AUTH.md`](docs/AUTH.md): login providers and per-army group gating
 - [`docs/PLAN.md`](docs/PLAN.md): roadmap, implementation notes and backlog
 - [`docs/decisions/`](docs/decisions/): short architecture decision records
 - [`CLAUDE.md`](CLAUDE.md) and [`docs/AGENT_WORKFLOW.md`](docs/AGENT_WORKFLOW.md): ground rules
