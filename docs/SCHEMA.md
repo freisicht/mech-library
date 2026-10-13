@@ -132,6 +132,7 @@ Perpl's Propel2 migration tooling is not used; plain SQL is adequate and easy to
 | `003_auth.sql`          | `users`, `armies.required_mm_channel_id` (see `docs/AUTH.md`) |
 | `004_auth_providers.sql`| `users.provider`/`external_id`/`password_hash`, channels renamed to groups |
 | `005_formation_unit_duplicates.sql` | drops `uq_formation_unit`, allows the same unit twice |
+| `006_mul_relaunch.sql`  | `units.mul_uid` (new MUL public id), `mul_id` nullable, `tonnage` as FLOAT |
 
 When the schema changes, add a new numbered file, update `src/Model/schema.xml` and
 regenerate the models with `vendor/bin/perpl model:build`.

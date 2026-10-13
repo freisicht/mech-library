@@ -205,11 +205,31 @@ Print view: HTML + print-CSS only (no PDF generation).
 
 ---
 
+## MUL relaunch (2026-10)
+
+MUL moved to masterunitlist.battletech.com; the QuickList JSON the Phase 1 scraper used is gone.
+`mul:sync` replaces `mul:scrape`, `mul:import` and the two seed commands. Details in
+`docs/MUL_API.md`.
+
+### Notes / gotchas
+
+- **New ids everywhere.** Units have a 10-character public uid (`units.mul_uid`); types, roles,
+  technologies and eras were renumbered. Lookups are matched by name, existing units are linked
+  by display name (`UnitLinker`): 4031 of 4034 local Mechs matched on the first run.
+- **Stats only on unit pages.** The snapshot has PV but no move, damage, armor or ability values,
+  so every unit costs one page request at the 10 s crawl delay.
+- **TMM.** Unit pages show the real TMM, so `mul:sync` stores it instead of deriving it from
+  move. Aerospace has no TMM (stored as NULL); Battle Armor shows `—` and falls back to the
+  move-derived value.
+- **Images** are no longer re-checked on every `mul:images` run; with 10 s per request that
+  would cost hours. Only missing files are fetched.
+- **Old BattleMech stats** still come from the old MUL until a `mul:sync --types=1` run (~11 h)
+  refreshes them.
+
 ## Backlog (parking lot)
 
 Ideas captured during work that are explicitly out of scope until promoted into a phase:
 
-- Vehicles, Aerospace, BA, ProtoMechs (extend `mul:scrape` Type filter).
 - Cross-reference with local MegaMek `unit_files.zip` for fluff text and quirks.
 - Force exchange/import in MegaMek MUL JSON-force format.
 - Probabilistic match-up calculator.

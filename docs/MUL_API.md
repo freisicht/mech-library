@@ -1,140 +1,119 @@
-# masterunitlist.info — API notes
+# Master Unit List: data sources
 
-Reverse-engineered from the live site on 2026-04-26. There is no official public API. Endpoints are the same ones the site's own UI calls.
+Researched 2026-10-13. MUL relaunched in autumn 2026 as **masterunitlist.battletech.com**.
+The old site (`masterunitlist.info`) now redirects its start page there; the old JSON endpoint
+`/Unit/QuickList` and the HTML lists `/Era/Index`, `/Faction/Index` answer **404**. Everything
+below is about the new site.
 
-## Base
+## Etiquette
 
-`http://masterunitlist.info/`
+`robots.txt` sets `Crawl-delay: 10` and disallows only `/factions/*?`, `/eras/*?` and the RAT
+pages. Unit pages (`/units/*`) and `/data/*` are allowed. The crawler therefore:
 
-We deliberately use plain HTTP. The server presents an Azure wildcard cert
-(`CN=*.azurewebsites.net`) that does not cover `masterunitlist.info`, so any
-strict TLS client — including default Guzzle — fails with `cURL error 60`.
-HTTP works without a redirect and the data is public/read-only, so the
-trade-off is acceptable. If they fix their cert, switch `MUL_BASE_URL` in
-`.env` back to `https://`.
+- waits at least **10 s** between requests (`MulClient::MIN_DELAY_MS`, not configurable lower),
+- sends `MechLibrary/<version> (private use; https://github.com/freisicht/mech-library)`,
+- caches everything it can on disk and never runs in parallel.
 
-## Primary endpoint: `/Unit/QuickList`
+A full sync of all 8,711 units costs about 24 h of wall time. That is the price of the delay;
+do not try to shorten it.
 
-Returns JSON of units matching the supplied filters. Used by the site's main browse table.
+## Data snapshot: `/data/manifest.json`
 
-### Request
-
-`GET /Unit/QuickList?<filters>`
-
-Filters observed in the wild (all optional; combine with `&`):
-
-| Param        | Example       | Notes                                                 |
-| ------------ | ------------- | ----------------------------------------------------- |
-| `Name`       | `Atlas`       | substring match on full name                          |
-| `Types`      | `18`          | unit-type id; `18` = BattleMech                       |
-| `MinTons`    | `100`         | inclusive                                             |
-| `MaxTons`    | `100`         | inclusive — set both equal for exact-tonnage bucket   |
-| `MinPV`      | `10`          | Alpha Strike point value, inclusive                   |
-| `MaxPV`      | `12`          | inclusive                                             |
-| `Factions`   | `12,7`        | comma-separated faction ids                           |
-| `Eras`       | `13`          | comma-separated era ids                               |
-| `Rules`      | `Standard`    | also `Advanced`, `Experimental`, …                    |
-
-Calling with **no** filters returns an empty `Units` array. At least one filter is required. Calling with too-broad filters (e.g. `Types=18` alone for all Mechs) returns **HTTP 500** with the message `The length of the string exceeds the value set on the maxJsonLength` — the server cannot serialise the result.
-
-**Working strategy:** iterate per `(Type, Tonnage)` bucket. For Mechs that gives 20 buckets (5–100 t in 5-t steps); each bucket is well within the size limit (largest seen: 50 t → 301 units / ~300 KB).
-
-### Response shape
+The search page loads the whole catalogue client-side. The manifest names the files, each with
+a content hash in the filename, so they can be cached forever and the manifest alone tells
+whether anything changed:
 
 ```json
-{
-  "Units": [ { ...UnitObject... } ],
-  "Search": { ...echoed filters... },
-  "Crumbs": [ ... ]
-}
+{"files": {"units": "units.3eeeb96cd40a.json", "unit_types": "unit_types.2f2b7a042a42.json",
+           "unit_sub_types": "…", "roles": "…", "technologies": "…", "eras": "…",
+           "factions": "…", "abilities": "…", "availability": "…", "manufacturers": "…"},
+ "unit_keys": {…}, "availability_keys": {…}}
 ```
 
-### UnitObject — fields relevant to Alpha Strike
+Files are fetched from `/data/<name>`. The manifest also documents the short keys.
 
-Real example (`/Unit/QuickList?Name=Atlas+AS7-D&MaxPV=200`, first hit):
+### `units` (≈1.2 MB, one entry per unit)
 
 ```json
-{
-  "Id": 142,
-  "Name": "Atlas AS7-D-DC",
-  "Class": "Atlas",
-  "Variant": "AS7-D-DC",
-  "Tonnage": 100,
-  "BattleValue": 1858,
-  "Cost": 10406000,
-  "Rules": "Advanced",
-  "DateIntroduced": "2776",
-  "EraId": 10,
-  "EraStart": 2571,
-  "ImageUrl": "https://i.ibb.co/VtHKQ7Q/atlas-rg.png",
-  "IsPublished": true,
-  "Release": 1.0,
-
-  "Technology": { "Id": 1, "Name": "Inner Sphere", ... },
-  "Type":       { "Id": 18, "Name": "BattleMech",  ... },
-  "Role":       { "Id": 108, "Name": "Juggernaut", ... },
-
-  "TROId": 204, "TRO": "MWC",
-  "RSId": 241,  "RS":  "RS:3039u",
-
-  "BFType":         "BM",       // Alpha Strike unit type
-  "BFSize":         4,
-  "BFMove":         "6\"",      // string, may include "j" for jump (e.g. "8\"j")
-  "BFTMM":          0,
-  "BFArmor":        10,
-  "BFStructure":    8,
-  "BFThreshold":    0,
-  "BFDamageShort":  5, "BFDamageShortMin":  false,
-  "BFDamageMedium": 5, "BFDamageMediumMin": false,
-  "BFDamageLong":   1, "BFDamageLongMin":   false,
-  "BFDamageExtreme":0, "BFDamageExtemeMin": false,  // sic: typo "Exteme" in API
-  "BFOverheat":     0,
-  "BFPointValue":   52,
-  "BFAbilities":    "AC2/2/-,IF1,MHQ1"   // comma-separated, mixed format
-}
+{"id":"000RM4HYJ9","n":"Black Knight","m":"BL-7-KNT","t":1,"st":4,"r":3,"te":1,
+ "ton":75,"pv":34,"bv":1443,"iy":2809,"ie":3,"ab":[18],"hp":1}
 ```
 
-**Note the API typo:** `BFDamageExtemeMin` (missing `r`). Mirror it in the importer or alias on read; do not silently rename or you'll mismatch when re-fetching.
+| Key  | Meaning                                                              |
+| ---- | -------------------------------------------------------------------- |
+| `id` | public uid, 10 characters. **Replaces the old integer `Id`.**         |
+| `n`, `m` | name (class) and model (variant); `m` may be null                |
+| `dt` | display title, only for ships with a hull type (`"Aegis class Heavy Cruiser"`) |
+| `t`, `st` | type and sub-type id                                            |
+| `r`, `te` | role and technology id                                          |
+| `ton` | tonnage, fractional for Battle Armor (`1.5`), up to tens of thousands for ships |
+| `pv`, `bv` | Alpha Strike point value, Battle Value                         |
+| `iy`, `ie` | intro year, intro era id                                       |
+| `ab` | ability tag ids (codes only, no values)                               |
 
-### `BFAbilities` parsing
+**The snapshot has no Alpha Strike stats** (move, damage, armor, structure, ability values).
+Those exist only on the unit pages.
 
-Comma-separated list, no spaces. Tokens take several shapes:
+### Lookup files
 
-| Form              | Examples           | Meaning                                          |
-| ----------------- | ------------------ | ------------------------------------------------ |
-| `<TAG>`           | `CASE`, `ECM`      | flag-only ability                                |
-| `<TAG><N>`        | `MHQ1`, `IF1`      | tag with single integer rating                   |
-| `<TAG><S>/<M>/<L>`| `AC2/2/-`, `LRM1/1/1` | per-range damage; `-` = no damage at that range |
-| `<TAG><N>/<R>`    | `HT3/2`            | rarer composite forms — store raw string too     |
+All lookup ids were renumbered in the relaunch. Local tables keep the old ids, so the importer
+matches by **name** (`LookupResolver`, en dash and hyphen treated alike).
 
-Recommendation: store `BFAbilities` raw (canonical text) AND parse into a side table `unit_abilities (unit_id, tag, short, medium, long, value)` for queryability. Always keep the raw — the rules around ability text evolve.
+Unit types (`t`), as of 2026-10-13, with unit counts:
 
-## Other endpoints
+| id | Name             | Units | AS type      |
+| -- | ---------------- | ----: | ------------ |
+| 1  | BattleMech       | 4053  | BM           |
+| 2  | Battle Armor     | 1199  | BA           |
+| 3  | OmniVehicle      |  121  | CV           |
+| 4  | Combat Vehicle   | 1127  | CV           |
+| 5  | Fighter Craft    |  575  | AF, CF (sub-type "Conventional Fighter") |
+| 6  | Infantry         |  441  | CI           |
+| 7  | IndustrialMech   |  197  | IM           |
+| 8  | ProtoMech        |   86  | PM           |
+| 9  | Support Vehicle  |  374  | SV           |
+| 10 | Aerospace Craft  |  437  | SC, DS, JS, WS, SS by sub-type |
+| 11 | Advanced Support |   72  |              |
+| 12 | Buildings        |   29  |              |
 
-- `GET /Unit/Details/{id}` — HTML page (not JSON). Holds extra fluff/availability info if we ever need it.
-- `GET /Unit/Autocomplete?term=...` — JSON, name suggestions.
-- `GET /Unit/EraAvailability?id=...` — JSON, per-era availability matrix.
-- `GET /Unit/MoreComplete?...` — variant of QuickList with more fields, untested.
-- `GET /Faction/Index`, `GET /Era/Index` — HTML lists. Parse once to seed the local lookup tables; faction/era ids are stable.
+The AS type is not published anywhere; `SnapshotUnitMapper::bfType()` derives it from type and
+sub-type.
 
-## Images
+## Unit page: `/u/{id}`
 
-`ImageUrl` points at hosts like `i.ibb.co/<hash>/<slug>.png`, `s3-us-west-2.amazonaws.com/mul-images/...`. Download once, store under `public/images/units/{mul_id}.<ext>` (extension from URL). Hash the file content; if unchanged on re-fetch, skip rewriting.
+Redirects to `/units/{slug}`. Server-rendered HTML; the Alpha Strike block looks like this
+(whitespace trimmed):
 
-Some units have `ImageUrl == null` or a placeholder — handle gracefully.
+```html
+<h3 class="u-colh">Alpha Strike Stats</h3>
+<div class="u-statgrid">
+  <div><div class="k">PV</div><div class="v">34</div></div>
+  <div><div class="k">Size</div><div class="v">3</div></div>
+  <div><div class="k">Move</div><div class="v">8&quot;</div></div>
+  <div><div class="k">TMM</div><div class="v">1</div></div>
+  <div><div class="k">Armor</div><div class="v">6</div></div>
+  <div><div class="k">Struct</div><div class="v">6</div></div>
+</div>
+<div class="u-abilrow">
+  <span class="aschip">DMG 3/3/1/0</span>
+  <span class="aschip">OV 2</span>
+  <span class="aschip">ENE <span class="an">Energy</span></span>
+  <span class="aschip">Brawler</span></div>
+```
 
-## Etiquette / rate limit
+- `—` stands for "no value": TMM of aerospace units, armor of some unarmoured vehicles.
+- Move keeps the old format: `8"`, `10"j`, `12"t`, `24"h`; aerospace uses thrust (`10a`, `5p`).
+- Chips: `DMG s/m/l/e` (`0*` = minimal damage), `OV n`, `TH n` (aerospace threshold), then one
+  chip per special ability, then the role (`None` when there is none).
+- Ability chips separate code and value with a space (`CAR 4`, `SRM 2/2`, `TUR (2/2/-,SRM2/2)`).
+  Removing the whitespace gives the old `BFAbilities` token, so `BFAbilitiesParser` still works.
+- The unit art is the `<img>` whose `alt` ends in `illustration`.
 
-There is no documented rate limit. The crawler must:
-- Sleep ≥ 1.0 s between requests (configurable up, never below).
-- Send a clear identifying `User-Agent`.
-- Cache every response to disk; subsequent runs hit the cache.
-- Run sequentially. No parallelism against this host.
+`UnitPageParser` reads this block; `mul:sync` caches the parsed result per unit as
+`data/raw/units/{uid}.json` (≈1 KB each instead of ≈90 KB of HTML). With a copy of that
+directory, a sync on another machine needs no unit-page requests at all.
 
-## Counts (2026-04-26 sampling)
+## Unit art
 
-- Tonnage 20 t Mechs: 148
-- Tonnage 50 t Mechs: 301
-- Tonnage 80 t Mechs: 227
-- Tonnage 100 t Mechs: 233
-- Total Mechs (all tonnages): in the low thousands. Full crawl ≈ 20–25 requests, ~30 s of HTTP wall time at 1 rps.
+Under `/point-backs/unit-art/…` on the MUL host (`.webp`, older units `.png`), so image downloads
+fall under the same crawl delay.

@@ -1,6 +1,6 @@
 {
     "name": "freisicht/mech-library",
-    "description": "Self-hosted searchable database and force builder for BattleTech Alpha Strike, sourced from masterunitlist.info.",
+    "description": "Self-hosted searchable database and force builder for BattleTech Alpha Strike, sourced from the Master Unit List.",
     "type": "project",
     "license": "MIT",
     "require": {

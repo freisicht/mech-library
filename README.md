@@ -1,7 +1,7 @@
 # Mech Library
 
 Self-hosted searchable database and force builder for **BattleTech Alpha Strike**, fed from the
-public unit data on [masterunitlist.info](https://masterunitlist.info) (MUL).
+public unit data on the [Master Unit List](https://masterunitlist.battletech.com) (MUL).
 
 Built because the filters on MUL are not flexible enough for serious force composition.
 
@@ -9,6 +9,8 @@ Built because the filters on MUL are not flexible enough for serious force compo
 
 ## Features
 
+- **All Alpha Strike unit types** that matter for force building: BattleMechs, vehicles,
+  Battle Armor, ProtoMechs, aerospace fighters and small craft.
 - **Unit table** with combined filters: type, PV range, movement (incl. jump), TMM, damage at
   S/M/L, role, tech base, era, intro year and special abilities with values (`IF ≥ 1`, `FLK`, …),
   AND/OR mode.
@@ -42,16 +44,18 @@ mysql -e "CREATE DATABASE mech_library CHARACTER SET utf8mb4 COLLATE utf8mb4_uni
 bin/console db:migrate
 ```
 
-Fill it from MUL. The crawler waits at least one second between requests and caches every
-response under `data/raw/`, so a re-run only hits MUL for what is missing.
+Fill it from [MUL](docs/MUL_API.md). `robots.txt` there asks for ten seconds between requests,
+so a full sync of all 8,700 units takes about a day; run it in the background. Each unit page
+is parsed once and cached under `data/raw/units/`, so an interrupted run continues where it
+stopped and later runs only fetch what is new.
 
 ```bash
-bin/console mul:seed-eras
-bin/console mul:seed-factions
-bin/console mul:scrape          # BattleMechs by default, --types=18,... for more
-bin/console mul:import          # data/raw/*.json into MySQL, idempotent
-bin/console mul:images          # unit images into public/images/units/
+bin/console mul:sync --types=1,2,3,4,5,8,10   # Mechs, BA, vehicles, fighters, ProtoMechs, aerospace
+bin/console mul:images                         # unit art into public/images/units/
 ```
+
+Without `--types` the sync takes everything except BattleMechs (types 2, 3, 4, 5, 8, 10); the
+type ids are listed in [`docs/MUL_API.md`](docs/MUL_API.md).
 
 Create a login:
 
@@ -79,8 +83,7 @@ Symfony Console, Guzzle, Tabulator and Pico CSS. No frontend build step.
 
 ## Documentation
 
-- [`docs/MUL_API.md`](docs/MUL_API.md): the masterunitlist.info JSON endpoints as far as we
-  understand them
+- [`docs/MUL_API.md`](docs/MUL_API.md): where MUL data comes from (data snapshot and unit pages)
 - [`docs/SCHEMA.md`](docs/SCHEMA.md): database schema and rationale
 - [`docs/AUTH.md`](docs/AUTH.md): login providers and per-army group gating
 - [`docs/PLAN.md`](docs/PLAN.md): roadmap, implementation notes and backlog
@@ -90,14 +93,13 @@ Symfony Console, Guzzle, Tabulator and Pico CSS. No frontend build step.
 
 ## Please be nice to MUL
 
-masterunitlist.info is run by volunteers. Keep the request delay at one second or more, keep the
-identifying User-Agent, and do not run the scraper more often than you need to. The cache in
-`data/raw/` exists so you rarely have to.
+Keep the ten-second delay from MUL's `robots.txt`, keep the identifying User-Agent, and do not
+sync more often than you need to. The cache in `data/raw/` exists so you rarely have to.
 
 ## Legal
 
 Mech Library is an unofficial fan project. It is not affiliated with, endorsed by or sponsored
-by Topps, Catalyst Game Labs or masterunitlist.info. BattleTech, Alpha Strike and related marks
+by Topps, Catalyst Game Labs or the Master Unit List. BattleTech, Alpha Strike and related marks
 are trademarks of their respective owners.
 
 This repository contains no unit data or images. Each installation fetches them from MUL for

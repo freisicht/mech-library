@@ -38,14 +38,14 @@ mech_library/
 ├── .editorconfig
 ├── docs/
 │   ├── PLAN.md                # phased roadmap with handoff prompts
-│   ├── MUL_API.md             # masterunitlist.info endpoint research
+│   ├── MUL_API.md             # MUL data sources (snapshot + unit pages)
 │   ├── SCHEMA.md              # DB schema rationale (created in phase 1)
 │   └── decisions/             # short ADRs as we go (NNN-title.md)
 ├── bin/
 │   └── console                # Symfony Console entry point
 ├── src/                       # PSR-4: App\
 │   ├── Command/               # CLI commands (scrape, import, ...)
-│   ├── Crawler/               # MUL HTTP client + paging logic
+│   ├── Crawler/               # MUL HTTP client + data snapshot
 │   ├── Importer/              # raw JSON → DB
 │   ├── Model/                 # Perpl-generated + behaviors
 │   └── Web/                   # Slim controllers, middleware
@@ -55,7 +55,7 @@ mech_library/
 │   └── assets/                # css, js
 ├── templates/                 # Twig
 ├── data/
-│   ├── raw/                   # cached raw JSON dumps from MUL, gitignored
+│   ├── raw/                   # MUL cache (snapshot files, parsed unit pages), gitignored
 │   └── migrations/            # numbered SQL migrations, see docs/SCHEMA.md
 ├── tests/
 └── var/
@@ -70,12 +70,12 @@ mech_library/
 3. **Never commit secrets.** `.env` is gitignored. Credentials go in `.env`, never in code or in `.env.example`.
 4. **No scope creep.** If the user asked for the scraper, do not also touch the web UI. Park ideas in `docs/PLAN.md` under "Backlog".
 5. **No invented dependencies.** Verify a Composer package exists on Packagist before adding it. The known-good list is in this file.
-6. **Respect MUL.** All HTTP traffic to masterunitlist.info goes through the central crawler client which enforces:
-   - 1 request per second minimum delay (configurable, never below 1s)
+6. **Respect MUL.** All HTTP traffic to MUL (masterunitlist.battletech.com) goes through the central crawler client which enforces:
+   - 10 s minimum delay between requests (robots.txt `Crawl-delay: 10`; configurable up, never below)
    - identifying User-Agent (`MechLibrary/<version> (private use; contact via README)`)
    - persistent disk cache under `data/raw/` keyed by query
    Never bypass this client. Never parallelise requests to MUL.
-7. **Idempotent imports.** Re-running the importer on an unchanged JSON dump must produce zero DB writes. Use upserts keyed on MUL `Id`.
+7. **Idempotent imports.** Re-running `mul:sync` on unchanged data must produce zero DB writes. Upserts are keyed on the MUL public id (`units.mul_uid`).
 8. **PHP code style:** PSR-12, strict types (`declare(strict_types=1);` at top of every PHP file), no closing `?>` tag in pure-PHP files.
 9. **Comments:** Default to none. A comment is justified only when the *why* is non-obvious. Do not write docblocks that just restate the signature.
 10. **Tests:** Every Crawler/Importer class gets a unit test. Web controllers can be covered later; do not block phase 1 on web tests.
