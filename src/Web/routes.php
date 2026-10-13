@@ -9,8 +9,8 @@ use App\Web\Controller\ApiUnitsController;
 use App\Web\Controller\AuthController;
 use App\Web\Controller\FormationPrintController;
 use App\Web\Controller\FormationPrintPdfController;
-use App\Web\Controller\MattermostAuthController;
 use App\Web\Controller\MeController;
+use App\Web\Controller\OAuthController;
 use App\Web\Controller\UnitDetailController;
 use App\Web\Controller\UnitListController;
 use Slim\App;
@@ -20,9 +20,9 @@ return static function (App $app): void {
     $app->get('/auth/login', [AuthController::class, 'showLogin']);
     $app->get('/auth/logout', [AuthController::class, 'logout']);
     $container = $app->getContainer();
-    if ($container !== null && $container->get(AuthConfig::class)->isMattermost()) {
-        $app->get('/auth/start', [MattermostAuthController::class, 'start']);
-        $app->get('/auth/callback', [MattermostAuthController::class, 'callback']);
+    if ($container !== null && $container->get(AuthConfig::class)->isOAuth()) {
+        $app->get('/auth/start', [OAuthController::class, 'start']);
+        $app->get('/auth/callback', [OAuthController::class, 'callback']);
     } else {
         $app->post('/auth/login', [AuthController::class, 'login']);
     }

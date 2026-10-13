@@ -6,6 +6,8 @@ namespace App\Auth;
 
 final class Session
 {
+    private const OAUTH_TOKEN = 'oauth_access_token';
+
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
@@ -65,6 +67,17 @@ final class Session
     {
         self::start();
         return $_SESSION[$key] ?? null;
+    }
+
+    public static function setOauthToken(string $token): void
+    {
+        self::set(self::OAUTH_TOKEN, $token);
+    }
+
+    public static function oauthToken(): ?string
+    {
+        $token = self::get(self::OAUTH_TOKEN);
+        return is_string($token) && $token !== '' ? $token : null;
     }
 
     public static function pull(string $key): mixed

@@ -7,6 +7,7 @@ namespace App\Auth;
 final class AuthConfig
 {
     public const MATTERMOST = 'mattermost';
+    public const DISCORD    = 'discord';
     public const LOCAL      = 'local';
 
     private function __construct(
@@ -25,8 +26,8 @@ final class AuthConfig
         if ($provider === '') {
             $provider = $mattermostBaseUrl !== '' ? self::MATTERMOST : self::LOCAL;
         }
-        if (!in_array($provider, [self::MATTERMOST, self::LOCAL], true)) {
-            throw new \RuntimeException("AUTH_PROVIDER '{$provider}' is not supported (mattermost, local)");
+        if (!in_array($provider, [self::MATTERMOST, self::DISCORD, self::LOCAL], true)) {
+            throw new \RuntimeException("AUTH_PROVIDER '{$provider}' is not supported (local, discord, mattermost)");
         }
         return new self($provider, $mattermostBaseUrl);
     }
@@ -34,6 +35,17 @@ final class AuthConfig
     public function isMattermost(): bool
     {
         return $this->provider === self::MATTERMOST;
+    }
+
+    public function isDiscord(): bool
+    {
+        return $this->provider === self::DISCORD;
+    }
+
+    /** Providers that log in through an OAuth redirect instead of the password form. */
+    public function isOAuth(): bool
+    {
+        return !$this->isLocal();
     }
 
     public function isLocal(): bool

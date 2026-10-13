@@ -16,7 +16,7 @@ final class LocalGroupSource implements GroupSource
     {
     }
 
-    public function fetchGroupIds(Users $user): ?array
+    public function fetchGroupIds(string $externalId): ?array
     {
         return null;
     }
@@ -27,5 +27,10 @@ final class LocalGroupSource implements GroupSource
             static fn (string $g): array => ['id' => $g, 'display_name' => $g],
             $this->users->groups($user),
         );
+    }
+
+    public function allowsAccess(array $groupIds): bool
+    {
+        return true;
     }
 }

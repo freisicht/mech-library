@@ -29,6 +29,9 @@
         {% if provider == 'mattermost' %}
             <p>Access requires a Mattermost account on {{ mm_host }}.</p>
             <a class="login-btn" href="/auth/start?next={{ next|url_encode }}">Sign in with Mattermost</a>
+        {% elseif provider == 'discord' %}
+            <p>Access requires membership in one of the Discord servers this site is open to.</p>
+            <a class="login-btn" href="/auth/start?next={{ next|url_encode }}">Sign in with Discord</a>
         {% else %}
             {% if error %}<p class="login-error">{{ error }}</p>{% endif %}
             <form class="login-form" method="post" action="/auth/login">

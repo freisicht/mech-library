@@ -6,6 +6,7 @@ The whole web UI requires a login. Two providers are available, selected with
 | Provider     | Who can log in                           | What a "group" is            |
 | ------------ | ---------------------------------------- | ---------------------------- |
 | `local`      | Accounts created with `bin/console user:add` | Names assigned with `user:groups` |
+| `discord`    | Members of the servers in `DISCORD_ALLOWED_GUILDS` (OAuth2) | Those Discord servers |
 | `mattermost` | Anyone with an account on `MM_BASE_URL` (OAuth2) | Mattermost channels the user is in |
 
 Without `AUTH_PROVIDER` the app uses `mattermost` if `MM_BASE_URL` is set and
@@ -37,18 +38,56 @@ only after a one-second delay. There is no lockout; put the instance behind
 HTTPS and, if it is reachable from the internet, consider fail2ban on the
 web server log.
 
+## OAuth providers: how it works
+
+Discord and Mattermost share one flow (`OAuthController`):
+
+1. `/auth/start` kicks off OAuth2 with state; the provider calls back to
+   `/auth/callback`.
+2. On callback the access token is stored in the session and the user's
+   groups are fetched. If the provider says these groups do not grant access
+   (Discord: no allowed server), the login is refused and nothing is stored.
+3. Otherwise the user is upserted into `users` (keyed on `provider` +
+   `external_id`, the provider's user ID) and the group IDs are cached on the
+   row (`groups_json` + `groups_refreshed_at`).
+4. On every subsequent request, `AuthMiddleware` re-uses the cached groups
+   if fresher than **5 min**, otherwise refreshes them with the stored token.
+   Provider failures keep the stale cache rather than logging the user out.
+   A user who no longer passes the access check (left all allowed Discord
+   servers) is logged out on the next refresh.
+
+## Discord (`AUTH_PROVIDER=discord`)
+
+Anyone can create a Discord account, so access is limited to members of the
+servers listed in `DISCORD_ALLOWED_GUILDS`; the setting is required. Those
+servers are also the groups for the army gate, so one instance can serve
+several gaming groups with their own Discord servers. Other servers a user is
+in are never stored. No bot is needed; the app only asks for the `identify`
+and `guilds` scopes, not for the e-mail address.
+
+### Application setup (one-time)
+
+1. On <https://discord.com/developers/applications> create a **New Application**.
+2. Under **OAuth2**, add the redirect `https://mechlib.example.com/auth/callback`
+   and copy the **Client ID** and **Client Secret** (reset it once to see it).
+3. Get the server IDs: in Discord, enable *User Settings → Advanced →
+   Developer Mode*, then right-click a server icon → **Copy Server ID**.
+
+```
+AUTH_PROVIDER=discord
+DISCORD_CLIENT_ID=…
+DISCORD_CLIENT_SECRET=…
+DISCORD_REDIRECT_URI=https://mechlib.example.com/auth/callback
+DISCORD_ALLOWED_GUILDS=123456789012345678,234567890123456789
+```
+
+Restricting by server role is not supported; it would need a bot or a much
+more rate-limited API call per server.
+
 ## Mattermost (`AUTH_PROVIDER=mattermost`)
 
-1. `/auth/start` kicks off OAuth2 with state; Mattermost calls back to
-   `/auth/callback`.
-2. On callback the user is upserted into `users` (keyed on `provider` +
-   `external_id`, the Mattermost user ID), the access token is stored in the
-   session, and the user's channel IDs are cached on the row (`groups_json` +
-   `groups_refreshed_at`).
-3. On every subsequent request, `AuthMiddleware` re-uses the cached channels
-   if fresher than **5 min**, otherwise refreshes from Mattermost using the
-   stored token. Mattermost failures keep the stale cache rather than logging
-   the user out.
+Everyone with an account on the Mattermost server can log in. Groups are the
+user's channels across all teams (direct messages excluded).
 
 ### OAuth app setup (one-time)
 
@@ -99,13 +138,16 @@ Setting `required_group_id` to `""` clears the gate.
 ## Code map
 
 - `App\Auth\AuthConfig`: resolves the provider from the environment.
-- `App\Auth\GroupSource`: where groups come from; `MattermostGroupSource`
-  and `LocalGroupSource` implement it.
+- `App\Auth\GroupSource`: where groups come from and whether they grant
+  access; one implementation per provider.
+- `App\Auth\OAuthBackend`: provider-specific half of an OAuth login (the
+  league/oauth2-client provider and how to read the user's identity).
 - `App\Web\Controller\AuthController`: login page, local login, logout.
-- `App\Web\Controller\MattermostAuthController`: OAuth start and callback.
-  Routes for the inactive provider are not registered.
+- `App\Web\Controller\OAuthController`: OAuth start and callback.
+  Routes for the inactive login type are not registered.
 
-A new provider needs a `GroupSource`, its login routes and an entry in
+A new OAuth provider (e.g. generic OIDC) needs an `OAuthBackend`, a
+`GroupSource`, container wiring in `ContainerFactory` and an entry in
 `AuthConfig::resolve()`.
 
 ## Testing
@@ -113,4 +155,5 @@ A new provider needs a `GroupSource`, its login routes and an entry in
 Auth is bypassed in web tests by setting `AUTH_DISABLED=1` (done automatically
 in `WebTestCase::setUp`). In that mode, the middleware passes all requests
 through with no `CurrentUser`, so only public armies are visible.
-`tests/Auth/LocalLoginTest` exercises the real local login flow.
+`tests/Auth/LocalLoginTest` exercises the real local login flow,
+`tests/Auth/DiscordLoginTest` the OAuth callback against mocked Discord responses.

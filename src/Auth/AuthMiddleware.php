@@ -56,6 +56,10 @@ final class AuthMiddleware implements MiddlewareInterface
         }
 
         $this->refreshGroupsIfStale($user);
+        if (!$this->groups->allowsAccess($this->users->groups($user))) {
+            Session::logout();
+            return $this->unauthorized($request);
+        }
         $this->current->set($user, $this->users);
         return $handler->handle($request);
     }
@@ -66,7 +70,7 @@ final class AuthMiddleware implements MiddlewareInterface
             return;
         }
         try {
-            $groups = $this->groups->fetchGroupIds($user);
+            $groups = $this->groups->fetchGroupIds($user->getExternalId());
             if ($groups !== null) {
                 $this->users->setGroups($user, $groups);
             }

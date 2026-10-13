@@ -8,33 +8,30 @@ use App\Model\Users;
 
 final class MattermostGroupSource implements GroupSource
 {
-    public const TOKEN_SESSION_KEY = 'mm_access_token';
-
     public function __construct(private readonly MattermostClient $mm)
     {
     }
 
-    public function fetchGroupIds(Users $user): ?array
+    public function fetchGroupIds(string $externalId): ?array
     {
-        $token = $this->token();
+        $token = Session::oauthToken();
         if ($token === null) {
             return null;
         }
-        return $this->mm->fetchChannelIds($token, $user->getExternalId());
+        return $this->mm->fetchChannelIds($token, $externalId);
     }
 
     public function listGroups(Users $user): array
     {
-        $token = $this->token();
+        $token = Session::oauthToken();
         if ($token === null) {
             return [];
         }
         return $this->mm->fetchChannels($token, $user->getExternalId());
     }
 
-    private function token(): ?string
+    public function allowsAccess(array $groupIds): bool
     {
-        $token = Session::get(self::TOKEN_SESSION_KEY);
-        return is_string($token) && $token !== '' ? $token : null;
+        return true;
     }
 }

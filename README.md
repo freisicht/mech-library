@@ -18,8 +18,9 @@ Built because the filters on MUL are not flexible enough for serious force compo
 - **Force builder:** armies and formations with live PV totals and rule checks for the Alpha
   Strike formation types (Battle Lance, Fire Support Lance, Heavy Battle Star, …).
 - **Print view and PDF** with Alpha Strike style unit cards.
-- **Login** with local accounts or via Mattermost (OAuth2). Armies can be limited to a group,
-  so one instance can serve several gaming groups. See [`docs/AUTH.md`](docs/AUTH.md).
+- **Login** with local accounts, Discord or Mattermost. Armies can be limited to a group (a
+  Discord server, for example), so one instance can serve several gaming groups. See
+  [`docs/AUTH.md`](docs/AUTH.md).
 
 ## Requirements
 
@@ -66,8 +67,8 @@ bin/console user:add yourname
 Then point a virtual host at `public/`. For Apache, `public/.htaccess` handles the rewrites
 (needs `AllowOverride All` and `mod_rewrite`).
 
-To log in with Mattermost instead of local accounts, set `AUTH_PROVIDER=mattermost` and
-register an OAuth app as described in [`docs/AUTH.md`](docs/AUTH.md).
+To let your group log in with Discord or Mattermost instead of local accounts, set
+`AUTH_PROVIDER` and register an OAuth app as described in [`docs/AUTH.md`](docs/AUTH.md).
 
 ## Development
 

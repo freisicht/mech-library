@@ -235,8 +235,9 @@ Ideas captured during work that are explicitly out of scope until promoted into 
 - Probabilistic match-up calculator.
 - PDF generation / MUL unit-card PDF download for print view.
 - BV (Classic BattleTech) support alongside Alpha Strike.
-- More login providers: Discord (guild membership as group, fits gaming groups) and generic
-  OIDC (Keycloak, Authentik, Nextcloud, Gitea). Local accounts and Mattermost exist, see
-  `docs/AUTH.md` for what a new provider needs.
+- More login providers: generic OIDC (Keycloak, Authentik, Nextcloud, Gitea). Local, Discord
+  and Mattermost exist, see `docs/AUTH.md` for what a new provider needs.
+- Discord: gate armies by server role, not only by server (needs a bot or
+  `guilds.members.read` with its tight rate limit).
 - Easier setup for third parties: Docker Compose (app + MySQL), `mul:sync` wrapping seed/scrape/import/images, `app:doctor`.
 - Army hierarchy beyond two levels (Army → Formation).

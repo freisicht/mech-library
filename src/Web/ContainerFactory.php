@@ -6,11 +6,17 @@ namespace App\Web;
 
 use App\Auth\AuthConfig;
 use App\Auth\CurrentUser;
+use App\Auth\DiscordClient;
+use App\Auth\DiscordGroupSource;
+use App\Auth\DiscordOAuthBackend;
+use App\Auth\DiscordProvider;
 use App\Auth\GroupSource;
 use App\Auth\LocalGroupSource;
 use App\Auth\MattermostClient;
 use App\Auth\MattermostGroupSource;
+use App\Auth\MattermostOAuthBackend;
 use App\Auth\MattermostProvider;
+use App\Auth\OAuthBackend;
 use DI\Container;
 use DI\ContainerBuilder;
 use GuzzleHttp\Client as GuzzleClient;
@@ -65,9 +71,31 @@ final class ContainerFactory
                 self::env('MM_BASE_URL', ''),
             ),
             GroupSource::class => static function (Container $c): GroupSource {
-                return $c->get(AuthConfig::class)->isMattermost()
-                    ? $c->get(MattermostGroupSource::class)
-                    : $c->get(LocalGroupSource::class);
+                return match ($c->get(AuthConfig::class)->provider) {
+                    AuthConfig::MATTERMOST => $c->get(MattermostGroupSource::class),
+                    AuthConfig::DISCORD    => $c->get(DiscordGroupSource::class),
+                    default                => $c->get(LocalGroupSource::class),
+                };
+            },
+            OAuthBackend::class => static function (Container $c): OAuthBackend {
+                return $c->get(AuthConfig::class)->isDiscord()
+                    ? $c->get(DiscordOAuthBackend::class)
+                    : $c->get(MattermostOAuthBackend::class);
+            },
+            DiscordProvider::class => static fn (): DiscordProvider => new DiscordProvider([
+                'clientId'     => self::requiredEnv('DISCORD_CLIENT_ID'),
+                'clientSecret' => self::requiredEnv('DISCORD_CLIENT_SECRET'),
+                'redirectUri'  => self::requiredEnv('DISCORD_REDIRECT_URI'),
+            ]),
+            DiscordClient::class => static fn (Container $c): DiscordClient => new DiscordClient(
+                $c->get(GuzzleClientInterface::class),
+            ),
+            DiscordGroupSource::class => static function (Container $c): DiscordGroupSource {
+                $allowed = array_values(array_filter(array_map(
+                    'trim',
+                    explode(',', self::requiredEnv('DISCORD_ALLOWED_GUILDS')),
+                )));
+                return new DiscordGroupSource($c->get(DiscordClient::class), $allowed);
             },
             GuzzleClientInterface::class => static fn (): GuzzleClientInterface => new GuzzleClient([
                 'timeout' => 10.0,
