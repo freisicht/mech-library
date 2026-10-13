@@ -6,6 +6,7 @@ declare(strict_types=1);
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Bootstrap;
+use App\Command\DoctorCommand;
 use App\Command\ImagesCommand;
 use App\Command\SyncCommand;
 use App\Command\UserAddCommand;
@@ -18,7 +19,12 @@ use Symfony\Component\Console\Application;
 $dotenv = Dotenv::createImmutable(dirname(__DIR__));
 $dotenv->safeLoad();
 
-Bootstrap::initPropel();
+try {
+    Bootstrap::initPropel();
+} catch (\RuntimeException $e) {
+    // Let app:doctor run and explain; other commands fail on their first query.
+    fwrite(STDERR, $e->getMessage() . " (see bin/console app:doctor)\n");
+}
 
 $app = new Application('MechLibrary', '0.4.0');
 $app->add(new SyncCommand());
@@ -27,4 +33,5 @@ $app->add(new UserAddCommand());
 $app->add(new UserPasswordCommand());
 $app->add(new UserGroupsCommand());
 $app->add(new UserListCommand());
+$app->add(new DoctorCommand());
 $app->run();

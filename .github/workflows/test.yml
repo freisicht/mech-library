@@ -68,6 +68,7 @@ jobs:
           curl -fsS http://localhost:8080/auth/login | grep -q 'name="password"'
           printf 'ci-password-123\n' | docker compose exec -T app bin/console user:add ci --password-stdin
           docker compose exec -T app bin/console user:list | grep -q ci
+          docker compose exec -T app bin/console app:doctor
 
       - name: Logs
         if: failure()

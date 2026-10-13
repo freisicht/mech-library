@@ -31,6 +31,7 @@ git clone https://github.com/freisicht/mech-library.git && cd mech-library
 cp .env.example .env            # set DB_PASS, and APP_DEBUG=false if others can reach it
 docker compose up -d            # app on http://localhost:8080, MySQL in its own container
 docker compose exec app bin/console user:add yourname
+docker compose exec app bin/console app:doctor     # checks the setup, says what is missing
 ```
 
 Migrations run on every start. The database, the MUL cache and the unit images live in Docker
@@ -92,6 +93,9 @@ bin/console user:add yourname
 
 Then point a virtual host at `public/`. For Apache, `public/.htaccess` handles the rewrites
 (needs `AllowOverride All` and `mod_rewrite`).
+
+`bin/console app:doctor` checks PHP, configuration, database, migrations, login setup and
+directory permissions and says what to fix. It exits non-zero if something blocks the site.
 
 To let your group log in with Discord or Mattermost instead of local accounts, set
 `AUTH_PROVIDER` and register an OAuth app as described in [`docs/AUTH.md`](docs/AUTH.md).
