@@ -38,6 +38,18 @@ final class FormationTypeRegistry
         return self::all()[$slug] ?? null;
     }
 
+    /** @return array<string, list<string>> group label => slugs, in display order */
+    public static function groups(): array
+    {
+        return [
+            'Inner Sphere lances' => array_keys(self::IS_LANCES),
+            'Aerospace squadrons' => array_keys(self::AEROSPACE_SQUADRONS),
+            'Clan stars'          => array_keys(self::CLAN_STARS),
+            'ComStar Level IIs'   => array_keys(self::COMSTAR_LEVEL_IIS),
+            'Other'               => array_keys(self::GENERIC),
+        ];
+    }
+
     /** @return list<string> */
     public static function slugs(): array
     {

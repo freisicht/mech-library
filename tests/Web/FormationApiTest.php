@@ -47,6 +47,10 @@ final class FormationApiTest extends WebTestCase
         self::assertContains('battle-lance', $slugs);
         self::assertContains('battle-star', $slugs);
         self::assertContains('custom', $slugs);
+        self::assertCount(count(\App\Formation\FormationTypeRegistry::all()), $data);
+
+        $groups = array_values(array_unique(array_column($data, 'group')));
+        self::assertSame(array_keys(\App\Formation\FormationTypeRegistry::groups()), $groups);
     }
 
     // ── Army CRUD ─────────────────────────────────────────────────────────────

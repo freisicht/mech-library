@@ -7,7 +7,7 @@
 
     let state = {
         formation:     null,  // active formation object or null
-        allTypes:      [],    // [{slug, name, faction}, …]
+        allTypes:      [],    // [{slug, name, faction, group}, …]
         allFormations: [],    // [{id, name, army_id, army_name}, …]
         allArmies:     [],    // [{id, name, required_mm_channel_id, formations: []}, …]
         myChannels:    [],    // [{id, display_name}, …] — MM channels current user is in
@@ -475,11 +475,17 @@
     function populateTypeDropdown(sel, types) {
         if (!sel) return;
         sel.innerHTML = '';
+        let group = null;
         types.forEach(t => {
+            if (!group || group.label !== t.group) {
+                group = document.createElement('optgroup');
+                group.label = t.group;
+                sel.appendChild(group);
+            }
             const opt = document.createElement('option');
             opt.value       = t.slug;
             opt.textContent = t.name;
-            sel.appendChild(opt);
+            group.appendChild(opt);
         });
     }
 

@@ -22,11 +22,14 @@ final class ApiFormationsController
 
     public function types(Request $request, Response $response): Response
     {
-        $types = array_map(
-            fn ($t) => ['slug' => $t['slug'], 'name' => $t['name'], 'faction' => $t['faction']],
-            FormationTypeRegistry::all(),
-        );
-        return $this->json($response, array_values($types));
+        $types = [];
+        foreach (FormationTypeRegistry::groups() as $group => $slugs) {
+            foreach ($slugs as $slug) {
+                $t = FormationTypeRegistry::get($slug) ?? [];
+                $types[] = ['slug' => $slug, 'name' => $t['name'], 'faction' => $t['faction'], 'group' => $group];
+            }
+        }
+        return $this->json($response, $types);
     }
 
     public function getActive(Request $request, Response $response): Response
