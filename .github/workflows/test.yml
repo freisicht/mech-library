@@ -47,7 +47,7 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: Apply migrations
-        run: bin/console db:migrate
+        run: vendor/bin/perpl migration:migrate
 
       - name: Test
         run: composer test

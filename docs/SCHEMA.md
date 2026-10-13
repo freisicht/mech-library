@@ -1,6 +1,6 @@
 # Mech Library — DB Schema
 
-Schema rationale, not just DDL. The full DDL lives in `data/migrations/001_initial_schema.sql`.
+Schema rationale, not just DDL. The full DDL lives in the migrations under `data/migrations/`.
 
 ## Database: `mech_library`
 
@@ -100,7 +100,7 @@ One row per named force-builder formation. Key columns:
 Junction table. Columns:
 
 - **`formation_id` / `unit_id`**: not unique. The same unit may appear several times in one
-  formation (migration 005); each row is one model on the table, addressed by its own `id`.
+  formation (migration `formation_unit_duplicates`); each row is one model on the table, addressed by its own `id`.
 - **`sort_order`**: append-only counter incremented by `FormationRepository::addUnit()`.
   Drives the display order in the force panel.
 
@@ -111,28 +111,32 @@ automatically when either parent is deleted.
 
 ## Migration strategy
 
-Plain SQL files in `data/migrations/`, numbered `NNN_slug.sql`, applied in order by
-`bin/console db:migrate` against the database named in `DB_NAME` (the files contain no `USE`
-statement). Applied files are recorded in `schema_migrations`, so the command runs only what
-is new and belongs in every deploy. The files themselves are not idempotent: never run them
-a second time by hand.
+Perpl migrations in `data/migrations/`, run with `vendor/bin/perpl migration:migrate`
+against the database named in `DB_NAME` (`propel.php` reads `.env`, real environment
+variables take precedence). Perpl records each executed timestamp in `propel_migration` and
+runs every file whose timestamp is missing there, older ones included. That makes the
+command safe for every deploy.
 
-A database that was migrated by hand before `schema_migrations` existed needs a one-time
-`bin/console db:migrate --baseline=NNN`, where NNN is the last file already in it. The
-runner splits files on a `;` at line end and drops `-- ` comments; keep statements in that
-shape (no stored procedures, no `DELIMITER`). MySQL DDL is not transactional, so a failing
-file can leave a half-applied state that has to be fixed by hand before re-running.
+The migrations are hand-written SQL, not `perpl diff` output. Each file is a
+`PropelMigration_<timestamp>_<slug>.php` class extending `App\Database\SqlMigration`, which
+only returns the SQL from `up()`. Two rules:
 
-Perpl's Propel2 migration tooling is not used; plain SQL is adequate and easy to review.
+- **No `;` inside comments.** Perpl's SqlParser splits on every `;`, comments included.
+- **No down migrations.** `getDownSQL()` throws; restore from a backup instead.
 
-| File                    | Adds                                                        |
-| ----------------------- | ----------------------------------------------------------- |
-| `001_initial_schema.sql`| units, abilities and lookup tables                          |
-| `002_force_builder.sql` | `armies`, `formations`, `formation_units`                   |
-| `003_auth.sql`          | `users`, `armies.required_mm_channel_id` (see `docs/AUTH.md`) |
-| `004_auth_providers.sql`| `users.provider`/`external_id`/`password_hash`, channels renamed to groups |
-| `005_formation_unit_duplicates.sql` | drops `uq_formation_unit`, allows the same unit twice |
-| `006_mul_relaunch.sql`  | `units.mul_uid` (new MUL public id), `mul_id` nullable, `tonnage` as FLOAT |
+001 and 002 are idempotent (`CREATE TABLE IF NOT EXISTS`) because they predate the tracking
+table on production, which only had 003 recorded. Later files are not idempotent and rely on
+`propel_migration`. MySQL DDL is not transactional, so a failing file can leave a
+half-applied state that has to be fixed by hand before re-running.
 
-When the schema changes, add a new numbered file, update `src/Model/schema.xml` and
-regenerate the models with `vendor/bin/perpl model:build`.
+| Migration                                        | Adds                                                   |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| `1777238547_initial_schema`                      | units, abilities and lookup tables                     |
+| `1777311067_force_builder`                       | `armies`, `formations`, `formation_units`              |
+| `1778615147_auth`                                | `users`, `armies.required_mm_channel_id` (see `docs/AUTH.md`) |
+| `1791883497_auth_providers`                      | `users.provider`/`external_id`/`password_hash`, channels renamed to groups |
+| `1791885854_formation_unit_duplicates`           | drops `uq_formation_unit`, allows the same unit twice  |
+| `1791885855_mul_relaunch`                         | `units.mul_uid` (new MUL public id), `mul_id` nullable, `tonnage` as FLOAT |
+
+When the schema changes, add a new migration with the current Unix timestamp, update
+`src/Model/schema.xml` and regenerate the models with `vendor/bin/perpl model:build`.

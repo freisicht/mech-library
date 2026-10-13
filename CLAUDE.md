@@ -56,7 +56,7 @@ mech_library/
 ├── templates/                 # Twig
 ├── data/
 │   ├── raw/                   # MUL cache (snapshot files, parsed unit pages), gitignored
-│   └── migrations/            # numbered SQL migrations, see docs/SCHEMA.md
+│   └── migrations/            # Perpl migrations (hand-written SQL), see docs/SCHEMA.md
 ├── tests/
 └── var/
     ├── cache/

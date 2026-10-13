@@ -1,8 +1,13 @@
 <?php
 
 // Used by vendor/bin/perpl CLI (model:build, database:reverse, etc.)
-// Reads from environment; set vars before calling perpl, or they fall back to .env defaults.
+// Reads DB_* from the environment, falling back to .env.
 // Do NOT hardcode credentials here — this file is committed.
+
+// Real environment wins over .env, so CI and one-off DB_NAME=... overrides keep working.
+if (class_exists(\Dotenv\Dotenv::class)) {
+    \Dotenv\Dotenv::createUnsafeImmutable(__DIR__)->safeLoad();
+}
 
 $host   = getenv('DB_HOST') ?: '127.0.0.1';
 $port   = getenv('DB_PORT') ?: '3306';

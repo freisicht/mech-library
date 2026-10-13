@@ -1,3 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Database\SqlMigration;
+
+final class PropelMigration_1778615147_auth extends SqlMigration
+{
+    public string $comment = 'users, armies.required_mm_channel_id';
+
+    protected function up(): string
+    {
+        return <<<'SQL'
 -- Migration 003: Mattermost login (users) and per-army channel gate.
 
 ALTER TABLE armies
@@ -15,3 +28,6 @@ CREATE TABLE IF NOT EXISTS users (
     PRIMARY KEY (id),
     UNIQUE INDEX uq_mm_user_id (mm_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+    }
+}

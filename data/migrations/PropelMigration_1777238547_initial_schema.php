@@ -1,3 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Database\SqlMigration;
+
+final class PropelMigration_1777238547_initial_schema extends SqlMigration
+{
+    public string $comment = 'units, abilities and lookup tables';
+
+    protected function up(): string
+    {
+        return <<<'SQL'
 -- Migration 001: initial schema
 -- Run once. Idempotent via IF NOT EXISTS / IF NOT EXISTS guards.
 
@@ -43,7 +56,7 @@ CREATE TABLE IF NOT EXISTS eras (
 
 CREATE TABLE IF NOT EXISTS units (
     id                      INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-    mul_id                  INT UNSIGNED    NOT NULL,   -- MUL Id field; upsert key
+    mul_id                  INT UNSIGNED    NOT NULL,   -- MUL Id field, upsert key
     name                    VARCHAR(255)    NOT NULL,
     class                   VARCHAR(128)    NOT NULL DEFAULT '',
     variant                 VARCHAR(128)    NOT NULL DEFAULT '',
@@ -116,3 +129,6 @@ CREATE TABLE IF NOT EXISTS unit_abilities (
     KEY idx_ua_tag (tag),
     CONSTRAINT fk_ua_unit FOREIGN KEY (unit_id) REFERENCES units (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+    }
+}

@@ -1,3 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Database\SqlMigration;
+
+final class PropelMigration_1777311067_force_builder extends SqlMigration
+{
+    public string $comment = 'armies, formations, formation_units';
+
+    protected function up(): string
+    {
+        return <<<'SQL'
 -- Migration 002: force builder tables (Army → Formation → formation_units)
 -- Idempotent via IF NOT EXISTS guards.
 
@@ -25,7 +38,7 @@ CREATE TABLE IF NOT EXISTS formations (
     CONSTRAINT fk_formations_army FOREIGN KEY (army_id) REFERENCES armies (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Only one formation may be active at a time; enforced in application code.
+-- Only one formation may be active at a time, enforced in application code.
 -- A partial unique index (WHERE is_active = 1) isn't portable to older MySQL,
 -- so the single-active invariant is maintained by FormationRepository::setActive().
 
@@ -40,3 +53,6 @@ CREATE TABLE IF NOT EXISTS formation_units (
     CONSTRAINT fk_fu_formation FOREIGN KEY (formation_id) REFERENCES formations (id) ON DELETE CASCADE,
     CONSTRAINT fk_fu_unit      FOREIGN KEY (unit_id)      REFERENCES units (id)       ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+    }
+}

@@ -238,6 +238,5 @@ Ideas captured during work that are explicitly out of scope until promoted into 
 - More login providers: Discord (guild membership as group, fits gaming groups) and generic
   OIDC (Keycloak, Authentik, Nextcloud, Gitea). Local accounts and Mattermost exist, see
   `docs/AUTH.md` for what a new provider needs.
-- Easier setup for third parties: Docker Compose (app + MySQL), a `db:migrate` command that
-  tracks applied migrations, `mul:sync` wrapping seed/scrape/import/images, `app:doctor`.
+- Easier setup for third parties: Docker Compose (app + MySQL), `mul:sync` wrapping seed/scrape/import/images, `app:doctor`.
 - Army hierarchy beyond two levels (Army → Formation).

@@ -1,3 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Database\SqlMigration;
+
+final class PropelMigration_1791883497_auth_providers extends SqlMigration
+{
+    public string $comment = 'provider-neutral users, channels become groups';
+
+    protected function up(): string
+    {
+        return <<<'SQL'
 -- Migration 004: provider-neutral auth. Mattermost channels become generic
 -- groups, and users can come from different providers (mattermost, local).
 -- Existing rows are kept and tagged as mattermost.
@@ -16,3 +29,6 @@ ALTER TABLE users
 
 ALTER TABLE armies
     CHANGE required_mm_channel_id required_group_id VARCHAR(64) NULL;
+SQL;
+    }
+}

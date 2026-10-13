@@ -7,7 +7,6 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 use App\Bootstrap;
 use App\Command\ImagesCommand;
-use App\Command\MigrateCommand;
 use App\Command\SyncCommand;
 use App\Command\UserAddCommand;
 use App\Command\UserGroupsCommand;
@@ -24,7 +23,6 @@ Bootstrap::initPropel();
 $app = new Application('MechLibrary', '0.4.0');
 $app->add(new SyncCommand());
 $app->add(new ImagesCommand());
-$app->add(new MigrateCommand());
 $app->add(new UserAddCommand());
 $app->add(new UserPasswordCommand());
 $app->add(new UserGroupsCommand());

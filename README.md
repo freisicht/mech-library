@@ -36,12 +36,12 @@ composer install
 cp .env.example .env    # DB credentials, login provider
 ```
 
-Create the database and apply the migrations. `db:migrate` remembers what it has run in
-`schema_migrations`, so it is safe to call on every deploy:
+Create the database and apply the migrations. Perpl remembers what it has run in
+`propel_migration`, so the second command is safe on every deploy:
 
 ```bash
 mysql -e "CREATE DATABASE mech_library CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-bin/console db:migrate
+vendor/bin/perpl migration:migrate
 ```
 
 Fill it from [MUL](docs/MUL_API.md). `robots.txt` there asks for ten seconds between requests,
