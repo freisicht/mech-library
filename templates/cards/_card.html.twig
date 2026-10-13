@@ -121,7 +121,7 @@
             <table class="as-foot" cellspacing="0" cellpadding="0">
                 <tr>
                     <td>{{ unit.tonnage }}t | {{ unit.class }}{% if unit.role %} | {{ unit.role }}{% endif %}</td>
-                    <td class="foot-r">MUL #{{ unit.mul_id ?? '' }}</td>
+                    <td class="foot-r">MUL #{{ unit.mul_uid ?? unit.mul_id ?? '' }}</td>
                 </tr>
             </table>
         </td>
