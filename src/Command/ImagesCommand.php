@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Bootstrap;
 use App\Crawler\MulClientFactory;
+use App\Database\ConnectionGuard;
 use App\Importer\ImageDownloader;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
@@ -27,7 +28,7 @@ final class ImagesCommand extends Command
         $imageDir = dirname(__DIR__, 2) . '/public/images/units';
 
         $client     = MulClientFactory::create($logger);
-        $downloader = new ImageDownloader($client, $imageDir, $logger);
+        $downloader = new ImageDownloader($client, $imageDir, $logger, new ConnectionGuard());
 
         $output->writeln('<info>Downloading images…</info>');
         $counts = $downloader->downloadAll();

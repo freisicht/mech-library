@@ -7,6 +7,7 @@ namespace App\Command;
 use App\Crawler\MulClient;
 use App\Crawler\MulClientFactory;
 use App\Crawler\MulSnapshot;
+use App\Database\ConnectionGuard;
 use App\Importer\LookupResolver;
 use App\Importer\SnapshotUnitMapper;
 use App\Importer\UnitImporter;
@@ -72,20 +73,29 @@ final class SyncCommand extends Command
         $parser   = new UnitPageParser();
         $mapper   = new SnapshotUnitMapper($snapshot, new LookupResolver());
         $importer = new UnitImporter($logger);
+        $guard    = new ConnectionGuard();
         $counts   = ['changed' => 0, 'unchanged' => 0, 'no_stats' => 0, 'failed' => 0];
 
         foreach ($units as $i => $unit) {
             $uid = (string) $unit['id'];
-            try {
-                $stats = $this->stats($client, $parser, "{$pageDir}/{$uid}.json", $uid);
-                if ($stats === null) {
-                    $counts['no_stats']++;
-                } else {
-                    $counts[$importer->upsert($mapper->map($unit, $stats)) ? 'changed' : 'unchanged']++;
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    $stats = $this->stats($client, $parser, "{$pageDir}/{$uid}.json", $uid);
+                    $counts[match (true) {
+                        $stats === null => 'no_stats',
+                        $importer->upsert($mapper->map($unit, $stats)) => 'changed',
+                        default => 'unchanged',
+                    }]++;
+                    break;
+                } catch (\Throwable $e) {
+                    if ($attempt === 1 && $guard->recover()) {
+                        $logger->warning('Database connection was lost and has been reopened', ['uid' => $uid]);
+                        continue;
+                    }
+                    $counts['failed']++;
+                    $logger->error('Unit sync failed', ['uid' => $uid, 'error' => self::rootMessage($e)]);
+                    break;
                 }
-            } catch (\Throwable $e) {
-                $counts['failed']++;
-                $logger->error('Unit sync failed', ['uid' => $uid, 'error' => $e->getMessage()]);
             }
 
             if (($i + 1) % self::PROGRESS_EVERY === 0 || $i + 1 === count($units)) {
@@ -122,5 +132,14 @@ final class SyncCommand extends Command
         file_put_contents($cacheFile, json_encode(['fetched_at' => date('c'), 'stats' => $stats], JSON_UNESCAPED_SLASHES));
 
         return $stats;
+    }
+
+    /** Propel wraps driver errors; the innermost message says what actually went wrong. */
+    private static function rootMessage(\Throwable $e): string
+    {
+        while ($e->getPrevious() !== null) {
+            $e = $e->getPrevious();
+        }
+        return $e->getMessage();
     }
 }

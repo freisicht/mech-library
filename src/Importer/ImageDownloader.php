@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Importer;
 
 use App\Crawler\MulClient;
+use App\Database\ConnectionGuard;
 use App\Model\Units;
 use App\Model\UnitsQuery;
 use Psr\Log\LoggerInterface;
@@ -19,6 +20,7 @@ final class ImageDownloader
         private readonly MulClient $client,
         private readonly string $imageDir,
         ?LoggerInterface $logger = null,
+        private readonly ?ConnectionGuard $guard = null,
     ) {
         $this->logger = $logger ?? new NullLogger();
 
@@ -43,20 +45,25 @@ final class ImageDownloader
             ->find();
 
         foreach ($units as $unit) {
-            try {
-                $result = $this->downloadOne($unit);
-                if ($result) {
-                    $counts['downloaded']++;
-                } else {
-                    $counts['skipped']++;
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    // A retry after a lost connection only has to store what the first try fetched.
+                    $downloaded = $unit->isModified() ? $unit->save() > 0 : $this->downloadOne($unit);
+                    $counts[$downloaded ? 'downloaded' : 'skipped']++;
+                    break;
+                } catch (\Throwable $e) {
+                    if ($attempt === 1 && $this->guard?->recover() === true) {
+                        $this->logger->warning('Database connection was lost and has been reopened');
+                        continue;
+                    }
+                    $this->logger->warning('Image download failed', [
+                        'unit'  => $unit->getMulUid() ?? $unit->getMulId(),
+                        'url'   => $unit->getImageUrl(),
+                        'error' => $e->getMessage(),
+                    ]);
+                    $counts['failed']++;
+                    break;
                 }
-            } catch (\Throwable $e) {
-                $this->logger->warning('Image download failed', [
-                    'unit' => $unit->getMulUid() ?? $unit->getMulId(),
-                    'url'    => $unit->getImageUrl(),
-                    'error'  => $e->getMessage(),
-                ]);
-                $counts['failed']++;
             }
         }
 
