@@ -47,10 +47,7 @@ jobs:
         run: composer install --no-interaction --no-progress
 
       - name: Apply migrations
-        run: |
-          for f in data/migrations/*.sql; do
-            mysql -h127.0.0.1 -uroot -proot mech_library < "$f"
-          done
+        run: bin/console db:migrate
 
       - name: Test
         run: composer test

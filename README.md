@@ -34,11 +34,12 @@ composer install
 cp .env.example .env    # DB credentials, login provider
 ```
 
-Create the database and apply the migrations in order:
+Create the database and apply the migrations. `db:migrate` remembers what it has run in
+`schema_migrations`, so it is safe to call on every deploy:
 
 ```bash
 mysql -e "CREATE DATABASE mech_library CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-for f in data/migrations/*.sql; do mysql mech_library < "$f"; done
+bin/console db:migrate
 ```
 
 Fill it from MUL. The crawler waits at least one second between requests and caches every

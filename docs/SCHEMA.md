@@ -111,11 +111,19 @@ automatically when either parent is deleted.
 
 ## Migration strategy
 
-Plain SQL files in `data/migrations/`, numbered `NNN_slug.sql`, applied in order with the
-`mysql` client against the database named in `DB_NAME` (the files contain no `USE`
-statement). There is no migration runner and no `schema_migrations` table: each file is run
-once on a fresh database. Perpl's Propel2 migration tooling is not used; plain SQL is
-adequate and easy to review.
+Plain SQL files in `data/migrations/`, numbered `NNN_slug.sql`, applied in order by
+`bin/console db:migrate` against the database named in `DB_NAME` (the files contain no `USE`
+statement). Applied files are recorded in `schema_migrations`, so the command runs only what
+is new and belongs in every deploy. The files themselves are not idempotent: never run them
+a second time by hand.
+
+A database that was migrated by hand before `schema_migrations` existed needs a one-time
+`bin/console db:migrate --baseline=NNN`, where NNN is the last file already in it. The
+runner splits files on a `;` at line end and drops `-- ` comments; keep statements in that
+shape (no stored procedures, no `DELIMITER`). MySQL DDL is not transactional, so a failing
+file can leave a half-applied state that has to be fixed by hand before re-running.
+
+Perpl's Propel2 migration tooling is not used; plain SQL is adequate and easy to review.
 
 | File                    | Adds                                                        |
 | ----------------------- | ----------------------------------------------------------- |
