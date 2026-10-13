@@ -130,9 +130,9 @@ final class UserRepository
             if (mb_strlen($g) > self::MAX_GROUP_LENGTH) {
                 throw new \InvalidArgumentException("group '{$g}' is longer than " . self::MAX_GROUP_LENGTH . ' characters');
             }
-            $out[$g] = true;
+            $out[] = $g;
         }
-        return array_keys($out);
+        return array_values(array_unique($out));
     }
 
     private static function localId(string $username): string

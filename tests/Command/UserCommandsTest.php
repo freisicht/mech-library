@@ -93,6 +93,11 @@ final class UserCommandsTest extends TestCase
         self::assertNotNull($user);
         self::assertSame(['league', 'campaign'], $this->users->groups($user));
 
+        $tester->execute(['username' => $this->username, 'groups' => ['2026']]);
+        $user = $this->users->findLocal($this->username);
+        self::assertNotNull($user);
+        self::assertSame(['2026'], $this->users->groups($user));
+
         $tester->execute(['username' => $this->username, '--clear' => true]);
         $user = $this->users->findLocal($this->username);
         self::assertNotNull($user);
