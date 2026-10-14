@@ -5,6 +5,13 @@ The old site (`masterunitlist.info`) now redirects its start page there; the old
 `/Unit/QuickList` and the HTML lists `/Era/Index`, `/Faction/Index` answer **404**. Everything
 below is about the new site.
 
+## Status 2026-10-14: Cloudflare challenge
+
+Since 14 October 2026 `/data/*` and the start page answer non-browser clients with **403** and
+`cf-mitigated: challenge`, from a home connection and from a server alike. `robots.txt` still
+answers 200. `mul:sync` cannot fetch anything new until this changes. Do not work around the
+challenge; the MUL team is being asked how tools like this should access the data.
+
 ## Etiquette
 
 `robots.txt` sets `Crawl-delay: 10` and disallows only `/factions/*?`, `/eras/*?` and the RAT

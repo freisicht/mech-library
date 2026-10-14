@@ -22,6 +22,13 @@ Built because the filters on MUL are not flexible enough for serious force compo
   Discord server, for example), so one instance can serve several gaming groups. See
   [`docs/AUTH.md`](docs/AUTH.md).
 
+> [!WARNING]
+> **Syncing from MUL does not work at the moment.** Since 14 October 2026 the Master Unit List
+> answers automated requests with a Cloudflare challenge (HTTP 403), so a new installation
+> cannot fetch unit data. Mech Library will not try to get around that. I am asking the MUL
+> team whether and how tools like this may read their data and will update this note when I
+> hear back. Existing installations keep working with the data they already have.
+
 ## Running with Docker
 
 The quickest way to try it: Docker with Compose, nothing else.
