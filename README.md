@@ -73,9 +73,9 @@ vendor/bin/perpl migration:migrate
 ```
 
 Fill it from [MUL](docs/MUL_API.md). `robots.txt` there asks for ten seconds between requests,
-so a full sync of all 8,700 units takes about a day; run it in the background. Each unit page
-is parsed once and cached under `data/raw/units/`, so an interrupted run continues where it
-stopped and later runs only fetch what is new.
+so a full sync of the seven unit types below (about 7,600 units) takes about a day; run it in
+the background. Each unit page is parsed once and cached under `data/raw/units/`, so an
+interrupted run continues where it stopped and later runs only fetch what is new.
 
 ```bash
 bin/console mul:sync --types=1,2,3,4,5,8,10   # Mechs, BA, vehicles, fighters, ProtoMechs, aerospace

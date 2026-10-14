@@ -4,7 +4,7 @@ This file is loaded automatically by Claude Code at session start. **All agents 
 
 ## Project in one sentence
 
-A self-hosted PHP/MySQL web application that mirrors BattleTech Alpha Strike unit data from masterunitlist.info into a searchable database with a force-builder on top.
+A self-hosted PHP/MySQL web application that mirrors BattleTech Alpha Strike unit data from the Master Unit List (masterunitlist.battletech.com) into a searchable database with a force-builder on top.
 
 ## Tech stack — fixed, do not change without user approval
 
