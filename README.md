@@ -5,7 +5,7 @@ public unit data on the [Master Unit List](https://masterunitlist.battletech.com
 
 Built because the filters on MUL are not flexible enough for serious force composition.
 
-![Unit list with filter matrix and formation panel](docs/design/preview.png)
+![Unit list with filter bar and formation panel](docs/design/preview.png)
 
 ## Features
 
