@@ -3,219 +3,180 @@
 
 {% block content %}
 
-{# ── Filter Matrix panel ── #}
+{# ── Filter bar ── #}
 <div class="filter-wrap">
-<div class="filter-panel" id="filter-panel">
-    <div class="corner-tl" style="width:10px;height:10px;"></div>
+<form id="filter-form" class="filter-bar" method="get" action="/">
 
-    {# Collapsible header #}
-    <div class="filter-panel-header" id="filter-panel-header">
-        <span class="filter-panel-label">Filter Matrix</span>
-        <span class="filter-panel-chevron open" id="filter-panel-chevron">▶</span>
+    <div class="filter-bar-row">
+
+        <label class="fgrp fgrp-search">
+            <span class="fgrp-pfx" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+            <input type="search" id="search" name="search" placeholder="Unit name"
+                   aria-label="Search" value="{{ params.search ?? '' }}">
+        </label>
+
+        <label class="fgrp">
+            <span class="fgrp-pfx">Type</span>
+            <select id="type" name="type">
+                <option value="">All</option>
+                {% for t in options.types %}
+                    <option value="{{ t.id }}"
+                        {% if (params.type ?? '')~ '' == t.id~ '' %}selected{% endif %}>
+                        {{ t.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <div class="fgrp" role="group" aria-label="PV range">
+            <span class="fgrp-pfx">PV</span>
+            <input type="number" name="pv_min" placeholder="min" min="0" aria-label="PV min"
+                   value="{{ params.pv_min ?? '' }}">
+            <span class="fgrp-dash">–</span>
+            <input type="number" name="pv_max" placeholder="max" min="0" aria-label="PV max"
+                   value="{{ params.pv_max ?? '' }}">
+        </div>
+
+        <div class="fgrp" role="group" aria-label="Move range in inches">
+            <span class="fgrp-pfx">Move</span>
+            <input type="number" name="move_min" placeholder="min" min="0" aria-label="Move min"
+                   value="{{ params.move_min ?? '' }}">
+            <span class="fgrp-dash">–</span>
+            <input type="number" name="move_max" placeholder="max" min="0" aria-label="Move max"
+                   value="{{ params.move_max ?? '' }}">
+            <label class="fgrp-check">
+                <input type="checkbox" name="jump" value="1"
+                    {% if params.jump ?? false %}checked{% endif %}>
+                jump
+            </label>
+        </div>
+
+        <div class="filter-bar-actions">
+        <button type="button" id="filter-more-btn" class="filter-more-btn"
+                aria-expanded="false" aria-controls="filter-more">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            More filters
+            <span class="filter-more-count" id="filter-more-count" hidden></span>
+        </button>
+
+        <button type="submit" class="btn-primary filter-apply">Apply</button>
+        </div>
+
     </div>
 
-    {# Panel body #}
-    <div class="filter-panel-body" id="filter-panel-body">
+    <div class="filter-chips" id="filter-chips" hidden>
+        <span class="filter-chips-label">Active</span>
+        <span id="filter-chips-list" class="filter-chips-list"></span>
+        <a href="/" class="filter-clear">Clear all</a>
+    </div>
 
-    <form id="filter-form" method="get" action="/">
+    <div class="filter-more" id="filter-more" hidden>
 
-        {# Row 1: Search / Type / PV / Move #}
-        <div class="filter-grid">
-
-            <div class="filter-cell">
-                <label for="search">Search</label>
-                <input type="text" id="search" name="search"
-                       placeholder="Name"
-                       value="{{ params.search ?? '' }}">
-            </div>
-
-            <div class="filter-cell">
-                <label for="type">Type</label>
-                <div class="select-wrap">
-                <select id="type" name="type">
-                    <option value="">All types</option>
-                    {% for t in options.types %}
-                        <option value="{{ t.id }}"
-                            {% if (params.type ?? '')~ '' == t.id~ '' %}selected{% endif %}>
-                            {{ t.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+        <div class="filter-more-stats">
+            <p class="filter-sec">Combat</p>
+            <div class="fstat" data-chip-label="TMM">
+                <span class="fstat-lbl">TMM ≥</span>
+                <div class="fgrp fgrp-sm">
+                    <input type="number" id="tmm_min" name="tmm_min" placeholder="min" aria-label="TMM min"
+                           value="{{ params.tmm_min ?? '' }}">
                 </div>
             </div>
-
-            <div class="filter-cell filter-range">
-                <label>PV</label>
-                <div class="range-inputs">
-                    <input type="number" name="pv_min" placeholder="min" min="0"
-                           value="{{ params.pv_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="pv_max" placeholder="max" min="0"
-                           value="{{ params.pv_max ?? '' }}">
+            {% for key, lbl in {s: 'Dmg S', m: 'Dmg M', l: 'Dmg L'} %}
+            <div class="fstat" data-chip-label="{{ lbl }}">
+                <span class="fstat-lbl">{{ lbl }}</span>
+                <div class="fgrp fgrp-sm" role="group" aria-label="{{ lbl }}">
+                    <input type="number" name="{{ key }}_min" placeholder="min" min="0" aria-label="{{ lbl }} min"
+                           value="{{ attribute(params, key ~ '_min') ?? '' }}">
+                    <span class="fgrp-dash">–</span>
+                    <input type="number" name="{{ key }}_max" placeholder="max" min="0" aria-label="{{ lbl }} max"
+                           value="{{ attribute(params, key ~ '_max') ?? '' }}">
                 </div>
             </div>
-
-            <div class="filter-cell filter-range">
-                <label>Move (inches)</label>
-                <div class="range-inputs">
-                    <input type="number" name="move_min" placeholder="min" min="0"
-                           value="{{ params.move_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="move_max" placeholder="max" min="0"
-                           value="{{ params.move_max ?? '' }}">
-                    <div style="flex: 1;">
-                        <input type="checkbox" name="jump" value="1" style="flex: 0;"
-                            {% if params.jump ?? false %}checked{% endif %}>
-                        <span class="label">j only</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>{# /.filter-grid #}
-
-        {# Row 2: TMM / Damage S / M / L #}
-        <div class="filter-grid-row2">
-
-            <div class="filter-cell">
-                <label for="tmm_min">TMM ≥</label>
-                <input type="number" id="tmm_min" name="tmm_min" placeholder="min"
-                       value="{{ params.tmm_min ?? '' }}">
-            </div>
-
-            <div class="filter-cell filter-range">
-                <label>Damage S</label>
-                <div class="range-inputs">
-                    <input type="number" name="s_min" placeholder="min" min="0"
-                           value="{{ params.s_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="s_max" placeholder="max" min="0"
-                           value="{{ params.s_max ?? '' }}">
-                </div>
-            </div>
-
-            <div class="filter-cell filter-range">
-                <label>Damage M</label>
-                <div class="range-inputs">
-                    <input type="number" name="m_min" placeholder="min" min="0"
-                           value="{{ params.m_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="m_max" placeholder="max" min="0"
-                           value="{{ params.m_max ?? '' }}">
-                </div>
-            </div>
-
-            <div class="filter-cell filter-range">
-                <label>Damage L</label>
-                <div class="range-inputs">
-                    <input type="number" name="l_min" placeholder="min" min="0"
-                           value="{{ params.l_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="l_max" placeholder="max" min="0"
-                           value="{{ params.l_max ?? '' }}">
-                </div>
-            </div>
-
-        </div>{# /.filter-grid-row2 #}
-
-        {# Row 3: Role / Tech / Era / Year #}
-        <div class="filter-grid-row3">
-
-            <div class="filter-cell">
-                <label for="role">Role</label>
-                <select id="role" name="role[]" multiple>
-                    {% for r in options.roles %}
-                        <option value="{{ r.id }}"
-                            {% if r.id~ '' in (params.role ?? []) %}selected{% endif %}>
-                            {{ r.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="filter-cell">
-                <label for="tech">Tech Base</label>
-                <select id="tech" name="tech[]" multiple>
-                    {% for t in options.technologies %}
-                        <option value="{{ t.id }}"
-                            {% if t.id~ '' in (params.tech ?? []) %}selected{% endif %}>
-                            {{ t.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="filter-cell">
-                <label for="era">Era</label>
-                <select id="era" name="era[]" multiple>
-                    {% for e in options.eras %}
-                        <option value="{{ e.id }}"
-                            {% if e.id~ '' in (params.era ?? []) %}selected{% endif %}>
-                            {{ e.name }}{% if e.start_year %} ({{ e.start_year }}){% endif %}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="filter-cell filter-range">
-                <label>Intro Year</label>
-                <div class="range-inputs">
-                    <input type="number" name="year_min" placeholder="from" min="2000" max="3200"
+            {% endfor %}
+            <div class="fstat" data-chip-label="Year">
+                <span class="fstat-lbl">Year</span>
+                <div class="fgrp fgrp-sm" role="group" aria-label="Intro year">
+                    <input type="number" name="year_min" placeholder="from" min="2000" max="3200" aria-label="Year from"
                            value="{{ params.year_min ?? '' }}">
-                    <span class="range-sep">—</span>
-                    <input type="number" name="year_max" placeholder="to" min="2000" max="3200"
+                    <span class="fgrp-dash">–</span>
+                    <input type="number" name="year_max" placeholder="to" min="2000" max="3200" aria-label="Year to"
                            value="{{ params.year_max ?? '' }}">
                 </div>
             </div>
+        </div>
 
-        </div>{# /.filter-grid-row3 #}
-
-        {# Row 4: Abilities + actions #}
-        <div class="filter-abilities-row">
-
-            <div class="filter-cell" style="flex:1;min-width:200px;">
-                <label>Abilities / Tags</label>
-                <div class="ability-builder">
-                    <select id="ability-tag-select" style="width:auto;min-width:120px;">
-                        <option value="">— pick tag —</option>
-                        {% for tag in options.abilityTags %}
-                            <option value="{{ tag }}">{{ tag }}</option>
-                        {% endfor %}
-                    </select>
-                    <input type="number" id="ability-val-input" placeholder="≥ val" min="0"
-                           style="width:70px;">
-                    <div class="ability-mode-group">
-                        <span class="ability-mode-label">MODE:</span>
-                        <label>
-                            <input type="radio" name="ability_mode" value="and"
-                                   {% if (params.ability_mode ?? 'and') == 'and' %}checked{% endif %}> AND
-                        </label>
-                        <label>
-                            <input type="radio" name="ability_mode" value="or"
-                                   {% if (params.ability_mode ?? 'and') == 'or' %}checked{% endif %}> OR
-                        </label>
-                    </div>
-                    <button type="button" id="ability-add-btn" class="btn-secondary btn-sm">+ Add</button>
+        <div class="filter-more-sets">
+            <fieldset class="filter-set" data-chip-label="Role">
+                <legend class="filter-sec">Role</legend>
+                <div class="pills">
+                    {% for r in options.roles %}
+                        <label class="pill"><input type="checkbox" name="role[]" value="{{ r.id }}"
+                            {% if r.id~ '' in (params.role ?? []) %}checked{% endif %}>{{ r.name }}</label>
+                    {% endfor %}
                 </div>
-                <div id="ability-chips" class="ability-chips"></div>
+            </fieldset>
+
+            <div class="filter-set-row">
+                <fieldset class="filter-set" data-chip-label="Tech">
+                    <legend class="filter-sec">Tech Base</legend>
+                    <div class="pills">
+                        {% for t in options.technologies %}
+                            <label class="pill"><input type="checkbox" name="tech[]" value="{{ t.id }}"
+                                {% if t.id~ '' in (params.tech ?? []) %}checked{% endif %}>{{ t.name }}</label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+
+                <fieldset class="filter-set" data-chip-label="Era">
+                    <legend class="filter-sec">Era</legend>
+                    <div class="pills">
+                        {% for e in options.eras %}
+                            <label class="pill"{% if e.start_year %} title="from {{ e.start_year }}"{% endif %}><input type="checkbox" name="era[]" value="{{ e.id }}"
+                                {% if e.id~ '' in (params.era ?? []) %}checked{% endif %}>{{ e.name }}</label>
+                        {% endfor %}
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="filter-set">
+                <p class="filter-sec">Abilities</p>
+                <div class="ability-builder">
+                    <div class="fgrp fgrp-sm">
+                        <select id="ability-tag-select" aria-label="Ability tag">
+                            <option value="">pick tag</option>
+                            {% for tag in options.abilityTags %}
+                                <option value="{{ tag }}">{{ tag }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="number" id="ability-val-input" placeholder="≥" min="0"
+                               aria-label="Minimum value" class="fgrp-num">
+                    </div>
+                    <button type="button" id="ability-add-btn" class="pill pill-btn">+ Add</button>
+                    <span id="ability-chips" class="ability-chips"></span>
+                    <div class="seg" role="radiogroup" aria-label="Match mode">
+                        <label><input type="radio" name="ability_mode" value="and"
+                               {% if (params.ability_mode ?? 'and') == 'and' %}checked{% endif %}>All</label>
+                        <label><input type="radio" name="ability_mode" value="or"
+                               {% if (params.ability_mode ?? 'and') == 'or' %}checked{% endif %}>Any</label>
+                    </div>
+                </div>
                 <div id="ability-inputs">
                     {% for ab in (params.ability ?? []) %}
                         <input type="hidden" name="ability[]" value="{{ ab }}">
                     {% endfor %}
                 </div>
             </div>
+        </div>
 
-            <div class="filter-actions">
-                <button type="submit" class="btn-primary">Apply</button>
-                <a href="/" class="btn-secondary" style="clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px);padding:5px 14px;font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:0.10em;border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-block;transition:all 0.12s;">Reset</a>
-            </div>
+        <div class="filter-more-foot">
+            <a href="/" class="filter-clear">Reset all</a>
+            <button type="submit" class="btn-primary">Apply</button>
+        </div>
 
-        </div>{# /.filter-abilities-row #}
+    </div>
 
-    </form>
-
-    </div>{# /.filter-panel-body #}
-</div>{# /.filter-panel #}
-</div>{# /.filter-wrap #}
+</form>
+</div>
 
 {# Hidden result count — value is set by app.js, displayed in status bar #}
 <div id="result-count" aria-live="polite" hidden></div>
@@ -250,28 +211,6 @@
             sc.textContent = rc.textContent;
         });
         obs.observe(rc, { childList: true, subtree: true, characterData: true });
-    }
-
-    // Filter panel collapse toggle
-    var header   = document.getElementById('filter-panel-header');
-    var body     = document.getElementById('filter-panel-body');
-    var chevron  = document.getElementById('filter-panel-chevron');
-    if (header && body) {
-        header.addEventListener('click', function () {
-            var collapsed = body.style.display === 'none';
-            body.style.display = collapsed ? '' : 'none';
-            if (chevron) {
-                chevron.classList.toggle('open', collapsed);
-            }
-            header.classList.toggle('collapsed', !collapsed);
-        });
-
-        // On mobile collapse by default so the unit table is reachable.
-        if (window.matchMedia('(max-width: 700px)').matches) {
-            body.style.display = 'none';
-            if (chevron) chevron.classList.remove('open');
-            header.classList.add('collapsed');
-        }
     }
 })();
 </script>

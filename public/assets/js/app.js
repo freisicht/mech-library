@@ -205,7 +205,117 @@
             const qs2 = buildQueryString(params);
             history.replaceState(null, '', qs2 ? '?' + qs2 : '/');
             table.replaceData();
+            setMoreOpen(false);
+            renderActiveFilters();
         });
+    }
+
+    // ── "More filters" panel and active-filter chips ─────────────────────────
+
+    const moreBtn   = qs('#filter-more-btn');
+    const morePanel = qs('#filter-more');
+    const moreCount = qs('#filter-more-count');
+    const activeBox = qs('#filter-chips');
+    const activeEl  = qs('#filter-chips-list');
+
+    function setMoreOpen(open) {
+        if (!moreBtn || !morePanel) return;
+        morePanel.hidden = !open;
+        moreBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    if (moreBtn && morePanel) {
+        moreBtn.addEventListener('click', function () {
+            setMoreOpen(morePanel.hidden);
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !morePanel.hidden) {
+                setMoreOpen(false);
+                moreBtn.focus();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (morePanel.hidden || !filterForm) return;
+            // Chip remove buttons are detached by the time this runs.
+            if (!e.target.isConnected) return;
+            if (!filterForm.contains(e.target)) setMoreOpen(false);
+        });
+    }
+
+    function describeGroup(el) {
+        const checked = el.querySelectorAll('input[type="checkbox"]:checked');
+        if (checked.length) {
+            return Array.from(checked, function (c) {
+                return c.parentElement.textContent.trim();
+            }).join(', ');
+        }
+        const nums = el.querySelectorAll('input[type="number"]');
+        if (nums.length === 1) {
+            return nums[0].value !== '' ? '≥ ' + nums[0].value : '';
+        }
+        if (nums.length === 2) {
+            const lo = nums[0].value, hi = nums[1].value;
+            if (lo !== '' && hi !== '') return lo + '–' + hi;
+            if (lo !== '') return '≥ ' + lo;
+            if (hi !== '') return '≤ ' + hi;
+        }
+        return '';
+    }
+
+    function makeChip(label, text, onRemove) {
+        const chip = document.createElement('span');
+        chip.className = 'ability-chip';
+        const b = document.createElement('b');
+        b.textContent = label;
+        chip.appendChild(b);
+        chip.appendChild(document.createTextNode(' ' + text));
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.textContent = '✕';
+        rm.setAttribute('aria-label', 'Remove ' + label + ' filter');
+        rm.addEventListener('click', onRemove);
+        chip.appendChild(rm);
+        return chip;
+    }
+
+    function resubmit() {
+        if (filterForm) filterForm.requestSubmit();
+    }
+
+    function renderActiveFilters() {
+        if (!morePanel || !activeEl || !activeBox) return;
+        activeEl.innerHTML = '';
+        let n = 0;
+        morePanel.querySelectorAll('[data-chip-label]').forEach(function (el) {
+            const text = describeGroup(el);
+            if (!text) return;
+            n++;
+            activeEl.appendChild(makeChip(el.dataset.chipLabel, text, function () {
+                el.querySelectorAll('input[type="checkbox"]').forEach(function (c) { c.checked = false; });
+                el.querySelectorAll('input[type="number"]').forEach(function (i) { i.value = ''; });
+                resubmit();
+            }));
+        });
+        const abilities = inputsEl ? inputsEl.querySelectorAll('input[type="hidden"]') : [];
+        if (abilities.length) {
+            n++;
+            const mode = qs('input[name="ability_mode"]:checked');
+            const joiner = mode && mode.value === 'or' ? ' or ' : ' and ';
+            const text = Array.from(abilities, function (i) {
+                const [tag, threshold] = i.value.split(':');
+                return threshold ? tag + ' ≥' + threshold : tag;
+            }).join(joiner);
+            activeEl.appendChild(makeChip('Tags', text, function () {
+                abilities.forEach(function (i) { i.remove(); });
+                renderChips();
+                resubmit();
+            }));
+        }
+        activeBox.hidden = n === 0;
+        if (moreCount) {
+            moreCount.hidden = n === 0;
+            moreCount.textContent = String(n);
+        }
     }
 
     // ── Ability multi-select builder ──────────────────────────────────────────
@@ -267,7 +377,8 @@
         });
     }
 
-    // Initialise chips from server-rendered hidden inputs (bookmarked URL)
+    // Initialise chips from server-rendered state (bookmarked URL)
     renderChips();
+    renderActiveFilters();
 
 })();
