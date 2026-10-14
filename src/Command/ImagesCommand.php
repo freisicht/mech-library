@@ -34,8 +34,9 @@ final class ImagesCommand extends Command
         $counts = $downloader->downloadAll();
 
         $output->writeln(sprintf(
-            '<info>Images: %d downloaded, %d skipped, %d failed</info>',
+            '<info>Images: %d downloaded, %d adopted from disk, %d skipped, %d failed</info>',
             $counts['downloaded'],
+            $counts['adopted'],
             $counts['skipped'],
             $counts['failed'],
         ));

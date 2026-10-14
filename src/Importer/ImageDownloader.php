@@ -33,11 +33,11 @@ final class ImageDownloader
      * Download images for all units that have an image_url but no local file.
      * Existing files are not re-checked: every request to MUL costs 10 s.
      *
-     * @return array{downloaded: int, skipped: int, failed: int}
+     * @return array{downloaded: int, adopted: int, skipped: int, failed: int}
      */
     public function downloadAll(): array
     {
-        $counts = ['downloaded' => 0, 'skipped' => 0, 'failed' => 0];
+        $counts = ['downloaded' => 0, 'adopted' => 0, 'skipped' => 0, 'failed' => 0];
 
         /** @var Units[] $units */
         $units = UnitsQuery::create()
@@ -48,8 +48,12 @@ final class ImageDownloader
             for ($attempt = 1; $attempt <= 2; $attempt++) {
                 try {
                     // A retry after a lost connection only has to store what the first try fetched.
-                    $downloaded = $unit->isModified() ? $unit->save() > 0 : $this->downloadOne($unit);
-                    $counts[$downloaded ? 'downloaded' : 'skipped']++;
+                    if ($unit->isModified()) {
+                        $unit->save();
+                        $counts['downloaded']++;
+                    } else {
+                        $counts[$this->download($unit)]++;
+                    }
                     break;
                 } catch (\Throwable $e) {
                     if ($attempt === 1 && $this->guard?->recover() === true) {
@@ -70,19 +74,17 @@ final class ImageDownloader
         return $counts;
     }
 
-    /**
-     * Download image for a single unit. Returns true if file was written, false if skipped.
-     */
-    private function downloadOne(Units $unit): bool
+    /** @return 'downloaded'|'adopted'|'skipped' */
+    public function download(Units $unit): string
     {
         $url = $unit->getImageUrl();
         if ($url === null || $url === '') {
-            return false;
+            return 'skipped';
         }
 
         $existing = $unit->getImagePath();
         if ($existing !== null && is_file($this->imageDir . '/' . basename($existing))) {
-            return false;
+            return 'skipped';
         }
 
         $ext      = $this->extensionFromUrl($url);
@@ -90,13 +92,16 @@ final class ImageDownloader
         $localRel = 'images/units/' . $file;
         $localAbs = $this->imageDir . '/' . $file;
 
+        // A file copied over from another installation saves a 10 s request.
+        if (is_file($localAbs)) {
+            $unit->setImagePath($localRel);
+            $unit->setImageHash(hash_file('sha256', $localAbs) ?: null);
+            $unit->save();
+            return 'adopted';
+        }
+
         $body = $this->client->fetchRaw($url, useCache: false);
         $hash = hash('sha256', $body);
-
-        if ($unit->getImageHash() === $hash && file_exists($localAbs)) {
-            $this->logger->debug('Image unchanged, skipping', ['unit' => $unit->getMulUid() ?? $unit->getMulId()]);
-            return false;
-        }
 
         if (file_put_contents($localAbs, $body) === false) {
             throw new RuntimeException("Cannot write image: {$localAbs}");
@@ -108,7 +113,7 @@ final class ImageDownloader
 
         $this->logger->info('Image downloaded', ['unit' => $unit->getMulUid() ?? $unit->getMulId(), 'path' => $localRel]);
 
-        return true;
+        return 'downloaded';
     }
 
     private function extensionFromUrl(string $url): string
