@@ -22,7 +22,7 @@ final class MulClientFactory
         $baseUrl  = self::env('MUL_BASE_URL') ?? self::DEFAULT_BASE_URL;
         $delayMs  = max(MulClient::MIN_DELAY_MS, (int) self::env('MUL_REQUEST_DELAY_MS'));
         $cacheDir = self::cacheDir();
-        $version  = '0.2';
+        $version  = '0.4';
 
         $httpClient = new Client([
             'base_uri' => $baseUrl,
